@@ -76,11 +76,11 @@ WSGI_APPLICATION = 'mein_objekt.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'mein_data',
+        'NAME': os.environ.get('POSTGRES_NAME', default=None),
         'USER' : os.environ.get('POSTGRES_USER', default=None),
         'PASSWORD' : os.environ.get('POSTGRES_PASSWORD', default=None),
-        'HOST' : '127.0.0.1',
-        'PORT' : '5432',
+        'HOST' : os.environ.get('POSTGRES_HOST', default=None),
+        'PORT' : os.environ.get('POSTGRES_PORT', default=5432),
     }
 }
 # Password validation
