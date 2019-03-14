@@ -1,0 +1,34 @@
+version: 2
+jobs:
+  deploy:
+    machine:
+      enabled: true
+    working_directory: ~/project
+    steps:
+      - checkout
+      - run:
+          name: Deploy to Heroku
+          command: |
+            if [ "${CIRCLE_BRANCH}" == 'master' ]; then
+              git push https://heroku:"${HEROKU_API_KEY}"@git.heroku.com/"${PROD_PROJECT_NAME}".git master
+              heroku restart --app "${PROD_PROJECT_NAME}"
+            elif [ "${CIRCLE_BRANCH}" == 'staging' ]; then
+              git push https://heroku:"${HEROKU_API_KEY}"@git.heroku.com/"${STAGING_PROJECT_NAME}".git staging:master
+              heroku restart --app "${STAGING_PROJECT_NAME}"
+            elif [ "${CIRCLE_BRANCH}" == 'qa' ]; then
+              git push https://heroku:"${HEROKU_API_KEY}"@git.heroku.com/"${QA_PROJECT_NAME}".git qa:master
+              heroku restart --app "${QA_PROJECT_NAME}"
+            else
+                CIRCLECI=true
+            fi
+workflows:
+  version: 2
+  deploy:
+    jobs:
+      - deploy:
+          filters:
+            branches:
+              only:
+                - qa
+                - staging
+                - master
