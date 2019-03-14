@@ -31,10 +31,10 @@ class MuseumsSerializer(serializers.ModelSerializer):
 
 
 class ObjectsItemSerializer(serializers.ModelSerializer):
-    images = serializers.HyperlinkedRelatedField(
-        many=True,
-        read_only=True,
-        view_name='objectsimagesview-detail')
+    # images = serializers.HyperlinkedRelatedField(
+    #     many=True,
+    #     read_only=True,
+    #     view_name='objectsimagesview-detail')
 
     class Meta:
         model = ObjectsItem
