@@ -22,6 +22,7 @@ from .serializers import (
     UsersSerializer,
     SettingsSerializer,
     MuseumsSerializer,
+    MuseumsImagesSerializer,
     ObjectsItemSerializer,
     CategoriesSerializer,
     ChatsSerializer,
@@ -76,6 +77,9 @@ class ObjectsImagesView(viewsets.ModelViewSet):
     serializer_class = ObjectsImagesSerializer
 
 
+class MuseumsImagesView(viewsets.ModelViewSet):
+    queryset = MuseumsImages.objects.all()
+    serializer_class = MuseumsImagesSerializer
 
 
 @api_view(['GET'])
@@ -107,7 +111,7 @@ def synchronise(request):
             museum_images = museum.museumsimages_set.all()
             for image in museum_images:
                 image_dict = {}
-                serialized_museumsimage =  MuseumsImagesSerializer(image).data
+                serialized_museumsimage =  MuseumsImagesSerializer(instance=image, context=context).data
                 image_dict['id'] = serialized_museumsimage['id']
                 image_dict['image_type'] = serialized_museumsimage['image_type']
                 image_dict['image'] = serialized_museumsimage['image']
@@ -135,7 +139,7 @@ def synchronise(request):
                               'localizations': [],
                               'images': []}
 
-                serialized_item = ObjectsItemSerializer(item).data
+                serialized_item = ObjectsItemSerializer(instance=item, context=context).data
                 item_table['id'] = serialized_item['id']
                 item_table['priority'] = serialized_item['priority']
                 item_table['floor'] = serialized_item['floor']
@@ -169,7 +173,7 @@ def synchronise(request):
                 images = item.objectsimages_set.all()
                 for image in images:
                     image_dict = {}
-                    serialized_image = ObjectsImagesSerializer(image).data
+                    serialized_image = ObjectsImagesSerializer(instance=image, context=context).data
 
                     image_dict['id'] = serialized_image['id']
                     image_dict['image'] = serialized_image['image']

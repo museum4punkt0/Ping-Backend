@@ -30,11 +30,7 @@ class MuseumsSerializer(serializers.ModelSerializer):
             'tensor_flow_lables', 'sync_id', 'synced', 'created_at', 'updated_at')
 
 
-class ObjectsItemSerializer(serializers.ModelSerializer):
-    # images = serializers.HyperlinkedRelatedField(
-    #     many=True,
-    #     read_only=True,
-    #     view_name='objectsimagesview-detail')
+class ObjectsItemSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = ObjectsItem
@@ -72,7 +68,9 @@ class ChatsSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 
 
-class ObjectsImagesSerializer(serializers.ModelSerializer):
+class ObjectsImagesSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.IntegerField()
+
     class Meta:
         model = ObjectsImages
         fields = ('__all__')
@@ -82,6 +80,7 @@ class PredefinedAvatarsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PredefinedAvatars
         fields = ('__all__')
+
 
 class MuseumsImagesSerializer(serializers.ModelSerializer):
     class Meta:
