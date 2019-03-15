@@ -50,7 +50,9 @@ class CategorieslocalizationsSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 
 
-class ObjectslocalizationsSerializer(serializers.ModelSerializer):
+class ObjectslocalizationsSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.IntegerField()
+
     class Meta:
         model = ObjectsLocalizations
         fields = ('__all__')

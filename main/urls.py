@@ -13,6 +13,7 @@ router.register('users', views.UsersView)
 router.register('museums', views.MuseumsView)
 router.register('settings', views.SettingsView)
 router.register('objectsimages', views.ObjectsImagesView)
+router.register('objectslocalizations', views.ObjectsLocalizationsView)
 
 urlpatterns = [
     path(r'api/v1/', include(router.urls)),

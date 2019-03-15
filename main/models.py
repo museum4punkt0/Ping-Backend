@@ -48,15 +48,15 @@ def get_image_path(instance, filename):
             user_syncid = instance.user.sync_id.urn.split(':')[-1]
             dir_name = f'User/{user_syncid}/Collection'
     elif instance.__class__.__name__ in ('ObjectsItem',
-        'MuseumsImages', 'ObjectsImages', 'PredefinedAvatars'):
+        'MuseumsImages', 'ObjectsImages', 'PredefinedAvatars', 'ObjectsLocalizations'):
         museum_name = getattr(instance, 'museum', None)
         object_syncid = instance.sync_id
+        dir_name = f'Museum/{museum_name}'
 
         if instance.__class__.__name__ == 'MuseumsImages':
             museum_name = instance.objects_item.museum
             object_syncid = instance.objects_item.sync_id
-            dir_name = f'Museum/{museum_name}'
-        if instance.__class__.__name__ in ('ObjectsItem', 'ObjectsImages'):
+        if instance.__class__.__name__ in ('ObjectsItem', 'ObjectsImages', 'ObjectsLocalizations'):
             dir_name += f'/Objects/{object_syncid}'
         if instance.__class__.__name__ == 'PredefinedAvatars':
             # museum_name = instance.settings.museum
@@ -325,6 +325,9 @@ class Chats(models.Model):
 
 
 class ObjectsImages(models.Model):
+    class Meta:
+        verbose_name_plural = "Objects Images"
+
     objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
     image = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
@@ -343,6 +346,9 @@ class ObjectsImages(models.Model):
         return f'{self.id}'
 
 class MuseumsImages(models.Model):
+    class Meta:
+        verbose_name_plural = "Museums Images"
+
     image = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
     image_type = models.CharField(max_length=45)
     museum = models.ForeignKey(Museums, models.CASCADE)
@@ -363,9 +369,12 @@ class MuseumsImages(models.Model):
 
 
 class ObjectsLocalizations(models.Model):
+    class Meta:
+        verbose_name_plural = "Objects Localizations"
+
     objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
     language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.eng)
-    conversation = models.FileField(upload_to='media', null=True)
+    conversation = models.FileField(upload_to=get_image_path, blank=True, null=True, max_length=110)
     description = models.TextField(blank=True, null=True)
     title = models.CharField(max_length=45, blank=True, null=True)
     object_kind = models.CharField(max_length=45, blank=True, null=True)
@@ -386,6 +395,9 @@ class ObjectsLocalizations(models.Model):
 
 
 class UsersLanguageStyles(models.Model):
+    class Meta:
+        verbose_name_plural = "Users Language Styles"
+
     user = models.ForeignKey(Users, models.CASCADE)
     language_style = models.CharField(max_length=45, choices=LANGUEAGE_STYLE_CHOICES, null=True, blank=True)
     score = models.IntegerField(blank=True, null=True)
@@ -406,6 +418,9 @@ class UsersLanguageStyles(models.Model):
 
 
 class Votings(models.Model):
+    class Meta:
+        verbose_name_plural = "Votings"
+
     user = models.ForeignKey(Users, models.DO_NOTHING)
     objects_item = models.ForeignKey(ObjectsItem, models.DO_NOTHING)
     vote = models.BooleanField(default=False)

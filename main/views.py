@@ -82,6 +82,11 @@ class MuseumsImagesView(viewsets.ModelViewSet):
     serializer_class = MuseumsImagesSerializer
 
 
+class ObjectsLocalizationsView(viewsets.ModelViewSet):
+    queryset = ObjectsLocalizations.objects.all()
+    serializer_class = ObjectslocalizationsSerializer
+
+
 @api_view(['GET'])
 def synchronise(request):
     """
@@ -157,7 +162,7 @@ def synchronise(request):
                 localizations = item.objectslocalizations_set.all()
                 for local in localizations:
                     local_dict = {}
-                    serialized_local = ObjectslocalizationsSerializer(local).data
+                    serialized_local = ObjectslocalizationsSerializer(instance=local, context=context).data
                     local_dict['id'] = serialized_local['id']
                     local_dict['language'] = serialized_local['language']
                     local_dict['conversation'] = serialized_local['conversation']
