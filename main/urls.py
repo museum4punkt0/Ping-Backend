@@ -15,7 +15,6 @@ router.register('settings', views.SettingsView)
 router.register('objectsimages', views.ObjectsImagesView)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path(r'api/v1/', include(router.urls)),
     path('api/v1/synchronise/', views.synchronise),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
