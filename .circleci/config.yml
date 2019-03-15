@@ -16,7 +16,7 @@ jobs:
               git push https://heroku:"${HEROKU_API_KEY}"@git.heroku.com/"${STAGING_PROJECT_NAME}".git staging:master
               heroku restart --app "${STAGING_PROJECT_NAME}"
             elif [ "${CIRCLE_BRANCH}" == 'qa' ]; then
-              git push https://heroku:"${HEROKU_API_KEY}"@git.heroku.com/"${QA_PROJECT_NAME}".git qa:master
+              git push -f https://heroku:"${HEROKU_API_KEY}"@git.heroku.com/"${QA_PROJECT_NAME}".git qa:master
               heroku restart --app "${QA_PROJECT_NAME}"
             else
                 CIRCLECI=true
