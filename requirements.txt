@@ -19,3 +19,4 @@ six==1.12.0
 traitlets==4.3.2
 wcwidth==0.1.7
 wmctrl==0.3
+gunicorn==19.9.0
