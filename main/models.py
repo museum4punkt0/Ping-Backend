@@ -49,17 +49,19 @@ def get_image_path(instance, filename):
             dir_name = f'User/{user_syncid}/Collection'
     elif instance.__class__.__name__ in ('ObjectsItem',
         'MuseumsImages', 'ObjectsImages', 'PredefinedAvatars', 'ObjectsLocalizations'):
-        museum_name = getattr(instance, 'museum', None)
         object_syncid = instance.sync_id
+        museum_name = getattr(instance, 'museum', None)
+        if museum_name is None:
+            item = getattr(instance, 'objects_item', None)
+            if item:
+                museum_name = getattr(item, 'museum', None).name
+                object_syncid = getattr(item, 'sync_id', None)
         dir_name = f'Museum/{museum_name}'
-
         if instance.__class__.__name__ == 'MuseumsImages':
-            museum_name = instance.objects_item.museum
-            object_syncid = instance.objects_item.sync_id
+            museum_name = instance.museum
         if instance.__class__.__name__ in ('ObjectsItem', 'ObjectsImages', 'ObjectsLocalizations'):
             dir_name += f'/Objects/{object_syncid}'
         if instance.__class__.__name__ == 'PredefinedAvatars':
-            # museum_name = instance.settings.museum
             dir_name = f'Museum/PredefinedAvatars'
     return os.path.join('images', dir_name, filename)
 
@@ -133,7 +135,7 @@ class Settings(models.Model):
 
 class PredefinedAvatars(models.Model):
     class Meta:
-        verbose_name_plural = "PredefinedAvatars"
+        verbose_name_plural = "Predefined Avatars"
 
     image = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
     settings = models.ManyToManyField(Settings)
@@ -256,7 +258,7 @@ class Collections(models.Model):
 
 class Categorieslocalizations(models.Model):
     class Meta:
-        verbose_name_plural = "Categorieslocalizations"
+        verbose_name_plural = "Categories Localizations"
 
     category = models.ForeignKey(Categories, models.PROTECT)
     title = models.CharField(max_length=45)
@@ -279,7 +281,7 @@ class Categorieslocalizations(models.Model):
 
 class ObjectsCategories(models.Model):
     class Meta:
-        verbose_name_plural = "ObjectsCategories"
+        verbose_name_plural = "Objects Categories"
 
     objects_item = models.OneToOneField(ObjectsItem, models.CASCADE)
     category = models.ManyToManyField(Categories)
