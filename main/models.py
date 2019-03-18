@@ -138,7 +138,7 @@ class PredefinedAvatars(models.Model):
         verbose_name_plural = "Predefined Avatars"
 
     image = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
-    settings = models.ManyToManyField(Settings)
+    settings = models.ForeignKey(Settings, models.CASCADE, blank=True, null=True)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
