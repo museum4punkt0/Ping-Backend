@@ -40,8 +40,15 @@ class ObjectsLocalizationsInline(admin.TabularInline):
 
 
 class ObjectsItemAdmin(admin.ModelAdmin):
-    inlines = [ObjectsImagesInline, ObjectsLocalizationsInline]
+    list_display = ('id', 'get_title', 'museum', 'onboarding', 'vip', 'updated_at')
+    inlines = [ObjectsLocalizationsInline, ObjectsImagesInline]
     readonly_fields = ['synced', 'updated_at']
+
+    # def get_queryset(self, request):
+    #     return super(ObjectsItemAdmin,self).get_queryset(request).select_related('objectslocalizations_set')
+
+    def get_title(self, obj):
+        return obj.objectslocalizations_set.first().title
 
 
 class CategorieslocalizationsInline(admin.TabularInline):

@@ -23,7 +23,7 @@ PRIORITY_CHOICES = Choices(
       )
 
 LOCALIZATIONS_CHOICES = Choices(
-        ('eng', 'English'),
+        ('en', 'English'),
         ('de', 'German'),
       )
 
@@ -236,7 +236,7 @@ class Collections(models.Model):
     class Meta:
         verbose_name_plural = "Collections"
 
-    user = models.OneToOneField(Users, models.CASCADE, default=1)
+    user = models.ForeignKey(Users, models.CASCADE, blank=True, null=True)
     objects_item = models.ManyToManyField(ObjectsItem)
     category = models.ManyToManyField(Categories)
     image = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
@@ -262,7 +262,7 @@ class Categorieslocalizations(models.Model):
 
     category = models.ForeignKey(Categories, models.PROTECT)
     title = models.CharField(max_length=45)
-    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.eng)
+    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.en)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -347,6 +347,7 @@ class ObjectsImages(models.Model):
     def __str__(self):
         return f'{self.id}'
 
+
 class MuseumsImages(models.Model):
     class Meta:
         verbose_name_plural = "Museums Images"
@@ -375,7 +376,7 @@ class ObjectsLocalizations(models.Model):
         verbose_name_plural = "Objects Localizations"
 
     objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
-    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.eng)
+    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.en)
     conversation = models.FileField(upload_to=get_image_path, blank=True, null=True, max_length=110)
     description = models.TextField(blank=True, null=True)
     title = models.CharField(max_length=45, blank=True, null=True)
