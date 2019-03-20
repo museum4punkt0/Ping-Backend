@@ -123,11 +123,6 @@ class Settings(models.Model):
         self.updated_at = timezone.now()
         return super(Settings, self).save(*args, **kwargs)
 
-    @staticmethod
-    def get_default_settings():
-        user_settings, created = self.objects.get_or_create(
-            DEFAULT_MUSEUM_SETTINGS)
-        return museum_settings
 
     def __str__(self):
         return f'{self.id}'
@@ -169,10 +164,15 @@ class Museums(models.Model):
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 
-    def save(self, *args, **kwargs):
-        if self.settings is None:
-            self.settings = Settings.get_default_settings()
+    @property
+    def objectsitems(self):
+        return self.objectsitem_set.all()
 
+    @property
+    def museumimages(self):
+        return self.museumsimages_set.all()
+
+    def save(self, *args, **kwargs):
         if not self.id:
             self.created_at = timezone.now()
         self.updated_at = timezone.now()
@@ -201,6 +201,14 @@ class ObjectsItem(models.Model):
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 
+    @property
+    def images(self):
+        return self.objectsimages_set.all()
+
+    @property
+    def localizations(self):
+        return self.objectslocalizations_set.all()
+
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
         if not self.id:
@@ -220,6 +228,10 @@ class Categories(models.Model):
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
+
+    @property
+    def localizations(self):
+        return self.categorieslocalizations_set.all()
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''  
@@ -260,7 +272,7 @@ class Categorieslocalizations(models.Model):
     class Meta:
         verbose_name_plural = "Categories Localizations"
 
-    category = models.ForeignKey(Categories, models.PROTECT)
+    category = models.ForeignKey(Categories, models.CASCADE)
     title = models.CharField(max_length=45)
     language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.en)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)

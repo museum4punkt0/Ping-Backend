@@ -4,19 +4,15 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     ObjectsImages, Chats, ObjectsImages, MuseumsImages,\
                     ObjectsLocalizations, UsersLanguageStyles, Votings, \
                     PredefinedAvatars
+from mein_objekt.settings import NUMBER_OF_LOCALIZATIONS
 
 admin.site.site_header = "Museums Admin"
 admin.site.site_title = "Museums Admin"
 
-
-class MuseumsImagesInline(admin.TabularInline):
-    model = MuseumsImages
-    readonly_fields = ['synced', 'updated_at']
-
-
-class MuseumsAdmin(admin.ModelAdmin):
-    inlines = [MuseumsImagesInline,]
-    readonly_fields = ['synced', 'updated_at']
+class MinValidatedInlineMixIn:
+    validate_min = True
+    def get_formset(self, *args, **kwargs):
+        return super().get_formset(validate_min=self.validate_min, *args, **kwargs)
 
 
 class PredefinedAvatarsInline(admin.TabularInline):
@@ -29,30 +25,57 @@ class SettingsAdmin(admin.ModelAdmin):
     readonly_fields = ['synced', 'updated_at']
 
 
-class ObjectsImagesInline(admin.TabularInline):
-    model = ObjectsImages
+class MuseumsImagesInline(admin.TabularInline):
+    model = MuseumsImages
     readonly_fields = ['synced', 'updated_at']
 
 
-class ObjectsLocalizationsInline(admin.TabularInline):
+class MuseumsAdmin(admin.ModelAdmin):
+    inlines = [MuseumsImagesInline,]
+    readonly_fields = ['synced', 'updated_at']
+
+
+class ObjectsImagesInline(admin.TabularInline):
+    model = ObjectsImages
+    extra = 0
+    readonly_fields = ['synced', 'updated_at']
+
+
+class ObjectsLocalizationsInline(MinValidatedInlineMixIn, admin.TabularInline):
     model = ObjectsLocalizations
+    min_num = NUMBER_OF_LOCALIZATIONS
+    extra = 0
+    readonly_fields = ['synced', 'updated_at']
+
+
+class ObjectsCategoriesInline(MinValidatedInlineMixIn, admin.TabularInline):
+    model = ObjectsCategories
+    min_num = 1
+    extra = 0
     readonly_fields = ['synced', 'updated_at']
 
 
 class ObjectsItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'get_title', 'museum', 'onboarding', 'vip', 'updated_at')
-    inlines = [ObjectsLocalizationsInline, ObjectsImagesInline]
+    inlines = [ObjectsLocalizationsInline, ObjectsImagesInline, ObjectsCategoriesInline]
     readonly_fields = ['synced', 'updated_at']
 
     # def get_queryset(self, request):
     #     return super(ObjectsItemAdmin,self).get_queryset(request).select_related('objectslocalizations_set')
 
     def get_title(self, obj):
-        return obj.objectslocalizations_set.first().title
+        obj = obj.objectslocalizations_set.first()
+        title = getattr(obj, 'title', None)
+        if title:
+            return title
+        else:
+            return 'No title'
 
 
-class CategorieslocalizationsInline(admin.TabularInline):
+class CategorieslocalizationsInline(MinValidatedInlineMixIn, admin.TabularInline):
     model = Categorieslocalizations
+    min_num = NUMBER_OF_LOCALIZATIONS
+    extra = 0
     readonly_fields = ['synced', 'updated_at']
 
 
@@ -61,8 +84,10 @@ class CategoriesAdmin(admin.ModelAdmin):
     readonly_fields = ['synced', 'updated_at']
 
 
-class UsersLanguageStylesInline(admin.TabularInline):
+class UsersLanguageStylesInline(MinValidatedInlineMixIn, admin.TabularInline):
     model = UsersLanguageStyles
+    min_num = NUMBER_OF_LOCALIZATIONS
+    extra = 0
     readonly_fields = ['synced', 'updated_at']
 
 
@@ -82,6 +107,5 @@ admin.site.register(Settings, SettingsAdmin)
 admin.site.register(Museums, MuseumsAdmin)
 admin.site.register(ObjectsItem, ObjectsItemAdmin)
 admin.site.register(Categories, CategoriesAdmin)
-admin.site.register(ObjectsCategories)
 admin.site.register(Chats)
 

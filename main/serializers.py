@@ -23,38 +23,64 @@ class SettingsSerializer(serializers.ModelSerializer):
              'distance_score', 'predifined_collections', 'languages', 'sync_id', 'synced', 'created_at', 'updated_at')
 
 
-class MuseumsSerializer(serializers.ModelSerializer):
+class ObjectsLocalizationsSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+
     class Meta:
-        model = Museums
-        fields = ('id', 'name', 'floor_amount', 'settings', 'tensor_flow_model', 
-            'tensor_flow_lables', 'sync_id', 'synced', 'created_at', 'updated_at')
+        model = ObjectsLocalizations
+        fields = ('__all__')
 
 
-class ObjectsItemSerializer(serializers.HyperlinkedModelSerializer):
+class ObjectsImagesSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+
+    class Meta:
+        model = ObjectsImages
+        fields = ('__all__')
+
+
+class ObjectsItemSerializer(serializers.ModelSerializer):
+    images = ObjectsImagesSerializer(many=True)
+    localizations = ObjectsLocalizationsSerializer(many=True)
 
     class Meta:
         model = ObjectsItem
         fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony', 
-            'vip', 'language_style', 'avatar', 'onboarding', 'sync_id', 'synced', 'created_at', 'updated_at')
+            'vip', 'language_style', 'avatar', 'onboarding', 'sync_id', 
+            'synced', 'created_at', 'updated_at', 'images', 'localizations')
 
 
-class CategoriesSerializer(serializers.ModelSerializer):
+class MuseumsImagesSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Categories
+        model = MuseumsImages
         fields = ('__all__')
 
 
+class MuseumsSerializer(serializers.ModelSerializer):
+    objectsitems = ObjectsItemSerializer(many=True)
+    museumimages = MuseumsImagesSerializer(many=True)
+
+    class Meta:
+        model = Museums
+        fields = ('id', 'name', 'floor_amount', 'settings', 'tensor_flow_model', 
+            'tensor_flow_lables', 'sync_id', 'synced', 'created_at',
+            'updated_at', 'objectsitems', 'museumimages')
+
+
 class CategorieslocalizationsSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+
     class Meta:
         model = Categorieslocalizations
         fields = ('__all__')
 
 
-class ObjectslocalizationsSerializer(serializers.HyperlinkedModelSerializer):
+class CategoriesSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
+    localizations = CategorieslocalizationsSerializer(many=True)
 
     class Meta:
-        model = ObjectsLocalizations
+        model = Categories
         fields = ('__all__')
 
 
@@ -70,21 +96,7 @@ class ChatsSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 
 
-class ObjectsImagesSerializer(serializers.HyperlinkedModelSerializer):
-    id = serializers.IntegerField()
-
-    class Meta:
-        model = ObjectsImages
-        fields = ('__all__')
-
-
 class PredefinedAvatarsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PredefinedAvatars
-        fields = ('__all__')
-
-
-class MuseumsImagesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MuseumsImages
         fields = ('__all__')

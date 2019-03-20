@@ -31,7 +31,7 @@ from .serializers import (
     ObjectsItemSerializer,
     CategorieslocalizationsSerializer, 
     ObjectsCategoriesSerializer,
-    ObjectslocalizationsSerializer,
+    ObjectsLocalizationsSerializer,
     ObjectsImagesSerializer
     )
 
@@ -84,18 +84,11 @@ class MuseumsImagesView(viewsets.ModelViewSet):
 
 class ObjectsLocalizationsView(viewsets.ModelViewSet):
     queryset = ObjectsLocalizations.objects.all()
-    serializer_class = ObjectslocalizationsSerializer
+    serializer_class = ObjectsLocalizationsSerializer
 
 
 @api_view(['GET'])
 def synchronise(request):
-    """
-    Retrieve, update or delete a code snippet.
-    """
-    # try:
-    #     snippet = Snippet.objects.get(pk=pk)
-    # except Snippet.DoesNotExist:
-    #     return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         context = {'request': request}
@@ -113,21 +106,20 @@ def synchronise(request):
 
             museum_table['id'] = serialized_museum['id']
 
-            museum_images = museum.museumsimages_set.all()
-            for image in museum_images:
+            serialized_museumsimages = serialized_museum['museumimages']
+            for image in serialized_museumsimages:
                 image_dict = {}
-                serialized_museumsimage =  MuseumsImagesSerializer(instance=image, context=context).data
-                image_dict['id'] = serialized_museumsimage['id']
-                image_dict['image_type'] = serialized_museumsimage['image_type']
-                image_dict['image'] = serialized_museumsimage['image']
-                image_dict['sync_id'] = serialized_museumsimage['sync_id']
-                image_dict['synced'] = serialized_museumsimage['synced']
-                image_dict['created_at'] = serialized_museumsimage['created_at']
-                image_dict['updated_at'] = serialized_museumsimage['updated_at']
+                image_dict['id'] = image['id']
+                image_dict['image_type'] = image['image_type']
+                image_dict['image'] = image['image']
+                image_dict['sync_id'] = image['sync_id']
+                image_dict['synced'] = image['synced']
+                image_dict['created_at'] = image['created_at']
+                image_dict['updated_at'] = image['updated_at']
                 museum_table['images'].append(image_dict)
 
-            objects_items = museum.objectsitem_set.all()
-            for item in objects_items:
+            serialized_objects_items = serialized_museum['objectsitems']
+            for item in serialized_objects_items:
                 item_table = {'id': None,
                               'priority': None,
                               'floor': None,
@@ -144,53 +136,50 @@ def synchronise(request):
                               'localizations': [],
                               'images': []}
 
-                serialized_item = ObjectsItemSerializer(instance=item, context=context).data
-                item_table['id'] = serialized_item['id']
-                item_table['priority'] = serialized_item['priority']
-                item_table['floor'] = serialized_item['floor']
-                item_table['positionX'] = serialized_item['positionx']
-                item_table['positionY'] = serialized_item['positiony']
-                item_table['vip'] = serialized_item['vip']
-                item_table['language_style'] = serialized_item['language_style']
-                item_table['avatar'] = serialized_item['avatar']
-                item_table['onboarding'] = serialized_item['onboarding']
-                item_table['sync_id'] = serialized_item['sync_id']
-                item_table['synced'] = serialized_item['synced']
-                item_table['created_at'] = serialized_item['created_at']
-                item_table['updated_at'] = serialized_item['updated_at']
+                item_table['id'] = item['id']
+                item_table['priority'] = item['priority']
+                item_table['floor'] = item['floor']
+                item_table['positionX'] = item['positionx']
+                item_table['positionY'] = item['positiony']
+                item_table['vip'] = item['vip']
+                item_table['language_style'] = item['language_style']
+                item_table['avatar'] = item['avatar']
+                item_table['onboarding'] = item['onboarding']
+                item_table['sync_id'] = item['sync_id']
+                item_table['synced'] = item['synced']
+                item_table['created_at'] = item['created_at']
+                item_table['updated_at'] = item['updated_at']
 
-                localizations = item.objectslocalizations_set.all()
+                localizations = item['localizations']
                 for local in localizations:
                     local_dict = {}
-                    serialized_local = ObjectslocalizationsSerializer(instance=local, context=context).data
-                    local_dict['id'] = serialized_local['id']
-                    local_dict['language'] = serialized_local['language']
-                    local_dict['conversation'] = serialized_local['conversation']
-                    local_dict['description'] = serialized_local['description']
-                    local_dict['title'] = serialized_local['title']
-                    local_dict['object_kind'] = serialized_local['object_kind']
-                    local_dict['sync_id'] = serialized_local['sync_id']
-                    local_dict['synced'] = serialized_local['synced']
-                    local_dict['created_at'] = serialized_local['created_at']
-                    local_dict['updated_at'] = serialized_local['updated_at']
+                    local_dict['id'] = local['id']
+                    local_dict['language'] = local['language']
+                    local_dict['conversation'] = local['conversation']
+                    local_dict['description'] = local['description']
+                    local_dict['title'] = local['title']
+                    local_dict['object_kind'] = local['object_kind']
+                    local_dict['sync_id'] = local['sync_id']
+                    local_dict['synced'] = local['synced']
+                    local_dict['created_at'] = local['created_at']
+                    local_dict['updated_at'] = local['updated_at']
                     item_table['localizations'].append(local_dict)
 
-                images = item.objectsimages_set.all()
-                for image in images:
+                serialized_images = item['images']
+                for image in serialized_images:
                     image_dict = {}
-                    serialized_image = ObjectsImagesSerializer(instance=image, context=context).data
-
-                    image_dict['id'] = serialized_image['id']
-                    image_dict['image'] = serialized_image['image']
-                    image_dict['sync_id'] = serialized_image['sync_id']
-                    image_dict['synced'] = serialized_image['synced']
-                    image_dict['created_at'] = serialized_image['created_at']
-                    image_dict['updated_at'] = serialized_image['updated_at']
+                    image_dict['id'] = image['id']
+                    image_dict['image'] = image['image']
+                    image_dict['sync_id'] = image['sync_id']
+                    image_dict['synced'] = image['synced']
+                    image_dict['created_at'] = image['created_at']
+                    image_dict['updated_at'] = image['updated_at']
                     item_table['images'].append(image_dict)
                 museum_table['objects'].append(item_table)
 
             categories = Categories.objects.all()
             for category in categories:
+                serialized_category = CategoriesSerializer(category).data
                 category_table = {'id': None,
                                  'object_ids': [],
                                  'sync_object_ids': [],
@@ -200,24 +189,22 @@ def synchronise(request):
                                  'created_at': None,
                                  'updated_at': None}
 
-                serialized_category = CategoriesSerializer(item).data
                 category_table['id'] = serialized_category['id']
 
                 objects = category.objectscategories_set.all()
                 category_table['object_ids'] = [{'object_id': i.id} for i in objects]
                 category_table['sync_object_ids'] = [{'object_id': i['sync_id']} for i in ObjectsCategoriesSerializer(objects, many=True).data]
 
-                localizations = category.categorieslocalizations_set.all()
+                localizations = serialized_category['localizations']
                 for local in localizations:
                     local_dict = {}
-                    serialized_local = CategorieslocalizationsSerializer(local).data
-                    local_dict['id'] = serialized_local['id']
-                    local_dict['language'] = serialized_local['language']
-                    local_dict['title'] = serialized_local['title']
-                    local_dict['sync_id'] = serialized_local['sync_id']
-                    local_dict['synced'] = serialized_local['synced']
-                    local_dict['created_at'] = serialized_local['created_at']
-                    local_dict['updated_at'] = serialized_local['updated_at']
+                    local_dict['id'] = local['id']
+                    local_dict['language'] = local['language']
+                    local_dict['title'] = local['title']
+                    local_dict['sync_id'] = local['sync_id']
+                    local_dict['synced'] = local['synced']
+                    local_dict['created_at'] = local['created_at']
+                    local_dict['updated_at'] = local['updated_at']
                     category_table['localizations'].append(local_dict)
 
                 category_table['sync_id'] = serialized_category['sync_id']
@@ -231,13 +218,3 @@ def synchronise(request):
             data['museums'] = museum_table
         return JsonResponse(data, safe=True)
 
-    # elif request.method == 'PUT':
-    #     serializer = SnippetSerializer(snippet, data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # elif request.method == 'DELETE':
-    #     snippet.delete()
-        # return Response(status=status.HTTP_204_NO_CONTENT)

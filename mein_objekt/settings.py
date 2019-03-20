@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', default=None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['meinobjektheroku.herokuapp.com', '127.0.0.1']
 
@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'main',
-    'storages'
+    'storages',
+    # 'debug_toolbar'
 ]
 
 MIDDLEWARE = [
@@ -50,6 +51,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'main.middleware.debug_middleware.NonHtmlDebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'mein_objekt.urls'
@@ -117,9 +120,11 @@ USE_TZ = True
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-if not DEBUG:
-    DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
-# DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
+# DROPBOX
+# DROPBOX_ROOT_PATH = '/debug'
+
+DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
+
 DROPBOX_OAUTH2_TOKEN = os.environ.get('DROPBOX_OAUTH', default=None)
 
 # static files
@@ -131,3 +136,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 STATICFILES_DIRS = ()
+
+INTERNAL_IPS = ('127.0.0.1',)
+
+NUMBER_OF_LOCALIZATIONS = 1
