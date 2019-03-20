@@ -156,6 +156,7 @@ def synchronise(request):
                     local_dict['id'] = local['id']
                     local_dict['language'] = local['language']
                     local_dict['conversation'] = local['conversation']
+                    local_dict['phrase'] = local['phrase']
                     local_dict['description'] = local['description']
                     local_dict['title'] = local['title']
                     local_dict['object_kind'] = local['object_kind']

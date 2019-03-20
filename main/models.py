@@ -393,6 +393,7 @@ class ObjectsLocalizations(models.Model):
     description = models.TextField(blank=True, null=True)
     title = models.CharField(max_length=45, blank=True, null=True)
     object_kind = models.CharField(max_length=45, blank=True, null=True)
+    phrase = models.CharField(max_length=45, blank=True, null=True)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -436,7 +437,7 @@ class Votings(models.Model):
     class Meta:
         verbose_name_plural = "Votings"
 
-    user = models.ForeignKey(Users, models.DO_NOTHING)
+    user = models.ForeignKey(Users, models.CASCADE)
     objects_item = models.ForeignKey(ObjectsItem, models.DO_NOTHING)
     vote = models.BooleanField(default=False)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)

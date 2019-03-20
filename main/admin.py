@@ -56,20 +56,32 @@ class ObjectsCategoriesInline(MinValidatedInlineMixIn, admin.TabularInline):
 
 
 class ObjectsItemAdmin(admin.ModelAdmin):
-    list_display = ('id', 'get_title', 'museum', 'onboarding', 'vip', 'updated_at')
+    list_display = ('id', 'title', 'avatar_id', 'museum', 'onboarding', 'vip', 'updated_at', 'categories')
     inlines = [ObjectsLocalizationsInline, ObjectsImagesInline, ObjectsCategoriesInline]
     readonly_fields = ['synced', 'updated_at']
 
     # def get_queryset(self, request):
     #     return super(ObjectsItemAdmin,self).get_queryset(request).select_related('objectslocalizations_set')
 
-    def get_title(self, obj):
+    def avatar_id(self, obj):
+        avatar = getattr(obj, 'avatar', None)
+        if avatar:
+            return avatar.name.split('/')[-1][:20]
+
+
+    def title(self, obj):
         obj = obj.objectslocalizations_set.first()
         title = getattr(obj, 'title', None)
         if title:
             return title
-        else:
-            return 'No title'
+
+    def categories(self, obj):
+        obj_cat = getattr(obj, 'objectscategories', None)
+        if obj_cat:
+            categories = obj_cat.category.all()
+            if categories:
+                return [i.id for i in categories]
+
 
 
 class CategorieslocalizationsInline(MinValidatedInlineMixIn, admin.TabularInline):
@@ -93,6 +105,7 @@ class UsersLanguageStylesInline(MinValidatedInlineMixIn, admin.TabularInline):
 
 class VotingsInline(admin.TabularInline):
     model = Votings
+    extra = 0
     readonly_fields = ['synced', 'updated_at', 'objects_item', 'vote']
 
 
@@ -108,4 +121,5 @@ admin.site.register(Museums, MuseumsAdmin)
 admin.site.register(ObjectsItem, ObjectsItemAdmin)
 admin.site.register(Categories, CategoriesAdmin)
 admin.site.register(Chats)
+admin.site.register(Votings)
 
