@@ -6,7 +6,7 @@ from model_utils import Choices
 import uuid
 import os
 from mein_objekt.settings import DEFAULT_MUSEUM
-
+from multiselectfield import MultiSelectField
 
 LANGUEAGE_STYLE_CHOICES = Choices(
         ('easy', 'Easy'),
@@ -146,7 +146,9 @@ class Settings(models.Model):
     distance_score = JSONField()
     predifined_collections = JSONField()
     predefined_categories = models.ManyToManyField(Categories)
-    languages = JSONField()
+    languages = MultiSelectField(choices=LOCALIZATIONS_CHOICES,
+                                 max_choices=2,
+                                 max_length=20)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
