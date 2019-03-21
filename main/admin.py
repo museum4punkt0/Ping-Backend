@@ -3,11 +3,12 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     Categories, Categorieslocalizations, ObjectsCategories,\
                     ObjectsImages, Chats, ObjectsImages, MuseumsImages,\
                     ObjectsLocalizations, UsersLanguageStyles, Votings, \
-                    PredefinedAvatars
+                    PredefinedAvatars, SettingsPredefinedObjectsItems
 from mein_objekt.settings import NUMBER_OF_LOCALIZATIONS
 
 admin.site.site_header = "Museums Admin"
 admin.site.site_title = "Museums Admin"
+
 
 class MinValidatedInlineMixIn:
     validate_min = True
@@ -15,18 +16,28 @@ class MinValidatedInlineMixIn:
         return super().get_formset(validate_min=self.validate_min, *args, **kwargs)
 
 
-class PredefinedAvatarsInline(admin.TabularInline):
+class PredefinedAvatarsInline(MinValidatedInlineMixIn, admin.TabularInline):
     model = PredefinedAvatars
+    min_num = 6
+    extra = 0
+    readonly_fields = ['synced', 'updated_at']
+
+
+class SettingsPredefinedObjectsItemsInline(MinValidatedInlineMixIn, admin.TabularInline):
+    model = SettingsPredefinedObjectsItems
+    min_num = 8
+    extra = 0
     readonly_fields = ['synced', 'updated_at']
 
 
 class SettingsAdmin(admin.ModelAdmin):
-    inlines = [PredefinedAvatarsInline,]
+    inlines = [PredefinedAvatarsInline, SettingsPredefinedObjectsItemsInline]
     readonly_fields = ['synced', 'updated_at']
 
 
 class MuseumsImagesInline(admin.TabularInline):
     model = MuseumsImages
+    extra = 0
     readonly_fields = ['synced', 'updated_at']
 
 
@@ -83,7 +94,6 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                 return [i.id for i in categories]
 
 
-
 class CategorieslocalizationsInline(MinValidatedInlineMixIn, admin.TabularInline):
     model = Categorieslocalizations
     min_num = NUMBER_OF_LOCALIZATIONS
@@ -109,8 +119,14 @@ class VotingsInline(admin.TabularInline):
     readonly_fields = ['synced', 'updated_at', 'objects_item', 'vote']
 
 
+class CollectionsInline(admin.TabularInline):
+    model = Collections
+    extra = 0
+    readonly_fields = ['synced', 'updated_at']
+
+
 class UsersAdmin(admin.ModelAdmin):
-    inlines = [UsersLanguageStylesInline, VotingsInline]
+    inlines = [UsersLanguageStylesInline, VotingsInline, CollectionsInline]
     readonly_fields = ['synced', 'updated_at']
 
 

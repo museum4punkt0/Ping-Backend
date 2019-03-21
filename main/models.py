@@ -5,6 +5,7 @@ from types import MethodType
 from model_utils import Choices
 import uuid
 import os
+from mein_objekt.settings import DEFAULT_MUSEUM
 
 
 LANGUEAGE_STYLE_CHOICES = Choices(
@@ -32,7 +33,6 @@ DEFAULT_MUSEUM_SETTINGS = {
         "exit_position": "{1: 5, 2: 3}",
         "likes_score": "{1: 5, 2: 3}",
         "chat_score": "{1: 5, 2: 3}",
-        "predifined_objects": "{1: 5, 2: 3}",
         "priority_score": "{1: 5, 2: 3}",
         "distance_score": "{1: 5, 2: 3}",
         "predifined_collections": "{1: 5, 2: 3}",
@@ -79,11 +79,24 @@ class Users(models.Model):
     positionx = models.DecimalField(db_column='positionX', max_digits=11, decimal_places=8)
     positiony = models.DecimalField(db_column='positionY', max_digits=11, decimal_places=8)
     floor = models.IntegerField()
-    language = models.CharField(max_length=45, blank=True, null=True)
+    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.en)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
+
+    @property
+    def chats(self):
+        return self.chats_set.all()
+
+    @property
+    def collections(self):
+        return self.collections_set.all()
+
+    @property
+    def votings(self):
+        return self.votings_set.all()
+
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
@@ -96,6 +109,30 @@ class Users(models.Model):
         return f'{self.id}: {self.name}'
 
 
+class Categories(models.Model):
+    class Meta:
+        verbose_name_plural = "Categories"
+
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    synced = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    @property
+    def localizations(self):
+        return self.categorieslocalizations_set.all()
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(Categories, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.id}'
+
+
 class Settings(models.Model):
     class Meta:
         verbose_name_plural = "Settings"
@@ -105,10 +142,10 @@ class Settings(models.Model):
     exit_position = JSONField()
     likes_score = JSONField()
     chat_score = JSONField()
-    predifined_objects = JSONField()
     priority_score = JSONField()
     distance_score = JSONField()
     predifined_collections = JSONField()
+    predefined_categories = models.ManyToManyField(Categories)
     languages = JSONField()
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
@@ -116,13 +153,16 @@ class Settings(models.Model):
     updated_at = models.DateTimeField(default=timezone.now)
     # collections = models.ForeignKey(Collection, models.DO_NOTHING)
 
+    @property
+    def predefined_avatars(self):
+        return self.predefinedavatars_set.all()
+
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
         if not self.id:
             self.created_at = timezone.now()
         self.updated_at = timezone.now()
         return super(Settings, self).save(*args, **kwargs)
-
 
     def __str__(self):
         return f'{self.id}'
@@ -154,7 +194,7 @@ class Museums(models.Model):
     class Meta:
         verbose_name_plural = "Museums"
 
-    name = models.CharField(max_length=45, unique=True)
+    name = models.CharField(max_length=45, unique=True, default=DEFAULT_MUSEUM)
     floor_amount = models.IntegerField()
     settings = models.ForeignKey(Settings, models.PROTECT, null=True)
     tensor_flow_model = models.CharField(max_length=45, blank=True, null=True)
@@ -220,25 +260,23 @@ class ObjectsItem(models.Model):
         return f'{self.id}'
 
 
-class Categories(models.Model):
+class SettingsPredefinedObjectsItems(models.Model):
     class Meta:
-        verbose_name_plural = "Categories"
+        verbose_name_plural = "Predefined Objects"
 
+    setting = models.ForeignKey(Settings, models.CASCADE)
+    predefined_object = models.OneToOneField(ObjectsItem, models.CASCADE)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 
-    @property
-    def localizations(self):
-        return self.categorieslocalizations_set.all()
-
     def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''  
+        ''' On save, update timestamps '''
         if not self.id:
             self.created_at = timezone.now()
         self.updated_at = timezone.now()
-        return super(Categories, self).save(*args, **kwargs)
+        return super(SettingsPredefinedObjectsItems, self).save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.id}'
@@ -414,7 +452,7 @@ class UsersLanguageStyles(models.Model):
     class Meta:
         verbose_name_plural = "Users Language Styles"
 
-    user = models.ForeignKey(Users, models.CASCADE)
+    user = models.OneToOneField(Users, models.CASCADE)
     language_style = models.CharField(max_length=45, choices=LANGUEAGE_STYLE_CHOICES, null=True, blank=True)
     score = models.IntegerField(blank=True, null=True)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
@@ -438,7 +476,7 @@ class Votings(models.Model):
         verbose_name_plural = "Votings"
 
     user = models.ForeignKey(Users, models.CASCADE)
-    objects_item = models.ForeignKey(ObjectsItem, models.DO_NOTHING)
+    objects_item = models.OneToOneField(ObjectsItem, models.CASCADE)
     vote = models.BooleanField(default=False)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)

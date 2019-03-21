@@ -1,26 +1,59 @@
 from rest_framework import serializers
 from .models import Collections, Users, Settings, Museums, ObjectsItem, \
                     Categories, ObjectsCategories, Categorieslocalizations, Chats, \
-                    ObjectsImages, PredefinedAvatars, MuseumsImages, ObjectsLocalizations
+                    ObjectsImages, PredefinedAvatars, MuseumsImages, \
+                    ObjectsLocalizations, Votings
+
 
 class CollectionsSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+
     class Meta:
         model = Collections
-        fields = ('id', 'user', 'objects_item', 'image', 'url', 'sync_id', 'synced', 'created_at', 'updated_at')
+        fields = ('__all__')
+
+
+class ChatsSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+
+    class Meta:
+        model = Chats
+        fields = ('__all__')
+
+
+class VotingsSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+
+    class Meta:
+        model = Votings
+        fields = ('__all__')
 
 
 class UsersSerializer(serializers.ModelSerializer):
+    chats = ChatsSerializer(many=True)
+    collections = CollectionsSerializer(many=True)
+    votings = VotingsSerializer(many=True)
+
     class Meta:
         model = Users
         fields = ('id', 'name', 'device_id', 'category', 'positionx', 'positiony', 
-            'floor', 'language', 'avatar', 'sync_id', 'synced', 'created_at', 'updated_at')
+            'floor', 'language', 'avatar', 'sync_id', 'synced', 'created_at', 'updated_at', 'chats', 'collections', 'votings')
+
+
+class PredefinedAvatarsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PredefinedAvatars
+        fields = ('__all__')
+
 
 class SettingsSerializer(serializers.ModelSerializer):
+    predefined_avatars = PredefinedAvatarsSerializer(many=True)
+
     class Meta:
         model = Settings
         fields = ('id', 'position_score', 'category_score', 'exit_position', 
-            'likes_score', 'chat_score', 'predifined_objects', 'priority_score',
-             'distance_score', 'predifined_collections', 'languages', 'sync_id', 'synced', 'created_at', 'updated_at')
+            'likes_score', 'chat_score', 'priority_score',
+             'distance_score', 'predifined_collections', 'languages', 'sync_id', 'synced', 'created_at', 'updated_at', 'predefined_avatars')
 
 
 class ObjectsLocalizationsSerializer(serializers.ModelSerializer):
@@ -89,14 +122,3 @@ class ObjectsCategoriesSerializer(serializers.ModelSerializer):
         model = ObjectsCategories
         fields = ('__all__')
 
-
-class ChatsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Chats
-        fields = ('__all__')
-
-
-class PredefinedAvatarsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PredefinedAvatars
-        fields = ('__all__')
