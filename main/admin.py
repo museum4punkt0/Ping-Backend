@@ -18,7 +18,7 @@ class MinValidatedInlineMixIn:
 
 class PredefinedAvatarsInline(MinValidatedInlineMixIn, admin.TabularInline):
     model = PredefinedAvatars
-    min_num = 6
+    min_num = 2 # should be 6
     extra = 0
     readonly_fields = ['synced', 'updated_at']
 
