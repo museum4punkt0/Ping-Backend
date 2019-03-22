@@ -37,7 +37,7 @@ from main.serializers import (
     )
 
 from mein_objekt.settings import DEFAULT_MUSEUM
-
+FETCH_FIELDS = ('sync_id', 'synced', 'created_at', 'updated_at')
 @api_view(['GET'])
 def fetch(request):
 
@@ -54,51 +54,53 @@ def fetch(request):
                 'users': None,
                 'settings': None}
 
-        serialized_user = UsersSerializer(user).data
+        s_user = UsersSerializer(user, fields=FETCH_FIELDS).data
         user_table = {'sync_id': None,
                       'synced': None,
                       'created_at': None,
                       'updated_at': None,
                       'chats': [],
                       'votings': [],
-                      'collections': []
-                      }
+                      'collections': []}
 
-        user_table['sync_id'] = serialized_user['sync_id']
-        user_table['synced'] = serialized_user['synced']
-        user_table['created_at'] = serialized_user['created_at']
-        user_table['updated_at'] = serialized_user['updated_at']
+        user_table['sync_id'] = s_user['sync_id']
+        user_table['synced'] = s_user['synced']
+        user_table['created_at'] = s_user['created_at']
+        user_table['updated_at'] = s_user['updated_at']
 
-        serialized_chats = serialized_user['chats']
-        for chat in serialized_chats:
+        chats = user.chats_set.all()
+        for chat in chats:
+            s_chat = ObjectsItemSerializer(chat, fields=FETCH_FIELDS).data
             chat_dict = {}
-            chat_dict['sync_id'] = chat['sync_id']
-            chat_dict['synced'] = chat['synced']
-            chat_dict['created_at'] = chat['created_at']
-            chat_dict['updated_at'] = chat['updated_at']
+            chat_dict['sync_id'] = s_chat['sync_id']
+            chat_dict['synced'] = s_chat['synced']
+            chat_dict['created_at'] = s_chat['created_at']
+            chat_dict['updated_at'] = s_chat['updated_at']
             user_table['chats'].append(chat_dict)
 
-        serialized_votings = serialized_user['votings']
-        for vote in serialized_votings:
+        votings = user.votings_set.all()
+        for vote in votings:
+            s_vote = ObjectsItemSerializer(vote, fields=FETCH_FIELDS).data
             vote_dict = {}
-            vote_dict['sync_id'] = vote['sync_id']
-            vote_dict['synced'] = vote['synced']
-            vote_dict['created_at'] = vote['created_at']
-            vote_dict['updated_at'] = vote['updated_at']
+            vote_dict['sync_id'] = s_vote['sync_id']
+            vote_dict['synced'] = s_vote['synced']
+            vote_dict['created_at'] = s_vote['created_at']
+            vote_dict['updated_at'] = s_vote['updated_at']
             user_table['votings'].append(vote_dict)
 
-        serialized_collections = serialized_user['collections']
-        for collection in serialized_collections:
+        collections = user.collections_set.all()
+        for collection in collections:
+            s_collection = ObjectsItemSerializer(collection, fields=FETCH_FIELDS).data
             collection_dict = {}
-            collection_dict['sync_id'] = collection['sync_id']
-            collection_dict['synced'] = collection['synced']
-            collection_dict['created_at'] = collection['created_at']
-            collection_dict['updated_at'] = collection['updated_at']
+            collection_dict['sync_id'] = s_collection['sync_id']
+            collection_dict['synced'] = s_collection['synced']
+            collection_dict['created_at'] = s_collection['created_at']
+            collection_dict['updated_at'] = s_collection['updated_at']
             user_table['collections'].append(collection_dict)
 
         data['users'] = user_table
 
-        serialized_museum = MuseumsSerializer(museum).data
+        s_museum = MuseumsSerializer(museum, fields=FETCH_FIELDS).data
         museum_table = {'sync_id': None,
                         'synced': None,
                         'created_at': None,
@@ -107,88 +109,93 @@ def fetch(request):
                         'objects': [],
                         'categories': []}
 
-        museum_table['sync_id'] = serialized_museum['sync_id']
-        museum_table['synced'] = serialized_museum['synced']
-        museum_table['created_at'] = serialized_museum['created_at']
-        museum_table['updated_at'] = serialized_museum['updated_at']
+        museum_table['sync_id'] = s_museum['sync_id']
+        museum_table['synced'] = s_museum['synced']
+        museum_table['created_at'] = s_museum['created_at']
+        museum_table['updated_at'] = s_museum['updated_at']
 
-        serialized_museumsimages = serialized_museum['museumimages']
-        for image in serialized_museumsimages:
+        images = museum.museumsimages_set.all()
+        for image in images:
+            s_image = MuseumsSerializer(image, fields=FETCH_FIELDS).data
             image_dict = {}
-            image_dict['sync_id'] = image['sync_id']
-            image_dict['synced'] = image['synced']
-            image_dict['created_at'] = image['created_at']
-            image_dict['updated_at'] = image['updated_at']
+            image_dict['sync_id'] = s_image['sync_id']
+            image_dict['synced'] = s_image['synced']
+            image_dict['created_at'] = s_image['created_at']
+            image_dict['updated_at'] = s_image['updated_at']
             museum_table['images'].append(image_dict)
 
-        serialized_objects_items = serialized_museum['objectsitems']
-        for item in serialized_objects_items:
-            item_table = {'sync_id': None,
+        items = museum.objectsitem_set.all()
+        for item in items:
+            s_item = ObjectsItemSerializer(item, fields=FETCH_FIELDS).data
+            item_table = {'s_sync_id': None,
                           'synced': None,
                           'created_at': None,
                           'updated_at': None,
                           'localizations': [],
                           'images': []}
 
-            item_table['sync_id'] = item['sync_id']
-            item_table['synced'] = item['synced']
-            item_table['created_at'] = item['created_at']
-            item_table['updated_at'] = item['updated_at']
+            item_table['sync_id'] = s_item['sync_id']
+            item_table['synced'] = s_item['synced']
+            item_table['created_at'] = s_item['created_at']
+            item_table['updated_at'] = s_item['updated_at']
 
-            localizations = item['localizations']
+            localizations = item.localizations
             for local in localizations:
+                s_local = ObjectsItemSerializer(local, fields=FETCH_FIELDS).data
                 local_dict = {}
-                local_dict['sync_id'] = local['sync_id']
-                local_dict['synced'] = local['synced']
-                local_dict['created_at'] = local['created_at']
-                local_dict['updated_at'] = local['updated_at']
+                local_dict['sync_id'] = s_local['sync_id']
+                local_dict['synced'] = s_local['synced']
+                local_dict['created_at'] = s_local['created_at']
+                local_dict['updated_at'] = s_local['updated_at']
                 item_table['localizations'].append(local_dict)
 
-            serialized_images = item['images']
-            for image in serialized_images:
+            images = item.images
+            for image in images:
+                s_image = ObjectsItemSerializer(image, fields=FETCH_FIELDS).data
                 image_dict = {}
-                image_dict['sync_id'] = image['sync_id']
-                image_dict['synced'] = image['synced']
-                image_dict['created_at'] = image['created_at']
-                image_dict['updated_at'] = image['updated_at']
+                image_dict['sync_id'] = s_image['sync_id']
+                image_dict['synced'] = s_image['synced']
+                image_dict['created_at'] = s_image['created_at']
+                image_dict['updated_at'] = s_image['updated_at']
                 item_table['images'].append(image_dict)
             museum_table['objects'].append(item_table)
 
         categories = Categories.objects.all()
         for category in categories:
-            serialized_category = CategoriesSerializer(category).data
+            s_category = CategoriesSerializer(category, fields=FETCH_FIELDS).data
             category_table = {'localizations': [],
                               'sync_id': None,
                               'synced': None,
                               'created_at': None,
                               'updated_at': None}
 
-            localizations = serialized_category['localizations']
+            localizations = category.localizations
             for local in localizations:
+                s_local = CategoriesSerializer(local, fields=FETCH_FIELDS).data
                 local_dict = {}
-                local_dict['sync_id'] = local['sync_id']
-                local_dict['synced'] = local['synced']
-                local_dict['created_at'] = local['created_at']
-                local_dict['updated_at'] = local['updated_at']
+                local_dict['sync_id'] = s_local['sync_id']
+                local_dict['synced'] = s_local['synced']
+                local_dict['created_at'] = s_local['created_at']
+                local_dict['updated_at'] = s_local['updated_at']
                 category_table['localizations'].append(local_dict)
 
-            category_table['sync_id'] = serialized_category['sync_id']
-            category_table['synced'] = serialized_category['synced']
-            category_table['created_at'] = serialized_category['created_at']
-            category_table['updated_at'] = serialized_category['updated_at']
+            category_table['sync_id'] = s_category['sync_id']
+            category_table['synced'] = s_category['synced']
+            category_table['created_at'] = s_category['created_at']
+            category_table['updated_at'] = s_category['updated_at']
             museum_table['categories'].append(category_table)
         data['museums'] = museum_table
 
-        serialized_settings = SettingsSerializer(settings).data
+        s_settings = SettingsSerializer(settings, fields=FETCH_FIELDS).data
         settings_table = {'sync_id': None,
                           'synced': None,
                           'created_at': None,
                           'updated_at': None}
 
-        settings_table['sync_id'] = serialized_settings['sync_id']
-        settings_table['synced'] = serialized_settings['synced']
-        settings_table['created_at'] = serialized_settings['created_at']
-        settings_table['updated_at'] = serialized_settings['updated_at']
+        settings_table['sync_id'] = s_settings['sync_id']
+        settings_table['synced'] = s_settings['synced']
+        settings_table['created_at'] = s_settings['created_at']
+        settings_table['updated_at'] = s_settings['updated_at']
         data['settings'] = settings_table
 
         return JsonResponse(data, safe=True)

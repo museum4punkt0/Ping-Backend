@@ -8,6 +8,17 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem, \
 class CollectionsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
 
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(CollectionsSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
     class Meta:
         model = Collections
         fields = ('__all__')
@@ -16,6 +27,17 @@ class CollectionsSerializer(serializers.ModelSerializer):
 class ChatsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
 
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(ChatsSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
     class Meta:
         model = Chats
         fields = ('__all__')
@@ -23,6 +45,17 @@ class ChatsSerializer(serializers.ModelSerializer):
 
 class VotingsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(VotingsSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
 
     class Meta:
         model = Votings
@@ -34,6 +67,17 @@ class UsersSerializer(serializers.ModelSerializer):
     collections = CollectionsSerializer(many=True)
     votings = VotingsSerializer(many=True)
 
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(UsersSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
     class Meta:
         model = Users
         fields = ('id', 'name', 'device_id', 'category', 'positionx', 'positiony', 
@@ -41,6 +85,18 @@ class UsersSerializer(serializers.ModelSerializer):
 
 
 class PredefinedAvatarsSerializer(serializers.ModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(PredefinedAvatarsSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
     class Meta:
         model = PredefinedAvatars
         fields = ('__all__')
@@ -49,6 +105,17 @@ class PredefinedAvatarsSerializer(serializers.ModelSerializer):
 class SettingsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     predefined_avatars = PredefinedAvatarsSerializer(many=True)
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(SettingsSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
 
     class Meta:
         model = Settings
@@ -60,6 +127,18 @@ class SettingsSerializer(serializers.ModelSerializer):
 class ObjectsLocalizationsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
 
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(ObjectsLocalizationsSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+
     class Meta:
         model = ObjectsLocalizations
         fields = ('__all__')
@@ -67,6 +146,17 @@ class ObjectsLocalizationsSerializer(serializers.ModelSerializer):
 
 class ObjectsImagesSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(ObjectsImagesSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
 
     class Meta:
         model = ObjectsImages
@@ -77,6 +167,17 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
     images = ObjectsImagesSerializer(many=True)
     localizations = ObjectsLocalizationsSerializer(many=True)
 
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(ObjectsItemSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
     class Meta:
         model = ObjectsItem
         fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony', 
@@ -85,6 +186,17 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
 
 
 class MuseumsImagesSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(MuseumsImagesSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
     class Meta:
         model = MuseumsImages
         fields = ('__all__')
@@ -93,6 +205,17 @@ class MuseumsImagesSerializer(serializers.ModelSerializer):
 class MuseumsSerializer(serializers.ModelSerializer):
     objectsitems = ObjectsItemSerializer(many=True)
     museumimages = MuseumsImagesSerializer(many=True)
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(MuseumsSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
 
     class Meta:
         model = Museums
@@ -104,6 +227,17 @@ class MuseumsSerializer(serializers.ModelSerializer):
 class CategorieslocalizationsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
 
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(CategorieslocalizationsSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
     class Meta:
         model = Categorieslocalizations
         fields = ('__all__')
@@ -113,12 +247,35 @@ class CategoriesSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     localizations = CategorieslocalizationsSerializer(many=True)
 
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(CategoriesSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
     class Meta:
         model = Categories
         fields = ('__all__')
 
 
 class ObjectsCategoriesSerializer(serializers.ModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(ObjectsCategoriesSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
     class Meta:
         model = ObjectsCategories
         fields = ('__all__')
