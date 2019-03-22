@@ -127,7 +127,7 @@ def fetch(request):
         items = museum.objectsitem_set.all()
         for item in items:
             s_item = ObjectsItemSerializer(item, fields=FETCH_FIELDS).data
-            item_table = {'s_sync_id': None,
+            item_table = {'sync_id': None,
                           'synced': None,
                           'created_at': None,
                           'updated_at': None,

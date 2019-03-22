@@ -130,12 +130,21 @@ class UsersAdmin(admin.ModelAdmin):
     readonly_fields = ['synced', 'updated_at']
 
 
+class ChatsAdmin(admin.ModelAdmin):
+    model = Chats
+    readonly_fields = ['synced', 'updated_at']
+
+
+class VotingsAdmin(admin.ModelAdmin):
+    model = Votings
+    readonly_fields = ['synced', 'updated_at']
+
 admin.site.register(Collections)
 admin.site.register(Users, UsersAdmin)
 admin.site.register(Settings, SettingsAdmin)
 admin.site.register(Museums, MuseumsAdmin)
 admin.site.register(ObjectsItem, ObjectsItemAdmin)
 admin.site.register(Categories, CategoriesAdmin)
-admin.site.register(Chats)
-admin.site.register(Votings)
+admin.site.register(Chats, ChatsAdmin)
+admin.site.register(Votings, VotingsAdmin)
 
