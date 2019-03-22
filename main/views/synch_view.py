@@ -226,8 +226,8 @@ def synchronise(request):
             category_table['id'] = serialized_category['id']
 
             objects = category.objectscategories_set.all()
-            category_table['object_ids'] = [i.id for i in objects]
-            category_table['sync_object_ids'] = [i['sync_id'] for i in ObjectsCategoriesSerializer(objects, many=True).data]
+            category_table['object_ids'] = [i.objects_item.id for i in objects]
+            category_table['sync_object_ids'] = [str(i.objects_item.sync_id) for i in objects]
 
             localizations = serialized_category['localizations']
             for local in localizations:
