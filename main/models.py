@@ -137,12 +137,12 @@ class Settings(models.Model):
     class Meta:
         verbose_name_plural = "Settings"
 
-    position_score = JSONField()
+    position_score = JSONField(default=list)
     category_score = JSONField(blank=True, null=True)
     exit_position = JSONField()
     likes_score = JSONField()
     chat_score = JSONField()
-    priority_score = JSONField()
+    priority_score = JSONField(default=list)
     distance_score = JSONField()
     predifined_collections = JSONField()
     predefined_categories = models.ManyToManyField(Categories)
@@ -198,7 +198,7 @@ class Museums(models.Model):
 
     name = models.CharField(max_length=45, unique=True, default=DEFAULT_MUSEUM)
     floor_amount = models.IntegerField()
-    settings = models.ForeignKey(Settings, models.PROTECT, null=True)
+    settings = models.ForeignKey(Settings, models.SET_NULL, null=True)
     tensor_flow_model = models.CharField(max_length=45, blank=True, null=True)
     tensor_flow_lables = models.CharField(max_length=45, blank=True, null=True)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)

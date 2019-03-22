@@ -47,6 +47,7 @@ class PredefinedAvatarsSerializer(serializers.ModelSerializer):
 
 
 class SettingsSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
     predefined_avatars = PredefinedAvatarsSerializer(many=True)
 
     class Meta:

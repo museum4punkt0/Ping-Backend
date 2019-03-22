@@ -3,8 +3,8 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from  django.http import JsonResponse
-from .models import (
+from django.http import JsonResponse
+from main.models import (
     Collections,
     Users,
     Settings,
@@ -17,7 +17,7 @@ from .models import (
     ObjectsImages
 )
 
-from .serializers import (
+from main.serializers import (
     CollectionsSerializer,
     UsersSerializer,
     SettingsSerializer,
@@ -36,58 +36,7 @@ from .serializers import (
     UsersSerializer
     )
 
-
 from mein_objekt.settings import DEFAULT_MUSEUM
-
-class CollectionsView(viewsets.ModelViewSet):
-    queryset = Collections.objects.all()
-    serializer_class = CollectionsSerializer
-
-
-class UsersView(viewsets.ModelViewSet):
-    queryset = Users.objects.all()
-    serializer_class = UsersSerializer
-
-
-class SettingsView(viewsets.ModelViewSet):
-    queryset = Settings.objects.all()
-    serializer_class = SettingsSerializer
-
-
-class MuseumsView(viewsets.ModelViewSet):
-    queryset = Museums.objects.all()
-    serializer_class = MuseumsSerializer
-
-
-class ObjectsView(viewsets.ModelViewSet):
-    queryset = ObjectsItem.objects.all()
-    serializer_class = ObjectsItemSerializer
-
-
-class CategoriesView(viewsets.ModelViewSet):
-    queryset = Categories.objects.all()
-    serializer_class = CategoriesSerializer
-
-
-class ChatsView(viewsets.ModelViewSet):
-    queryset = Chats.objects.all()
-    serializer_class = ChatsSerializer
-
-
-class ObjectsImagesView(viewsets.ModelViewSet):
-    queryset = ObjectsImages.objects.all()
-    serializer_class = ObjectsImagesSerializer
-
-
-class MuseumsImagesView(viewsets.ModelViewSet):
-    queryset = MuseumsImages.objects.all()
-    serializer_class = MuseumsImagesSerializer
-
-
-class ObjectsLocalizationsView(viewsets.ModelViewSet):
-    queryset = ObjectsLocalizations.objects.all()
-    serializer_class = ObjectsLocalizationsSerializer
-
 
 @api_view(['GET'])
 def synchronise(request):
@@ -101,6 +50,8 @@ def synchronise(request):
 
         museum = Museums.objects.get(name=DEFAULT_MUSEUM)
         settings = museum.settings
+        if not settings:
+          return JsonResponse({'error': 'museums settings must be defined'}, safe=True)
         data = {'museums': None,
                 'users': None,
                 'settings': None}
@@ -275,8 +226,8 @@ def synchronise(request):
             category_table['id'] = serialized_category['id']
 
             objects = category.objectscategories_set.all()
-            category_table['object_ids'] = [{'object_id': i.id} for i in objects]
-            category_table['sync_object_ids'] = [{'object_id': i['sync_id']} for i in ObjectsCategoriesSerializer(objects, many=True).data]
+            category_table['object_ids'] = [i.id for i in objects]
+            category_table['sync_object_ids'] = [i['sync_id'] for i in ObjectsCategoriesSerializer(objects, many=True).data]
 
             localizations = serialized_category['localizations']
             for local in localizations:
@@ -333,4 +284,3 @@ def synchronise(request):
         data['settings'] = settings_table
 
         return JsonResponse(data, safe=True)
-
