@@ -18,58 +18,67 @@ class MinValidatedInlineMixIn:
 
 class PredefinedAvatarsInline(MinValidatedInlineMixIn, admin.TabularInline):
     model = PredefinedAvatars
-    min_num = 2 # should be 6
+    min_num = 6
     extra = 0
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class SettingsPredefinedObjectsItemsInline(MinValidatedInlineMixIn, admin.TabularInline):
     model = SettingsPredefinedObjectsItems
     min_num = 8
     extra = 0
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class SettingsAdmin(admin.ModelAdmin):
     inlines = [PredefinedAvatarsInline, SettingsPredefinedObjectsItemsInline]
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class MuseumsImagesInline(admin.TabularInline):
     model = MuseumsImages
     extra = 0
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class MuseumsAdmin(admin.ModelAdmin):
     inlines = [MuseumsImagesInline,]
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class ObjectsImagesInline(admin.TabularInline):
     model = ObjectsImages
     extra = 0
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class ObjectsLocalizationsInline(MinValidatedInlineMixIn, admin.TabularInline):
     model = ObjectsLocalizations
     min_num = NUMBER_OF_LOCALIZATIONS
     extra = 0
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class ObjectsCategoriesInline(MinValidatedInlineMixIn, admin.TabularInline):
     model = ObjectsCategories
     min_num = 1
     extra = 0
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class ObjectsItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'avatar_id', 'museum', 'onboarding', 'vip', 'updated_at', 'categories')
     inlines = [ObjectsLocalizationsInline, ObjectsImagesInline, ObjectsCategoriesInline]
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
     # def get_queryset(self, request):
     #     return super(ObjectsItemAdmin,self).get_queryset(request).select_related('objectslocalizations_set')
@@ -98,46 +107,54 @@ class CategorieslocalizationsInline(MinValidatedInlineMixIn, admin.TabularInline
     model = Categorieslocalizations
     min_num = NUMBER_OF_LOCALIZATIONS
     extra = 0
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class CategoriesAdmin(admin.ModelAdmin):
     inlines = [CategorieslocalizationsInline]
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class UsersLanguageStylesInline(MinValidatedInlineMixIn, admin.TabularInline):
     model = UsersLanguageStyles
     min_num = NUMBER_OF_LOCALIZATIONS
     extra = 0
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class VotingsInline(admin.TabularInline):
     model = Votings
     extra = 0
-    readonly_fields = ['synced', 'updated_at', 'objects_item', 'vote']
+    readonly_fields = ['updated_at', 'objects_item', 'vote']
+    exclude = ('synced',)
 
 
 class CollectionsInline(admin.TabularInline):
     model = Collections
     extra = 0
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class UsersAdmin(admin.ModelAdmin):
     inlines = [UsersLanguageStylesInline, VotingsInline, CollectionsInline]
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class ChatsAdmin(admin.ModelAdmin):
     model = Chats
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 
 class VotingsAdmin(admin.ModelAdmin):
     model = Votings
-    readonly_fields = ['synced', 'updated_at']
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
 
 admin.site.register(Collections)
 admin.site.register(Users, UsersAdmin)
