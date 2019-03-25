@@ -17,7 +17,7 @@ router.register('objectslocalizations', rest_views.ObjectsLocalizationsView)
 
 urlpatterns = [
     path(r'api/v1/', include(router.urls)),
-    path('api/v1/synchronise/', synch_view.synchronise),
+    path('api/v1/synchronise/', synch_view.Synchronization.as_view()),
     path('api/v1/fetch/', fetch_view.fetch),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

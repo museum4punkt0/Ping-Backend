@@ -203,7 +203,7 @@ class MuseumsImagesSerializer(serializers.ModelSerializer):
 
 
 class MuseumsSerializer(serializers.ModelSerializer):
-    objectsitems = ObjectsItemSerializer(many=True)
+    objectsitems = ObjectsItemSerializer(source='objects_query', many=True)
     museumimages = MuseumsImagesSerializer(many=True)
 
     def __init__(self, *args, **kwargs):
