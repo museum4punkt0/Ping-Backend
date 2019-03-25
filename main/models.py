@@ -206,7 +206,7 @@ class Museums(models.Model):
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 
-    _objects_to_serialize =  None
+    _objects_to_serialize = None
 
     @property
     def objects_to_serialize(self):
@@ -219,6 +219,8 @@ class Museums(models.Model):
     def objects_query(self):
         if self.objects_to_serialize is not None:
             return ObjectsItem.objects.filter(sync_id__in=self._objects_to_serialize)
+        else:
+            return ObjectsItem.objects.all()
 
     @property
     def objectsitems(self):
