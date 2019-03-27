@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Collections, Users, Settings, Museums, ObjectsItem, \
                     Categories, ObjectsCategories, Categorieslocalizations, Chats, \
                     ObjectsImages, PredefinedAvatars, MuseumsImages, \
-                    ObjectsLocalizations, Votings
+                    ObjectsLocalizations, Votings, ObjectsMap
 
 
 class CollectionsSerializer(serializers.ModelSerializer):
@@ -163,9 +163,15 @@ class ObjectsImagesSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 
 
+class ObjectsMapField(serializers.RelatedField):
+
+    def to_representation(self, value):
+        return '{}'.format(value.image.url)
+
 class ObjectsItemSerializer(serializers.ModelSerializer):
     images = ObjectsImagesSerializer(many=True)
     localizations = ObjectsLocalizationsSerializer(many=True)
+    object_map = ObjectsMapField(read_only=True)
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -181,8 +187,9 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = ObjectsItem
         fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony', 
-            'vip', 'language_style', 'avatar', 'onboarding', 'sync_id', 
-            'synced', 'created_at', 'updated_at', 'images', 'localizations')
+            'vip', 'language_style', 'avatar', 'onboarding', 'object_map',
+            'sync_id', 'synced', 'created_at', 'updated_at', 'images',
+            'localizations')
 
 
 class MuseumsImagesSerializer(serializers.ModelSerializer):

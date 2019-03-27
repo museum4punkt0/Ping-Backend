@@ -1,10 +1,15 @@
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils import timezone
+from django.core.files.temp import NamedTemporaryFile
+from django.utils.html import format_html
 from types import MethodType
 from model_utils import Choices
+import urllib
 import uuid
 import os
+from PIL import Image
+from io import BytesIO
 from mein_objekt.settings import DEFAULT_MUSEUM
 from multiselectfield import MultiSelectField
 
@@ -39,6 +44,14 @@ DEFAULT_MUSEUM_SETTINGS = {
         "languages": "{1: 5, 2: 3}",
         "synced": False,
     }
+
+IMAGE_TYPES = Choices(
+        ('smpl', 'Simple'),
+        ('pnt', 'Pointer'),
+        ('1_map', 'First floor map'),
+        ('2_map', 'Second floor map'),
+        ('3_map', 'Third floor map'),
+      )
 
 def get_image_path(instance, filename):
     syncid = getattr(instance, 'sync_id', None).urn.split(':')[-1]
@@ -248,8 +261,8 @@ class ObjectsItem(models.Model):
         default=PRIORITY_CHOICES.first)
     museum = models.ForeignKey(Museums, models.PROTECT)
     floor = models.IntegerField()
-    positionx = models.DecimalField(db_column='positionX', max_digits=11, decimal_places=8)
-    positiony = models.DecimalField(db_column='positionY', max_digits=11, decimal_places=8)
+    positionx = models.DecimalField(db_column='positionX', max_digits=3, decimal_places=0)
+    positiony = models.DecimalField(db_column='positionY', max_digits=3, decimal_places=0)
     vip = models.BooleanField(default=False)
     language_style = models.CharField(max_length=45, choices=LANGUEAGE_STYLE_CHOICES, default='easy')
     avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
@@ -267,8 +280,43 @@ class ObjectsItem(models.Model):
     def localizations(self):
         return self.objectslocalizations_set.all()
 
+    @property
+    def object_map(self):
+        return self.objectsmap
+
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
+
+        museum = self.museum
+        mus_map = museum.museumsimages_set.filter(image_type=f'{self.floor}_map')
+        mus_pointer = museum.museumsimages_set.filter(image_type='pnt')
+        if mus_map and mus_pointer:
+            mus_response = urllib.request.urlopen(mus_map[0].image.url).read()
+            pnt_response = urllib.request.urlopen(mus_pointer[0].image.url).read()
+
+            if mus_response and pnt_response:
+                mus_io = BytesIO(mus_response)
+                pnt_io = BytesIO(pnt_response)
+
+                mus_image = Image.open(mus_io)
+                pnt_image = Image.open(pnt_io)
+                mask = Image.new('L', (30, 30), 100)
+
+                pnt_image = pnt_image.resize((30, 30))
+                mus_image.paste(pnt_image, (int(self.positionx), int(self.positiony)), mask=mask)
+                # final = Image.alpha_composite(m)
+
+                image_buffer = BytesIO()
+                mus_image.save(image_buffer, "PNG")
+
+                img_temp = NamedTemporaryFile(delete=True)
+                img_temp.write(image_buffer.getvalue())
+
+                self.objectsmap_set.all().delete()
+                om = ObjectsMap()
+                om.objects_item = self
+                om.object_map.save('map.png', img_temp)
+
         if not self.id:
             self.created_at = timezone.now()
         self.updated_at = timezone.now()
@@ -416,12 +464,40 @@ class ObjectsImages(models.Model):
         return f'{self.id}'
 
 
+class ObjectsMap(models.Model):
+    class Meta:
+        verbose_name_plural = "Objects Map"
+
+    objects_item = models.OneToOneField(ObjectsItem, related_name='objectsmap', on_delete=models.CASCADE)
+    image = models.ImageField()
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    synced = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super().save(*args, **kwargs)
+
+    def thumbnail(self):
+      return format_html('<img src="{}" width="280"/>'.format(self.object_map.url))
+
+    thumbnail.allow_tags = True
+    thumbnail.short_description = 'thumbnail'
+
+    def __str__(self):
+        return f'{self.id}'
+
+
 class MuseumsImages(models.Model):
     class Meta:
         verbose_name_plural = "Museums Images"
 
     image = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
-    image_type = models.CharField(max_length=45)
+    image_type = models.CharField(max_length=45, choices=IMAGE_TYPES, default=IMAGE_TYPES.smpl)
     museum = models.ForeignKey(Museums, models.CASCADE)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)

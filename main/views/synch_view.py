@@ -77,6 +77,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
                       'language_style': None,
                       'avatar': None,
                       'onboarding': None,
+                      'object_map': None,
                       'sync_id': None,
                       'synced': None,
                       'created_at': None,
@@ -93,6 +94,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
         item_table['language_style'] = item['language_style']
         item_table['avatar'] = item['avatar']
         item_table['onboarding'] = item['onboarding']
+        item_table['object_map'] = item['object_map']
         item_table['sync_id'] = item['sync_id']
         item_table['synced'] = item['synced']
         item_table['created_at'] = item['created_at']
@@ -305,9 +307,11 @@ class Synchronization(APIView):
     def post(self, request, format=None):
         post_data = request.data
         get_values = post_data.get('get')
+        add_values = post_data.get('add')
         objects_sync_ids = []
         categories_sync_ids = []
 
+        # traverse 'get' table
         museum = Museums.objects.get(name=DEFAULT_MUSEUM)
         if get_values.get('objects'):
             objects_sync_ids.extend(get_values.get('objects'))
@@ -332,5 +336,16 @@ class Synchronization(APIView):
         categories = Categories.objects.filter(sync_id__in=categories_sync_ids)
 
         settings = Settings.objects.filter(sync_id__in=get_values.get('settings', []))
+
+        #traverse 'add' values
+        # chats, votings, collections = None, None, None
+        # if add_values:
+        #     chats = add_values.get('chats')
+        #     votings = add_values.get('votings')
+        #     collections = add_values.get('collections')
+        # if chats:
+
+
+
 
         return JsonResponse(serialized_data(museum, settings=settings, categories=categories), safe=True)

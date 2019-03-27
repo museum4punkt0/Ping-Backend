@@ -3,7 +3,7 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     Categories, Categorieslocalizations, ObjectsCategories,\
                     ObjectsImages, Chats, ObjectsImages, MuseumsImages,\
                     ObjectsLocalizations, UsersLanguageStyles, Votings, \
-                    PredefinedAvatars, SettingsPredefinedObjectsItems
+                    PredefinedAvatars, SettingsPredefinedObjectsItems, ObjectsMap
 from mein_objekt.settings import NUMBER_OF_LOCALIZATIONS
 
 admin.site.site_header = "Museums Admin"
@@ -74,9 +74,23 @@ class ObjectsCategoriesInline(MinValidatedInlineMixIn, admin.TabularInline):
     exclude = ('synced',)
 
 
+class ObjectsMapAdmin(admin.ModelAdmin):
+    list_display = ('thumbnail',)
+
+
+class ObjectsMapInline(admin.TabularInline):
+    model = ObjectsMap
+    extra = 0
+    fields = ('thumbnail',)
+    readonly_fields = ['thumbnail']
+    exclude = ('synced',)
+
+
 class ObjectsItemAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'avatar_id', 'museum', 'onboarding', 'vip', 'updated_at', 'categories')
-    inlines = [ObjectsLocalizationsInline, ObjectsImagesInline, ObjectsCategoriesInline]
+    list_display = ('id', 'title', 'avatar_id', 'museum', 'onboarding', 'vip',
+                    'updated_at', 'categories')
+    inlines = [ObjectsLocalizationsInline, ObjectsImagesInline,
+               ObjectsCategoriesInline, ObjectsMapInline]
     readonly_fields = ['updated_at']
     exclude = ('synced',)
 
@@ -139,14 +153,16 @@ class CollectionsInline(admin.TabularInline):
     exclude = ('synced',)
 
 
-class UsersAdmin(admin.ModelAdmin):
-    inlines = [UsersLanguageStylesInline, VotingsInline, CollectionsInline]
+class ChatsInline(admin.TabularInline):
+    model = Chats
+    extra = 0
     readonly_fields = ['updated_at']
     exclude = ('synced',)
 
 
-class ChatsAdmin(admin.ModelAdmin):
-    model = Chats
+class UsersAdmin(admin.ModelAdmin):
+    inlines = [UsersLanguageStylesInline, VotingsInline, CollectionsInline,
+               ChatsInline]
     readonly_fields = ['updated_at']
     exclude = ('synced',)
 
@@ -162,6 +178,5 @@ admin.site.register(Settings, SettingsAdmin)
 admin.site.register(Museums, MuseumsAdmin)
 admin.site.register(ObjectsItem, ObjectsItemAdmin)
 admin.site.register(Categories, CategoriesAdmin)
-admin.site.register(Chats, ChatsAdmin)
 admin.site.register(Votings, VotingsAdmin)
-
+admin.site.register(ObjectsMap, ObjectsMapAdmin)
