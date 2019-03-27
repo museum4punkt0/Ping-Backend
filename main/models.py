@@ -291,31 +291,33 @@ class ObjectsItem(models.Model):
         mus_map = museum.museumsimages_set.filter(image_type=f'{self.floor}_map')
         mus_pointer = museum.museumsimages_set.filter(image_type='pnt')
         if mus_map and mus_pointer:
-            mus_response = urllib.request.urlopen(mus_map[0].image.url).read()
-            pnt_response = urllib.request.urlopen(mus_pointer[0].image.url).read()
+            if getattr(mus_map[0], 'image', None) and \
+               getattr(mus_pointer[0], 'image', None):
+                mus_response = urllib.request.urlopen(mus_map[0].image.url).read()
+                pnt_response = urllib.request.urlopen(mus_pointer[0].image.url).read()
 
-            if mus_response and pnt_response:
-                mus_io = BytesIO(mus_response)
-                pnt_io = BytesIO(pnt_response)
+                if mus_response and pnt_response:
+                    mus_io = BytesIO(mus_response)
+                    pnt_io = BytesIO(pnt_response)
 
-                mus_image = Image.open(mus_io)
-                pnt_image = Image.open(pnt_io)
-                mask = Image.new('L', (30, 30), 100)
+                    mus_image = Image.open(mus_io)
+                    pnt_image = Image.open(pnt_io)
+                    mask = Image.new('L', (30, 30), 100)
 
-                pnt_image = pnt_image.resize((30, 30))
-                mus_image.paste(pnt_image, (int(self.positionx), int(self.positiony)), mask=mask)
-                # final = Image.alpha_composite(m)
+                    pnt_image = pnt_image.resize((30, 30))
+                    mus_image.paste(pnt_image, (int(self.positionx), int(self.positiony)), mask=mask)
+                    # final = Image.alpha_composite(m)
 
-                image_buffer = BytesIO()
-                mus_image.save(image_buffer, "PNG")
+                    image_buffer = BytesIO()
+                    mus_image.save(image_buffer, "PNG")
 
-                img_temp = NamedTemporaryFile(delete=True)
-                img_temp.write(image_buffer.getvalue())
+                    img_temp = NamedTemporaryFile(delete=True)
+                    img_temp.write(image_buffer.getvalue())
 
-                self.objectsmap_set.all().delete()
-                om = ObjectsMap()
-                om.objects_item = self
-                om.object_map.save('map.png', img_temp)
+                    self.objectsmap_set.all().delete()
+                    om = ObjectsMap()
+                    om.objects_item = self
+                    om.object_map.save('map.png', img_temp)
 
         if not self.id:
             self.created_at = timezone.now()
@@ -483,7 +485,10 @@ class ObjectsMap(models.Model):
         return super().save(*args, **kwargs)
 
     def thumbnail(self):
-      return format_html('<img src="{}" width="280"/>'.format(self.object_map.url))
+        if getattr(self, 'object_map', None):
+            return format_html('<img src="{}" width="280"/>'.format(self.object_map.url))
+        else:
+            return format_html("No map")
 
     thumbnail.allow_tags = True
     thumbnail.short_description = 'thumbnail'
