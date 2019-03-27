@@ -79,7 +79,6 @@ def get_image_path(instance, filename):
     return os.path.join('images', dir_name, filename)
 
 
-
 class Users(models.Model):
     class Meta:
         verbose_name_plural = "Users"
@@ -280,13 +279,8 @@ class ObjectsItem(models.Model):
     def localizations(self):
         return self.objectslocalizations_set.all()
 
-    @property
-    def object_map(self):
-        return self.objectsmap
-
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
-
         museum = self.museum
         mus_map = museum.museumsimages_set.filter(image_type=f'{self.floor}_map')
         mus_pointer = museum.museumsimages_set.filter(image_type='pnt')
@@ -314,10 +308,11 @@ class ObjectsItem(models.Model):
                     img_temp = NamedTemporaryFile(delete=True)
                     img_temp.write(image_buffer.getvalue())
 
-                    self.objectsmap_set.all().delete()
+                    if getattr(self, 'object_map', None):
+                        self.object_map.delete()
                     om = ObjectsMap()
                     om.objects_item = self
-                    om.object_map.save('map.png', img_temp)
+                    om.image.save(f'/o_maps/{str(self.sync_id)}/map.png', img_temp)
 
         if not self.id:
             self.created_at = timezone.now()
@@ -470,7 +465,7 @@ class ObjectsMap(models.Model):
     class Meta:
         verbose_name_plural = "Objects Map"
 
-    objects_item = models.OneToOneField(ObjectsItem, related_name='objectsmap', on_delete=models.CASCADE)
+    objects_item = models.OneToOneField(ObjectsItem, related_name='object_map', on_delete=models.CASCADE)
     image = models.ImageField()
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
@@ -485,8 +480,8 @@ class ObjectsMap(models.Model):
         return super().save(*args, **kwargs)
 
     def thumbnail(self):
-        if getattr(self, 'object_map', None):
-            return format_html('<img src="{}" width="280"/>'.format(self.object_map.url))
+        if getattr(self, 'image', None):
+            return format_html('<img src="{}" width="280"/>'.format(self.image.url))
         else:
             return format_html("No map")
 
@@ -501,7 +496,7 @@ class MuseumsImages(models.Model):
     class Meta:
         verbose_name_plural = "Museums Images"
 
-    image = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
+    image = models.ImageField(upload_to=get_image_path, max_length=110)
     image_type = models.CharField(max_length=45, choices=IMAGE_TYPES, default=IMAGE_TYPES.smpl)
     museum = models.ForeignKey(Museums, models.CASCADE)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)

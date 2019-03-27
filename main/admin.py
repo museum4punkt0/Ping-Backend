@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     Categories, Categorieslocalizations, ObjectsCategories,\
                     ObjectsImages, Chats, ObjectsImages, MuseumsImages,\
@@ -8,6 +9,7 @@ from mein_objekt.settings import NUMBER_OF_LOCALIZATIONS
 
 admin.site.site_header = "Museums Admin"
 admin.site.site_title = "Museums Admin"
+from django.forms.models import BaseInlineFormSet
 
 
 class MinValidatedInlineMixIn:
@@ -38,11 +40,28 @@ class SettingsAdmin(admin.ModelAdmin):
     exclude = ('synced',)
 
 
+class MusImagesFormSet(BaseInlineFormSet):
+   def clean(self):
+        super(MusImagesFormSet, self).clean()
+
+        mus_image_types = [i.instance.image_type for i in self.forms]
+        map_types = [True for i in mus_image_types if 'map' in i]
+        pointer_types = [True for i in mus_image_types if 'pnt' in i]
+        if not any(map_types):
+            raise ValidationError('There must be at least one map image with type "<floor_number>_map"!')
+        if len(pointer_types) != 1:
+            raise ValidationError('There must be exatly one pointer image with type "pnt"!')
+
+
+
+
 class MuseumsImagesInline(admin.TabularInline):
     model = MuseumsImages
+    min_number = 2
     extra = 0
     readonly_fields = ['updated_at']
     exclude = ('synced',)
+    formset = MusImagesFormSet
 
 
 class MuseumsAdmin(admin.ModelAdmin):
