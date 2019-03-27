@@ -191,11 +191,9 @@ class VotingsAdmin(admin.ModelAdmin):
     readonly_fields = ['updated_at']
     exclude = ('synced',)
 
-admin.site.register(Collections)
 admin.site.register(Users, UsersAdmin)
 admin.site.register(Settings, SettingsAdmin)
 admin.site.register(Museums, MuseumsAdmin)
 admin.site.register(ObjectsItem, ObjectsItemAdmin)
 admin.site.register(Categories, CategoriesAdmin)
 admin.site.register(Votings, VotingsAdmin)
-admin.site.register(ObjectsMap, ObjectsMapAdmin)
