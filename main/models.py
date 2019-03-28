@@ -295,12 +295,10 @@ class ObjectsItem(models.Model):
                     pnt_io = BytesIO(pnt_response)
 
                     mus_image = Image.open(mus_io)
-                    pnt_image = Image.open(pnt_io)
-                    mask = Image.new('L', (30, 30), 100)
+                    pnt_image = Image.open(pnt_io).convert("RGBA")
 
-                    pnt_image = pnt_image.resize((30, 30))
-                    mus_image.paste(pnt_image, (int(self.positionx), int(self.positiony)), mask=mask)
-                    # final = Image.alpha_composite(m)
+                    pnt_image = pnt_image.resize((40, 40))
+                    mus_image.paste(pnt_image, (int(self.positionx), int(self.positiony)), pnt_image.split()[3])
 
                     image_buffer = BytesIO()
                     mus_image.save(image_buffer, "PNG")
