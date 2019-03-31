@@ -161,21 +161,21 @@ class UsersLanguageStylesInline(MinValidatedInlineMixIn, admin.TabularInline):
 class VotingsInline(admin.TabularInline):
     model = Votings
     extra = 0
-    readonly_fields = ['updated_at', 'objects_item', 'vote']
+    readonly_fields = ['objects_item', 'vote', 'updated_at']
     exclude = ('synced',)
 
 
 class CollectionsInline(admin.TabularInline):
     model = Collections
     extra = 0
-    readonly_fields = ['updated_at']
+    readonly_fields = ['objects_item', 'category', 'image', 'updated_at']
     exclude = ('synced',)
 
 
 class ChatsInline(admin.TabularInline):
     model = Chats
     extra = 0
-    readonly_fields = ['updated_at']
+    readonly_fields = ['objects_item', 'last_step', 'history', 'finished', 'updated_at']
     exclude = ('synced',)
 
 
@@ -197,3 +197,4 @@ admin.site.register(Museums, MuseumsAdmin)
 admin.site.register(ObjectsItem, ObjectsItemAdmin)
 admin.site.register(Categories, CategoriesAdmin)
 admin.site.register(Votings, VotingsAdmin)
+admin.site.register(Collections)

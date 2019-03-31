@@ -22,7 +22,6 @@ wmctrl==0.3
 gunicorn==19.9.0
 whitenoise==4.1.2
 django-storages==1.7.1
-dropbox==9.3.0
 django-debug-toolbar==1.11
 django-multiselectfield==0.1.8
 boto3==1.9.122

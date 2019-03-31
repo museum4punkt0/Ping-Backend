@@ -3,7 +3,6 @@ from django.db import models
 from django.utils import timezone
 from django.core.files.temp import NamedTemporaryFile
 from django.utils.html import format_html
-from types import MethodType
 from model_utils import Choices
 import urllib
 import uuid
@@ -348,10 +347,10 @@ class Collections(models.Model):
         verbose_name_plural = "Collections"
 
     user = models.ForeignKey(Users, models.CASCADE, blank=True, null=True)
-    objects_item = models.ManyToManyField(ObjectsItem)
+    objects_item = models.OneToOneField(ObjectsItem, models.CASCADE)
     category = models.ManyToManyField(Categories)
-    image = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
-    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    image = models.ImageField()
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
@@ -420,7 +419,7 @@ class Chats(models.Model):
     objects_item = models.OneToOneField('ObjectsItem', models.CASCADE)
     last_step = models.IntegerField()
     finished = models.BooleanField(default=False)
-    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
@@ -568,9 +567,9 @@ class Votings(models.Model):
         verbose_name_plural = "Votings"
 
     user = models.ForeignKey(Users, models.CASCADE)
-    objects_item = models.OneToOneField(ObjectsItem, models.CASCADE)
+    objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
     vote = models.BooleanField(default=False)
-    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
