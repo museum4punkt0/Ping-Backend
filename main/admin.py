@@ -53,8 +53,6 @@ class MusImagesFormSet(BaseInlineFormSet):
             raise ValidationError('There must be exatly one pointer image with type "pnt"!')
 
 
-
-
 class MuseumsImagesInline(admin.TabularInline):
     model = MuseumsImages
     min_number = 2
@@ -190,6 +188,7 @@ class VotingsAdmin(admin.ModelAdmin):
     model = Votings
     readonly_fields = ['updated_at']
     exclude = ('synced',)
+
 
 admin.site.register(Users, UsersAdmin)
 admin.site.register(Settings, SettingsAdmin)

@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='collections',
             name='objects_item',
-            field=models.ForeignKey(default=0, on_delete=django.db.models.deletion.CASCADE, to='main.ObjectsItem'),
+            field=models.ForeignKey(default=8, on_delete=django.db.models.deletion.CASCADE, to='main.ObjectsItem'),
         ),
         migrations.AlterField(
             model_name='votings',
