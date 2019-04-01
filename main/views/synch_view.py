@@ -401,8 +401,8 @@ class Synchronization(APIView):
                     try:
                         bl = bool(distutils.util.strtobool(finished))
                         data['finished'] = bl
-                    except:
-                        logging.error(f'Inappropriate "finished":{finished} (type:{type(finished)}) bool value for chat {ch_sync_id} sync_id')
+                    except Exception as ex:
+                        logging.error(f'Inappropriate "finished":{ex} bool value for chat {ch_sync_id} sync_id')
                         errors['errors'].append({'chat': f'Inappropriate "finished" bool value for chat {ch_sync_id} sync_id'})
                 else:
                     errors['errors'].append({'chat': f'Value "finished" for chat {ch_sync_id} is required'})
