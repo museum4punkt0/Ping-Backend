@@ -322,8 +322,11 @@ class Synchronization(APIView):
             return JsonResponse({'error': 'user id must be passed'}, safe=True)
 
         post_data = request.data
-        get_values = post_data.get('get')
-        add_values = post_data.get('add')
+        if post_data:
+            get_values = post_data.get('get')
+            add_values = post_data.get('add')
+        else:
+            return JsonResponse({'error': 'json data with structure {"add": {}, "update": {},"delete": {}, "get": {} } must be trensfered'}, safe=True)
         objects_sync_ids = []
         categories_sync_ids = []
 
@@ -356,16 +359,15 @@ class Synchronization(APIView):
         chats, votings, collections = None, None, None
         errors = {'errors': []}
 
-        if add_values:
-            chats = add_values.get('chats')
-            votings = add_values.get('votings')
-            collections = add_values.get('collections')
-            chats_objects = []
-            csync_ids = []
-            votings_objects = []
-            vsync_ids = []
-            collections_objects = []
-            clsync_ids = []
+        chats = add_values.get('chats')
+        votings = add_values.get('votings')
+        collections = add_values.get('collections')
+        chats_objects = []
+        csync_ids = []
+        votings_objects = []
+        vsync_ids = []
+        collections_objects = []
+        clsync_ids = []
 
         if chats:
             data = {'user': None,
