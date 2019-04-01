@@ -1,4 +1,4 @@
-import distutils
+import distutils.util
 import datetime
 import uuid
 import base64
@@ -526,9 +526,9 @@ class Synchronization(APIView):
                         if category_object:
                             data['category'].append(category_object)
                         else:
-                            errors.append({'collection': 'Inappropriate or absent category sync_id'})
+                            errors['errors'].append({'collection': 'Inappropriate or absent category sync_id'})
                 else:
-                    errors.append({'collection': 'Sync id for collection category is required'})
+                    errors['errors'].append({'collection': 'Sync id for collection category is required'})
 
                 data['user'] = user
                 try:
