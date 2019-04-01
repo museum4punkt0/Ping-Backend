@@ -25,6 +25,7 @@ from main.models import (
     ObjectsLocalizations,
     ObjectsImages
 )
+import logging
 
 from main.serializers import (
     CollectionsSerializer,
@@ -46,6 +47,8 @@ from main.serializers import (
     )
 from main.views.validators import validate_common_fields
 from mein_objekt.settings import DEFAULT_MUSEUM
+
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.ERROR)
 
 def serialized_data(museum, user=None, settings=None, categories=None):
     data = {'museums': None,
@@ -399,6 +402,7 @@ class Synchronization(APIView):
                         bl = bool(distutils.util.strtobool(finished))
                         data['finished'] = bl
                     except:
+                        logging.error(f'Inappropriate "finished":{finished} (type:{type(finished)}) bool value for chat {ch_sync_id} sync_id')
                         errors['errors'].append({'chat': f'Inappropriate "finished" bool value for chat {ch_sync_id} sync_id'})
                 else:
                     errors['errors'].append({'chat': f'Value "finished" for chat {ch_sync_id} is required'})
