@@ -45,7 +45,10 @@ from main.serializers import (
     ObjectsImagesSerializer,
     UsersSerializer
     )
-from main.views.validators import validate_common_fields
+from main.views.validators import (validate_chats,
+                                   validate_votings,
+                                   validate_collections
+                                   )
 from mein_objekt.settings import DEFAULT_MUSEUM
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.ERROR)
@@ -325,8 +328,9 @@ class Synchronization(APIView):
         if post_data:
             get_values = post_data.get('get')
             add_values = post_data.get('add')
+            update_values = post_data.get('update')
         else:
-            return JsonResponse({'error': 'json data with structure {"add": {}, "update": {},"delete": {}, "get": {} } must be trensfered'}, safe=True)
+            return JsonResponse({'error': 'json data with structure {"add": {}, "update": {},"delete": {}, "get": {} } must be transfered'}, safe=True)
         objects_sync_ids = []
         categories_sync_ids = []
 
@@ -356,30 +360,36 @@ class Synchronization(APIView):
         settings = Settings.objects.filter(sync_id__in=get_values.get('settings', []))
 
         # traverse 'add' values
-        chats, votings, collections = None, None, None
-        errors = {'errors': []}
+        errors = {'add_errors': [], 'update_errors': []}
 
         chats = add_values.get('chats')
         votings = add_values.get('votings')
         collections = add_values.get('collections')
+
         chats_objects = []
-        csync_ids = []
         votings_objects = []
-        vsync_ids = []
         collections_objects = []
-        clsync_ids = []
+
+        chats_data = []
+        votings_data = []
+
+        up_chats = update_values.get('chats')
+        up_votings = update_values.get('votings')
+        up_collections = update_values.get('collections')
+        up_user_data = update_values.get('user')
+
 
         if chats:
-            data = {'user': None,
-                    'objects_item': None,
-                    'finished': None,
-                    'history': None,
-                    'last_step': None,
-                    'sync_id': None,
-                    'created_at': None,
-                    'updated_at': None}
-
             for chat in chats:
+                data = {'user': None,
+                        'objects_item': None,
+                        'finished': None,
+                        'history': None,
+                        'last_step': None,
+                        'sync_id': None,
+                        'created_at': None,
+                        'updated_at': None}
+
                 ch_sync_id = chat.get('sync_id')
                 created_at = chat.get('created_at')
                 updated_at = chat.get('updated_at')
@@ -387,48 +397,26 @@ class Synchronization(APIView):
                 finished = chat.get('finished')
                 history = chat.get('history')
                 last_step = chat.get('last_step')
-                uuid_obj = None
 
-                c_errors = validate_common_fields('chat',
-                                                   data,
-                                                   Chats,
-                                                   csync_ids,
-                                                   entity_sync_id=ch_sync_id,
-                                                   created_at=created_at,
-                                                   updated_at=updated_at,
-                                                   ob_sync_id=ob_sync_id)
-                errors['errors'].extend(c_errors)
+                validated_data, errors = validate_chats('add',
+                                                         data,
+                                                         user,
+                                                         errors,
+                                                         ch_sync_id,
+                                                         created_at,
+                                                         updated_at,
+                                                         ob_sync_id,
+                                                         finished,
+                                                         history,
+                                                         last_step)
 
-                if finished:
-                    try:
-                        bl = bool(distutils.util.strtobool(finished))
-                        data['finished'] = bl
-                    except Exception as ex:
-                        logging.error(f'Inappropriate "finished":{ex} bool value for chat {ch_sync_id} sync_id')
-                        errors['errors'].append({'chat': f'Inappropriate "finished" bool value for chat {ch_sync_id} sync_id'})
-                else:
-                    errors['errors'].append({'chat': f'Value "finished" for chat {ch_sync_id} is required'})
-
-                if history:
-                    data['history'] = history
-                else:
-                    errors['errors'].append({'chat': f'Value "history" for chat {ch_sync_id} is required'})
-
-                if last_step:
-                    try:
-                        ls = int(last_step)
-                        data['last_step'] = ls
-                    except:
-                        errors['errors'].append({'chat': f'Inappropriate "last step" integer value for chat {ch_sync_id} sync_id'})
-                else:
-                    errors['errors'].append({'chat': f'Value "finished" for chat {ch_sync_id} is required'})
-
-                data['user'] = user
+                if len(errors['add_errors']) > 0:
+                    return JsonResponse(errors, safe=True)
 
                 try:
-                    chats_objects.append(Chats(**data))
+                    chats_objects.append(Chats(**validated_data))
                 except Exception as e:
-                    errors['errors'].append({'chat': e.args})
+                    errors['add_errors'].append({'chat': e.args})
 
         if votings:
             for voting in votings:
@@ -444,33 +432,24 @@ class Synchronization(APIView):
                 updated_at = voting.get('updated_at')
                 ob_sync_id = voting.get('object_sync_id')
                 vote = voting.get('vote')
-                uuid_obj = None
 
-                c_errors = validate_common_fields('vote',
-                                                   data,
-                                                   Votings,
-                                                   vsync_ids,
-                                                   entity_sync_id=vt_sync_id,
-                                                   created_at=created_at,
-                                                   updated_at=updated_at,
-                                                   ob_sync_id=ob_sync_id)
-                errors['errors'].extend(c_errors)
+                validated_data, errors = validate_votings('add',
+                                                           data,
+                                                           user,
+                                                           errors,
+                                                           vt_sync_id,
+                                                           created_at,
+                                                           updated_at,
+                                                           ob_sync_id,
+                                                           vote)
 
-                if vote:
-                    try:
-                        bl = bool(distutils.util.strtobool(vote))
-                        data['vote'] = bl
-                    except:
-                        errors['errors'].append({'vote': f'Inappropriate "vote" bool value for chat {vt_sync_id} sync_id'})
-                else:
-                    errors['errors'].append({'vote': f'Value "vote" for vote {vt_sync_id} is required'})
-
-                data['user'] = user
+                if len(errors['add_errors']) > 0:
+                    return JsonResponse(errors, safe=True)
 
                 try:
-                    votings_objects.append(Votings(**data))
+                    votings_objects.append(Votings(**validated_data))
                 except Exception as e:
-                    errors['errors'].append({'vote': e.args})
+                    errors['add_errors'].append({'vote': e.args})
 
         if collections:
             for collection in collections:
@@ -488,63 +467,33 @@ class Synchronization(APIView):
                 ob_sync_id = collection.get('object_sync_id')
                 image = collection.get('image')
                 ctgrs = collection.get('categories')
-                uuid_obj = None
 
-                c_errors = validate_common_fields('collection',
-                                                   data,
-                                                   Collections,
-                                                   clsync_ids,
-                                                   entity_sync_id=cl_sync_id,
-                                                   created_at=created_at,
-                                                   updated_at=updated_at,
-                                                   ob_sync_id=ob_sync_id)
-                errors['errors'].extend(c_errors)
+                validated_data, errors = validate_collections('add',
+                                                               data,
+                                                               user,
+                                                               errors,
+                                                               cl_sync_id,
+                                                               created_at,
+                                                               updated_at,
+                                                               ob_sync_id,
+                                                               image,
+                                                               ctgrs)
 
-                if image:
-                    try:
-                        img_data = base64.b64decode(image)
-                        image_buffer = BytesIO(img_data)
-                        pil_image = Image.open(image_buffer)
-                        image_buffer = BytesIO()
-                        pil_image.save(image_buffer, "PNG")
-                        img_temp = NamedTemporaryFile(delete=True)
-                        img_temp.write(image_buffer.getvalue())
-                        img_temp.name = f'/Collections/{str(cl_sync_id)}/image_{cl_sync_id}.jpg'
-                        data['image'] = img_temp
+                if len(errors['add_errors']) > 0:
+                    return JsonResponse(errors, safe=True)
 
-                    except:
-                        errors['errors'].append({'collection': f'Inappropriate "image" encoding for collection {cl_sync_id} sync_id'})
-                else:
-                    errors['errors'].append({'collection': f'Value "image" for collection {cl_sync_id} is required'})
-
-                if ctgrs:
-                    for cat in ctgrs:
-                        try:
-                            uuid_obj = uuid.UUID(cat, version=4)
-                        except:
-                            errors.append({'collection': f'Inappropriate collection sync id {uuid_obj} uuid'})
-
-                        category_object = Categories.objects.filter(sync_id=uuid_obj).first()
-                        if category_object:
-                            data['category'].append(category_object)
-                        else:
-                            errors['errors'].append({'collection': 'Inappropriate or absent category sync_id'})
-                else:
-                    errors['errors'].append({'collection': 'Sync id for collection category is required'})
-
-                data['user'] = user
                 try:
-                    ctgs = data.pop('category', None)
-                    img = data.pop('image', None)
-                    coltn = Collections(**data)
+                    ctgs = validated_data.pop('category', None)
+                    img = validated_data.pop('image', None)
+                    coltn = Collections(**validated_data)
                     coltn.image.save(img.name, img)
                     [coltn.category.add(ctg) for ctg in ctgs]
                     collections_objects.append(coltn)
                 except Exception as e:
-                    errors['errors'].append({'collection': e.args})
+                    errors['add_errors'].append({'collection': e.args})
 
-        if len(errors['errors']) > 0:
-            return JsonResponse(errors, safe=True)
+                if len(errors['add_errors']) > 0:
+                    return JsonResponse(errors, safe=True)
 
         table = {'chats': chats_objects, 'votings': votings_objects,
                  'collections': collections_objects}
@@ -555,6 +504,125 @@ class Synchronization(APIView):
                     item.save()
                 except Exception as e:
                     return JsonResponse({f'{name}': e.args}, safe=True)
+
+        if up_chats:
+            for chat in up_chats:
+                data = {'user': None,
+                        'objects_item': None,
+                        'finished': None,
+                        'history': None,
+                        'last_step': None,
+                        'sync_id': None,
+                        'created_at': None,
+                        'updated_at': None}
+                ch_sync_id = chat.get('sync_id')
+                created_at = chat.get('created_at')
+                updated_at = chat.get('updated_at')
+                ob_sync_id = chat.get('object_sync_id')
+                finished = chat.get('finished')
+                history = chat.get('history')
+                last_step = chat.get('last_step')
+
+                validated_data, errors = validate_chats('update',
+                                                         data,
+                                                         user,
+                                                         errors,
+                                                         ch_sync_id,
+                                                         created_at,
+                                                         updated_at,
+                                                         ob_sync_id,
+                                                         finished,
+                                                         history,
+                                                         last_step)
+
+                if len(errors['update_errors']) > 0:
+                    return JsonResponse(errors, safe=True)
+
+                chats_data.append(validated_data)
+
+        if up_votings:
+            for voting in up_votings:
+                data = {'user': None,
+                        'objects_item': None,
+                        'vote': None,
+                        'sync_id': None,
+                        'created_at': None,
+                        'updated_at': None}
+
+                vt_sync_id = voting.get('sync_id')
+                created_at = voting.get('created_at')
+                updated_at = voting.get('updated_at')
+                ob_sync_id = voting.get('object_sync_id')
+                vote = voting.get('vote')
+
+                validated_data, errors = validate_votings('update',
+                                                           data,
+                                                           user,
+                                                           errors,
+                                                           vt_sync_id,
+                                                           created_at,
+                                                           updated_at,
+                                                           ob_sync_id,
+                                                           vote)
+
+                if len(errors['update_errors']) > 0:
+                    return JsonResponse(errors, safe=True)
+
+                votings_data.append(validated_data)
+
+        if up_collections:
+            collections_data = []
+            for collection in up_collections:
+                data = {'user': None,
+                        'objects_item': None,
+                        'category': [],
+                        'image': None,
+                        'sync_id': None,
+                        'created_at': None,
+                        'updated_at': None}
+
+                cl_sync_id = collection.get('sync_id')
+                created_at = collection.get('created_at')
+                updated_at = collection.get('updated_at')
+                ob_sync_id = collection.get('object_sync_id')
+                image = collection.get('image')
+                ctgrs = collection.get('categories')
+
+                validated_data, errors = validate_collections('update',
+                                                               data,
+                                                               user,
+                                                               errors,
+                                                               cl_sync_id,
+                                                               created_at,
+                                                               updated_at,
+                                                               ob_sync_id,
+                                                               image,
+                                                               ctgrs)
+
+                if len(errors['update_errors']) > 0:
+                    return JsonResponse(errors, safe=True)
+
+                ctgs = validated_data.pop('category', None)
+                img = validated_data.pop('image', None)
+                coltn =Collections.objects.filter(sync_id=validated_data['sync_id']).first()
+                if coltn:
+                    try:
+                        Collections.objects.filter(sync_id=validated_data['sync_id']).update(**validated_data)
+                        coltn.image.save(img.name, img)
+                        coltn.category.set(ctgs)
+                    except Exception as e:
+                        errors['add_errors'].append({'collection': e.args})
+                        return JsonResponse(errors, safe=True)
+
+            table = {'chats': [Chats, chats_data],
+                     'votings': [Votings, votings_data]}
+
+            for name, lst in table.items():
+                for data in lst[1]:
+                    try:
+                        lst[0].objects.filter(sync_id=data['sync_id']).update(**data)
+                    except Exception as e:
+                        return JsonResponse({f'{name}': e.args}, safe=True)
 
         return JsonResponse(serialized_data(museum, settings=settings, categories=categories), safe=True)
 

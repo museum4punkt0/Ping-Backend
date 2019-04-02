@@ -159,21 +159,24 @@ class UsersLanguageStylesInline(MinValidatedInlineMixIn, admin.TabularInline):
 class VotingsInline(admin.TabularInline):
     model = Votings
     extra = 0
-    readonly_fields = ['objects_item', 'vote', 'updated_at']
+    readonly_fields = ['objects_item', 'vote', 'updated_at', 'sync_id']
+    fields = ('objects_item', 'vote', 'updated_at', 'sync_id', )
     exclude = ('synced',)
 
 
 class CollectionsInline(admin.TabularInline):
     model = Collections
     extra = 0
-    readonly_fields = ['objects_item', 'category', 'image', 'updated_at']
+    readonly_fields = ['objects_item', 'category', 'image', 'updated_at', 'sync_id']
+    fields = ('objects_item', 'category', 'image', 'updated_at', 'sync_id', )
     exclude = ('synced',)
 
 
 class ChatsInline(admin.TabularInline):
     model = Chats
     extra = 0
-    readonly_fields = ['objects_item', 'last_step', 'history', 'finished', 'updated_at']
+    readonly_fields = ['objects_item', 'last_step', 'history', 'finished', 'updated_at', 'sync_id']
+    fields = ('objects_item', 'last_step', 'history', 'finished', 'updated_at', 'sync_id')
     exclude = ('synced',)
 
 
