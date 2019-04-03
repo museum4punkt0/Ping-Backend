@@ -624,15 +624,15 @@ class Synchronization(APIView):
                         errors['update_errors'].append({'collection': e.args})
                         return JsonResponse(errors, safe=True)
 
-            table = {'chats': [Chats, chats_data],
-                     'votings': [Votings, votings_data]}
+        table = {'chats': [Chats, chats_data],
+                 'votings': [Votings, votings_data]}
 
-            for name, lst in table.items():
-                for data in lst[1]:
-                    try:
-                        lst[0].objects.filter(sync_id=data['sync_id']).update(**data)
-                    except Exception as e:
-                        return JsonResponse({f'{name}': e.args}, safe=True)
+        for name, lst in table.items():
+            for data in lst[1]:
+                try:
+                    lst[0].objects.filter(sync_id=data['sync_id']).update(**data)
+                except Exception as e:
+                    return JsonResponse({f'{name}': e.args}, safe=True)
 
         if up_user_data:
             data = {'name': None,
@@ -658,7 +658,13 @@ class Synchronization(APIView):
             language = up_user_data.get('language')
             language_style = up_user_data.get('language_style')
             score = up_user_data.get('score')
-
+            logging.error(f'!!!!POST COLLECTION \
+                ch_sync_id: {us_sync_id, type(us_sync_id)}, \
+                created_at: {created_at, type(created_at)}, updated_at: {updated_at, type(updated_at)}, \
+                ob_sync_id{ob_sync_id, type(ob_sync_id)}, floor: {floor, type(floor)}, \
+                category {category, type(category)}, language: {language, type(language)}, \
+                language_style: {language_style, type(language_style)}, \
+                score: {score, type(score)}')
             validated_data, errors = validate_user('update',
                                                     data,
                                                     user,

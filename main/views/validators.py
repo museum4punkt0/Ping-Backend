@@ -10,7 +10,7 @@ from django.http import JsonResponse
 
 from main.models import ObjectsItem, Chats, Votings, Collections, Categories, UsersLanguageStyles, LOCALIZATIONS_CHOICES, LANGUEAGE_STYLE_CHOICES
 
-def validate_common_fields(entity_name, data, sync_ids=None, o_model=None, entity_sync_id=None, created_at=None, updated_at=None, ob_sync_id=None):
+def validate_common_fields(entity_name, data, action, sync_ids=None, o_model=None, entity_sync_id=None, created_at=None, updated_at=None, ob_sync_id=None):
     uuid_obj = None
     errors = []
     if entity_sync_id:
@@ -58,13 +58,14 @@ def validate_common_fields(entity_name, data, sync_ids=None, o_model=None, entit
         else:
             errors.append({f'{entity_name}': f'Inappropriate or absent objects sync_id: {uuid_obj}'})
 
-        if o_model.objects.filter(sync_id=entity_sync_id):
-            errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist'})
+        if action == 'add':
+            if o_model.objects.filter(sync_id=entity_sync_id):
+                errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist'})
 
-        if data['sync_id'] in sync_ids:
-            errors.append({f'{entity_name}': f'Sync id {data["sync_id"]} in {entity_name} data sets must be unique'})
-        else:
-            sync_ids.append(data['sync_id'])
+            if data['sync_id'] in sync_ids:
+                errors.append({f'{entity_name}': f'Sync id {data["sync_id"]} in {entity_name} data sets must be unique'})
+            else:
+                sync_ids.append(data['sync_id'])
 
     return errors
 
@@ -83,6 +84,7 @@ def validate_chats(action,
     csync_ids = []
     c_errors = validate_common_fields('chat',
                                        data,
+                                       action,
                                        sync_ids=csync_ids,
                                        o_model=Chats,
                                        entity_sync_id=ch_sync_id,
@@ -139,6 +141,7 @@ def validate_votings(action,
     vsync_ids = []
     c_errors = validate_common_fields('vote',
                                        data,
+                                       action,
                                        sync_ids=vsync_ids,
                                        o_model=Votings,
                                        entity_sync_id=vt_sync_id,
@@ -182,6 +185,7 @@ def validate_collections(action,
     uuid_obj = None
     c_errors = validate_common_fields('collection',
                                        data,
+                                       action,
                                        sync_ids=clsync_ids,
                                        o_model=Collections,
                                        entity_sync_id=cl_sync_id,
@@ -260,6 +264,7 @@ def validate_user(action,
 
     c_errors = validate_common_fields('user',
                                        data,
+                                       action,
                                        entity_sync_id=us_sync_id,
                                        created_at=created_at,
                                        updated_at=updated_at)
