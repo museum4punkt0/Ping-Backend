@@ -95,13 +95,16 @@ def validate_chats(action,
     if len(errors[f'{action}_errors']) > 0:
         return None, errors
 
-    if finished:
-        try:
-            bl = bool(distutils.util.strtobool(finished))
-            data['finished'] = bl
-        except Exception as ex:
-            logging.error(f'Inappropriate "finished":{ex} bool value for chat {ch_sync_id} sync_id')
-            errors[f'{action}_errors'].append({'chat': f'Inappropriate "finished" bool value for chat {ch_sync_id} sync_id'})
+    if finished is not None:
+        if isinstance(finished, str):
+            try:
+                bl = bool(distutils.util.strtobool(finished))
+                data['finished'] = bl
+            except Exception as ex:
+                logging.error(f'Inappropriate "finished":{ex} bool value for chat {ch_sync_id} sync_id')
+                errors[f'{action}_errors'].append({'chat': f'Inappropriate "finished" bool value for chat {ch_sync_id} sync_id'})
+        elif isinstance(finished, bool):
+            data['finished'] = finished
     else:
         errors[f'{action}_errors'].append({'chat': f'Value "finished" for chat {ch_sync_id} is required'})
 
@@ -148,12 +151,15 @@ def validate_votings(action,
     if len(errors[f'{action}_errors']) > 0:
         return None, errors
 
-    if vote:
-        try:
-            bl = bool(distutils.util.strtobool(vote))
-            data['vote'] = bl
-        except:
-            errors[f'{action}_errors'].append({'vote': f'Inappropriate "vote" bool value for chat {vt_sync_id} sync_id'})
+    if vote is not None:
+        if isinstance(vote, str):
+            try:
+                bl = bool(distutils.util.strtobool(vote))
+                data['vote'] = bl
+            except:
+                errors[f'{action}_errors'].append({'vote': f'Inappropriate "vote" bool value for chat {vt_sync_id} sync_id'})
+        elif isinstance(vote, bool):
+            data['vote'] = vote
     else:
         errors[f'{action}_errors'].append({'vote': f'Value "vote" for vote {vt_sync_id} is required'})
 

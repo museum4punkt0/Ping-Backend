@@ -345,23 +345,23 @@ class Synchronization(APIView):
         if get_values.get('objects'):
             objects_sync_ids.extend(get_values.get('objects'))
 
-        if get_values.get('object_images'):
-            images_objects = ObjectsItem.objects.filter(objectsimages__sync_id__in=get_values.get('object_images'))
-            objects_sync_ids.extend([str(i.sync_id) for i in images_objects])
+        # if get_values.get('object_images'):
+        #     images_objects = ObjectsItem.objects.filter(objectsimages__sync_id__in=get_values.get('object_images'))
+        #     objects_sync_ids.extend([str(i.sync_id) for i in images_objects])
 
-        if get_values.get('object_localizations'):
-            local_objects = ObjectsItem.objects.filter(objectslocalizations__sync_id__in=get_values.get('object_localizations'))
-            objects_sync_ids.extend([str(i.sync_id) for i in local_objects])
-        museum.objects_to_serialize = list(set(objects_sync_ids))
+        # if get_values.get('object_localizations'):
+        #     local_objects = ObjectsItem.objects.filter(objectslocalizations__sync_id__in=get_values.get('object_localizations'))
+        #     objects_sync_ids.extend([str(i.sync_id) for i in local_objects])
+        # museum.objects_to_serialize = list(set(objects_sync_ids))
 
         if get_values.get('categories'):
             categories_sync_ids.extend(get_values.get('categories'))
 
-        if get_values.get('category_localizations'):
-            local_categories = Categories.objects.filter(categorieslocalizations__sync_id__in=get_values.get('category_localizations'))
-            categories_sync_ids.extend([str(i.sync_id) for i in local_categories])
+        # if get_values.get('category_localizations'):
+        #     local_categories = Categories.objects.filter(categorieslocalizations__sync_id__in=get_values.get('category_localizations'))
+        #     categories_sync_ids.extend([str(i.sync_id) for i in local_categories])
 
-        logging.error(f'!!!! objects: {get_values.get("objects")}, object_images: {get_values.get("object_images")}, object_localizations: {get_values.get("object_localizations")}, categories{get_values.get("categories")}, category_localizations: {get_values.get("category_localizations")}')
+        logging.error(f'!!!! GET objects: {get_values.get("objects")}, object_images: {get_values.get("object_images")}, object_localizations: {get_values.get("object_localizations")}, categories{get_values.get("categories")}, category_localizations: {get_values.get("category_localizations")}')
 
         categories = Categories.objects.filter(sync_id__in=categories_sync_ids)
         settings = Settings.objects.filter(sync_id__in=get_values.get('settings', []))
