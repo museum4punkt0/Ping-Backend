@@ -327,6 +327,7 @@ class Synchronization(APIView):
         if user_id:
             user = Users.objects.get(device_id=user_id)
         else:
+            logging.error(f'Existing user id must be provided, device id: {user_id}')
             return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
 
         post_data = request.data
@@ -351,7 +352,6 @@ class Synchronization(APIView):
         if get_values.get('object_localizations'):
             local_objects = ObjectsItem.objects.filter(objectslocalizations__sync_id__in=get_values.get('object_localizations'))
             objects_sync_ids.extend([str(i.sync_id) for i in local_objects])
-
         museum.objects_to_serialize = list(set(objects_sync_ids))
 
         if get_values.get('categories'):
@@ -360,6 +360,8 @@ class Synchronization(APIView):
         if get_values.get('category_localizations'):
             local_categories = Categories.objects.filter(categorieslocalizations__sync_id__in=get_values.get('category_localizations'))
             categories_sync_ids.extend([str(i.sync_id) for i in local_categories])
+
+        logging.error(f'!!!! objects: {get_values.get("objects")}, object_images: {get_values.get("object_images")}, object_localizations: {get_values.get("object_localizations")}, categories{get_values.get("categories")}, category_localizations: {get_values.get("category_localizations")}')
 
         categories = Categories.objects.filter(sync_id__in=categories_sync_ids)
         settings = Settings.objects.filter(sync_id__in=get_values.get('settings', []))
@@ -402,6 +404,7 @@ class Synchronization(APIView):
                 finished = chat.get('finished')
                 history = chat.get('history')
                 last_step = chat.get('last_step')
+                logging.error(f'!!!!POST CHAT ch_sync_id: {ch_sync_id, type(ch_sync_id)}, created_at: {created_at, type(created_at)}, updated_at: {updated_at, type(updated_at)}, ob_sync_id{ob_sync_id, type(ob_sync_id)}, finished: {finished, type(finished)}')
 
                 validated_data, errors = validate_chats('add',
                                                          data,

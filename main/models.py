@@ -345,7 +345,7 @@ class Collections(models.Model):
         verbose_name_plural = "Collections"
 
     user = models.ForeignKey(Users, models.CASCADE, blank=True, null=True)
-    objects_item = models.OneToOneField(ObjectsItem, models.CASCADE)
+    objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
     category = models.ManyToManyField(Categories)
     image = models.ImageField()
     sync_id = models.UUIDField(default=uuid.uuid4, unique=True)
@@ -414,7 +414,7 @@ class Chats(models.Model):
         verbose_name_plural = "Chats"
 
     user = models.ForeignKey('Users', models.CASCADE)
-    objects_item = models.OneToOneField('ObjectsItem', models.CASCADE)
+    objects_item = models.ForeignKey('ObjectsItem', models.CASCADE)
     last_step = models.IntegerField()
     finished = models.BooleanField(default=False)
     sync_id = models.UUIDField(default=uuid.uuid4, unique=True)
