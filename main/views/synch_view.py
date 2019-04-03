@@ -661,7 +661,7 @@ class Synchronization(APIView):
             logging.error(f'!!!!POST COLLECTION \
                 ch_sync_id: {us_sync_id, type(us_sync_id)}, \
                 created_at: {created_at, type(created_at)}, updated_at: {updated_at, type(updated_at)}, \
-                ob_sync_id{ob_sync_id, type(ob_sync_id)}, floor: {floor, type(floor)}, \
+                us_sync_id{us_sync_id, type(us_sync_id)}, floor: {floor, type(floor)}, \
                 category {category, type(category)}, language: {language, type(language)}, \
                 language_style: {language_style, type(language_style)}, \
                 score: {score, type(score)}')
