@@ -78,48 +78,6 @@ def get_image_path(instance, filename):
     return os.path.join('images', dir_name, filename)
 
 
-class Users(models.Model):
-    class Meta:
-        verbose_name_plural = "Users"
-
-    id = models.AutoField(primary_key=True, serialize=True, verbose_name='ID')
-    name = models.CharField(max_length=45, blank=True, null=True)
-    avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True)
-    device_id = models.CharField(max_length=45, blank=True, null=True)
-    category = models.CharField(max_length=45, blank=True, null=True)
-    positionx = models.DecimalField(db_column='positionX', max_digits=11, decimal_places=8)
-    positiony = models.DecimalField(db_column='positionY', max_digits=11, decimal_places=8)
-    floor = models.IntegerField()
-    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.en)
-    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
-    synced = models.BooleanField(default=False)
-    created_at = models.DateTimeField(default=timezone.now, editable=False)
-    updated_at = models.DateTimeField(default=timezone.now)
-
-    @property
-    def chats(self):
-        return self.chats_set.all()
-
-    @property
-    def collections(self):
-        return self.collections_set.all()
-
-    @property
-    def votings(self):
-        return self.votings_set.all()
-
-
-    def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
-            self.created_at = timezone.now()
-        self.updated_at = timezone.now()
-        return super(Users, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return f'{self.id}: {self.name}'
-
-
 class Categories(models.Model):
     class Meta:
         verbose_name_plural = "Categories"
@@ -142,6 +100,46 @@ class Categories(models.Model):
 
     def __str__(self):
         return f'{self.id}'
+
+
+class Users(models.Model):
+    class Meta:
+        verbose_name_plural = "Users"
+
+    name = models.CharField(max_length=45, blank=True, null=True)
+    avatar = models.ImageField(blank=True, null=True)
+    device_id = models.CharField(max_length=45, default=None)
+    category = models.OneToOneField(Categories, models.CASCADE, blank=True, null=True)
+    positionx = models.DecimalField(db_column='positionX', max_digits=3, decimal_places=0, default=0)
+    positiony = models.DecimalField(db_column='positionY', max_digits=3, decimal_places=0, default=0)
+    floor = models.IntegerField(blank=True, null=True)
+    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.en)
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    synced = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    @property
+    def chats(self):
+        return self.chats_set.all()
+
+    @property
+    def collections(self):
+        return self.collections_set.all()
+
+    @property
+    def votings(self):
+        return self.votings_set.all()
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(Users, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.id}: {self.name}'
 
 
 class Settings(models.Model):

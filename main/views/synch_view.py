@@ -47,7 +47,8 @@ from main.serializers import (
     )
 from main.views.validators import (validate_chats,
                                    validate_votings,
-                                   validate_collections
+                                   validate_collections,
+                                   validate_user
                                    )
 from mein_objekt.settings import DEFAULT_MUSEUM
 
@@ -208,8 +209,11 @@ def serialized_data(museum, user=None, settings=None, categories=None):
         user_table['positionY'] = serialized_user['positiony']
         user_table['floor'] = serialized_user['floor']
         user_table['language'] = serialized_user['language']
-        user_table['language_style'] = user.userslanguagestyles.language_style
-        user_table['score'] = user.userslanguagestyles.score
+        uls = getattr(user, 'serslanguagestyles', None)
+        language_style = getattr(uls, 'language_style', None)
+        score = getattr(uls, 'score', None)
+        user_table['language_style'] = language_style
+        user_table['score'] = score
         user_table['sync_id'] = serialized_user['sync_id']
         user_table['synced'] = serialized_user['synced']
         user_table['created_at'] = serialized_user['created_at']
@@ -304,9 +308,10 @@ class Synchronization(APIView):
     def get(self, request, format=None):
         user_id = request.GET.get('user_id', None)
         if user_id:
-            user = Users.objects.get(device_id=user_id)
-        else:
-            return JsonResponse({'error': 'user id must be passed'}, safe=True)
+            try:
+                user = Users.objects.get(device_id=user_id)
+            except:
+                user = Users.objects.create(device_id=user_id)
 
         museum = Museums.objects.get(name=DEFAULT_MUSEUM)
         settings = (museum.settings,)
@@ -322,7 +327,7 @@ class Synchronization(APIView):
         if user_id:
             user = Users.objects.get(device_id=user_id)
         else:
-            return JsonResponse({'error': 'user id must be passed'}, safe=True)
+            return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
 
         post_data = request.data
         if post_data:
@@ -571,7 +576,6 @@ class Synchronization(APIView):
                 votings_data.append(validated_data)
 
         if up_collections:
-            collections_data = []
             for collection in up_collections:
                 data = {'user': None,
                         'objects_item': None,
@@ -604,14 +608,14 @@ class Synchronization(APIView):
 
                 ctgs = validated_data.pop('category', None)
                 img = validated_data.pop('image', None)
-                coltn =Collections.objects.filter(sync_id=validated_data['sync_id']).first()
+                coltn = Collections.objects.filter(sync_id=validated_data['sync_id']).first()
                 if coltn:
                     try:
                         Collections.objects.filter(sync_id=validated_data['sync_id']).update(**validated_data)
                         coltn.image.save(img.name, img)
                         coltn.category.set(ctgs)
                     except Exception as e:
-                        errors['add_errors'].append({'collection': e.args})
+                        errors['update_errors'].append({'collection': e.args})
                         return JsonResponse(errors, safe=True)
 
             table = {'chats': [Chats, chats_data],
@@ -623,6 +627,65 @@ class Synchronization(APIView):
                         lst[0].objects.filter(sync_id=data['sync_id']).update(**data)
                     except Exception as e:
                         return JsonResponse({f'{name}': e.args}, safe=True)
+
+        if up_user_data:
+            data = {'name': None,
+                    'avatar': None,
+                    'category': None,
+                    'positionx': None,
+                    'positiony': None,
+                    'floor': None,
+                    'language': None,
+                    'sync_id': None,
+                    'created_at': None,
+                    'updated_at': None}
+
+            us_sync_id = up_user_data.get('sync_id')
+            created_at = up_user_data.get('created_at')
+            updated_at = up_user_data.get('updated_at')
+            name = up_user_data.get('name')
+            avatar = up_user_data.get('avatar')
+            category = up_user_data.get('category')
+            positionx = up_user_data.get('positionx')
+            positiony = up_user_data.get('positiony')
+            floor = up_user_data.get('floor')
+            language = up_user_data.get('language')
+            language_style = up_user_data.get('language_style')
+            score = up_user_data.get('score')
+
+            validated_data, errors = validate_user('update',
+                                                    data,
+                                                    user,
+                                                    errors,
+                                                    us_sync_id,
+                                                    created_at,
+                                                    updated_at,
+                                                    name,
+                                                    avatar,
+                                                    category,
+                                                    positionx,
+                                                    positiony,
+                                                    floor,
+                                                    language,
+                                                    language_style,
+                                                    score)
+
+            if len(errors['update_errors']) > 0:
+                return JsonResponse(errors, safe=True)
+
+            language_style = data.pop('language_style', None)
+            avatar = data.pop('avatar', None)
+            sync_id = data.pop('sync_id', None)
+            language_style.save()
+            user.avatar.save(avatar.name, avatar)
+
+            try:
+                if not Users.objects.filter(sync_id=sync_id, device_id=user_id).update(**data):
+                    errors['update_errors'].append({'user': 'User device id and sync id does not match'})
+                    return JsonResponse(errors, safe=True)
+            except Exception as e:
+                errors['update_errors'].append({'user': e.args})
+                return JsonResponse(errors, safe=True)
 
         return JsonResponse(serialized_data(museum, settings=settings, categories=categories), safe=True)
 

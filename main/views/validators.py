@@ -8,9 +8,9 @@ from PIL import Image
 from django.core.files.temp import NamedTemporaryFile
 from django.http import JsonResponse
 
-from main.models import ObjectsItem, Chats, Votings, Collections, Categories
+from main.models import ObjectsItem, Chats, Votings, Collections, Categories, UsersLanguageStyles, LOCALIZATIONS_CHOICES, LANGUEAGE_STYLE_CHOICES
 
-def validate_common_fields(entity_name, data, o_model, sync_ids, entity_sync_id=None, created_at=None, updated_at=None, ob_sync_id=None):
+def validate_common_fields(entity_name, data, sync_ids=None, o_model=None, entity_sync_id=None, created_at=None, updated_at=None, ob_sync_id=None):
     uuid_obj = None
     errors = []
     if entity_sync_id:
@@ -40,28 +40,31 @@ def validate_common_fields(entity_name, data, o_model, sync_ids, entity_sync_id=
     else:
         errors.append({f'{entity_name}': f'Value "updated_at" for {entity_name} {entity_sync_id} is required'})
 
-    if ob_sync_id:
-        try:
-            uuid_obj = uuid.UUID(ob_sync_id, version=4)
-        except ValueError as e:
-            errors.append({f'{entity_name}': f'Inappropriate "object_sync id": {ob_sync_id} uuid for {entity_name} sync_id, {e.args}'})
-            return errors
+    if entity_name == 'user':
+        return errors
     else:
-        errors.append({f'{entity_name}': 'Sync id for object is required'})
+        if ob_sync_id:
+            try:
+                uuid_obj = uuid.UUID(ob_sync_id, version=4)
+            except ValueError as e:
+                errors.append({f'{entity_name}': f'Inappropriate "object_sync id": {ob_sync_id} uuid for {entity_name} sync_id, {e.args}'})
+                return errors
+        else:
+            errors.append({f'{entity_name}': 'Sync id for object is required'})
 
-    objects_item = ObjectsItem.objects.filter(sync_id=uuid_obj).first()
-    if objects_item:
-        data['objects_item'] = objects_item
-    else:
-        errors.append({f'{entity_name}': f'Inappropriate or absent objects sync_id: {uuid_obj}'})
+        objects_item = ObjectsItem.objects.filter(sync_id=uuid_obj).first()
+        if objects_item:
+            data['objects_item'] = objects_item
+        else:
+            errors.append({f'{entity_name}': f'Inappropriate or absent objects sync_id: {uuid_obj}'})
 
-    if o_model.objects.filter(sync_id=ob_sync_id):
-        errors.append({f'{entity_name}': f'{entity_name} with this sync id {ob_sync_id} already exist'})
+        if o_model.objects.filter(sync_id=ob_sync_id):
+            errors.append({f'{entity_name}': f'{entity_name} with this sync id {ob_sync_id} already exist'})
 
-    if data['sync_id'] in sync_ids:
-        errors.append({f'{entity_name}': f'Sync id {data["sync_id"]} in {entity_name} data sets must be unique'})
-    else:
-        sync_ids.append(data['sync_id'])
+        if data['sync_id'] in sync_ids:
+            errors.append({f'{entity_name}': f'Sync id {data["sync_id"]} in {entity_name} data sets must be unique'})
+        else:
+            sync_ids.append(data['sync_id'])
 
     return errors
 
@@ -80,8 +83,8 @@ def validate_chats(action,
     csync_ids = []
     c_errors = validate_common_fields('chat',
                                        data,
-                                       Chats,
-                                       csync_ids,
+                                       sync_ids=csync_ids,
+                                       o_model=Chats,
                                        entity_sync_id=ch_sync_id,
                                        created_at=created_at,
                                        updated_at=updated_at,
@@ -114,7 +117,7 @@ def validate_chats(action,
         except:
             errors[f'{action}_errors'].append({'chat': f'Inappropriate "last step" integer value for chat {ch_sync_id} sync_id'})
     else:
-        errors[f'{action}_errors'].append({'chat': f'Value "finished" for chat {ch_sync_id} is required'})
+        errors[f'{action}_errors'].append({'chat': f'Value "last step" for chat {ch_sync_id} is required'})
 
     data['user'] = user
 
@@ -133,8 +136,8 @@ def validate_votings(action,
     vsync_ids = []
     c_errors = validate_common_fields('vote',
                                        data,
-                                       Votings,
-                                       vsync_ids,
+                                       sync_ids=vsync_ids,
+                                       o_model=Votings,
                                        entity_sync_id=vt_sync_id,
                                        created_at=created_at,
                                        updated_at=updated_at,
@@ -170,10 +173,11 @@ def validate_collections(action,
                          ctgrs):
 
     clsync_ids = []
+    uuid_obj = None
     c_errors = validate_common_fields('collection',
                                        data,
-                                       Collections,
-                                       clsync_ids,
+                                       sync_ids=clsync_ids,
+                                       o_model=Collections,
                                        entity_sync_id=cl_sync_id,
                                        created_at=created_at,
                                        updated_at=updated_at,
@@ -194,18 +198,17 @@ def validate_collections(action,
             img_temp.write(image_buffer.getvalue())
             img_temp.name = f'/Collections/{str(cl_sync_id)}/image_{cl_sync_id}.jpg'
             data['image'] = img_temp
-
         except:
             errors[f'{action}_errors'].append({'collection': f'Inappropriate "image" encoding for collection {cl_sync_id} sync_id'})
     else:
         errors[f'{action}_errors'].append({'collection': f'Value "image" for collection {cl_sync_id} is required'})
 
-    if ctgrs:        
+    if ctgrs:
         for cat in ctgrs:
             try:
                 uuid_obj = uuid.UUID(cat, version=4)
             except:
-                errors[f'{action}_errors'].append({'collection': f'Inappropriate collection sync id {uuid_obj} uuid'})
+                errors[f'{action}_errors'].append({'collection': f'Inappropriate collection category sync id {cat}'})
 
             category_object = Categories.objects.filter(sync_id=uuid_obj).first()
             if category_object:
@@ -218,3 +221,114 @@ def validate_collections(action,
     data['user'] = user
 
     return data, errors
+
+def validate_user(action,
+                  data,
+                  user,
+                  errors,
+                  us_sync_id,
+                  created_at,
+                  updated_at,
+                  name,
+                  avatar,
+                  category,
+                  positionx,
+                  positiony,
+                  floor,
+                  language,
+                  language_style,
+                  score):
+    uuid_obj = None
+
+    c_errors = validate_common_fields('user',
+                                       data,
+                                       entity_sync_id=us_sync_id,
+                                       created_at=created_at,
+                                       updated_at=updated_at)
+    errors[f'{action}_errors'].extend(c_errors)
+
+    if len(errors[f'{action}_errors']) > 0:
+        return None, errors
+
+    if name:
+        data['name'] = str(name)
+
+    if avatar:
+        try:
+            img_data = base64.b64decode(avatar)
+            image_buffer = BytesIO(img_data)
+            pil_image = Image.open(image_buffer)
+            image_buffer = BytesIO()
+            pil_image.save(image_buffer, "PNG")
+            img_temp = NamedTemporaryFile(delete=True)
+            img_temp.write(image_buffer.getvalue())
+            img_temp.name = f'/Users/{str(us_sync_id)}/image_{us_sync_id}.jpg'
+            data['avatar'] = img_temp
+        except:
+            errors[f'{action}_errors'].append({'user': f'Inappropriate "avatar" encoding for user {us_sync_id} sync_id'})
+
+    if category:
+        try:
+            uuid_obj = uuid.UUID(category, version=4)
+        except:
+            errors[f'{action}_errors'].append({'user': f'Inappropriate user sync id {category} '})
+
+        category_object = Categories.objects.filter(sync_id=uuid_obj).first()
+        if category_object:
+            data['category'] = category_object
+        else:
+            errors[f'{action}_errors'].append({'user': 'Inappropriate or absent category sync_id'})
+    else:
+        errors[f'{action}_errors'].append({'user': 'Sync id for user category is required'})
+
+    if positionx:
+        try:
+            px = int(positionx)
+            data['positionx'] = px
+        except:
+            errors[f'{action}_errors'].append({'user': f'Inappropriate "positionx" integer value for user {us_sync_id} sync_id'})
+    else:
+        errors[f'{action}_errors'].append({'user': f'Value "positionx" for user {us_sync_id} is required'})
+
+    if positiony:
+        try:
+            py = int(positiony)
+            data['positiony'] = py
+        except:
+            errors[f'{action}_errors'].append({'user': f'Inappropriate "positiony" integer value for user {us_sync_id} sync_id'})
+    else:
+        errors[f'{action}_errors'].append({'user': f'Value "positiony" for user {us_sync_id} is required'})
+
+    if floor:
+        try:
+            fl = int(floor)
+            data['floor'] = fl
+        except:
+            errors[f'{action}_errors'].append({'user': f'Inappropriate "floor" integer value for user {us_sync_id} sync_id'})
+    else:
+        errors[f'{action}_errors'].append({'user': f'Value "floor" for user {us_sync_id} is required'})
+
+    if language and language.lower() in LOCALIZATIONS_CHOICES:
+        data['language'] = language.lower()
+    else:
+        errors[f'{action}_errors'].append({'user': f'Value "language" for user {us_sync_id} is not available'})
+
+    ls = getattr(user, 'userslanguagestyles', None)
+    if not ls:
+        ls = UsersLanguageStyles.objects.create(user=user)
+    data['language_style'] = ls
+
+    if language_style and language_style.lower() in LANGUEAGE_STYLE_CHOICES:
+        data['language_style'].language_style = language_style.lower()
+    else:
+        errors[f'{action}_errors'].append({'user': f'Value "language_style" for user {us_sync_id} is not available'})
+
+    if score:
+        try:
+            sc = int(score)
+            data['language_style'].score = score
+        except:
+            errors[f'{action}_errors'].append({'user': f'Inappropriate or absent "score" integer value for user {us_sync_id} sync_id'})
+
+    return data, errors
+
