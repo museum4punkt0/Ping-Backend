@@ -352,7 +352,9 @@ class Synchronization(APIView):
         # if get_values.get('object_localizations'):
         #     local_objects = ObjectsItem.objects.filter(objectslocalizations__sync_id__in=get_values.get('object_localizations'))
         #     objects_sync_ids.extend([str(i.sync_id) for i in local_objects])
-        # museum.objects_to_serialize = list(set(objects_sync_ids))
+
+        museum.objects_to_serialize = list(set(objects_sync_ids))
+        logging.error(f'!!!! GET objects to serialize {objects_sync_ids} ')
 
         if get_values.get('categories'):
             categories_sync_ids.extend(get_values.get('categories'))

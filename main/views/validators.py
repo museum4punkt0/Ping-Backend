@@ -58,8 +58,8 @@ def validate_common_fields(entity_name, data, sync_ids=None, o_model=None, entit
         else:
             errors.append({f'{entity_name}': f'Inappropriate or absent objects sync_id: {uuid_obj}'})
 
-        if o_model.objects.filter(sync_id=ob_sync_id):
-            errors.append({f'{entity_name}': f'{entity_name} with this sync id {ob_sync_id} already exist'})
+        if o_model.objects.filter(sync_id=entity_sync_id):
+            errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist'})
 
         if data['sync_id'] in sync_ids:
             errors.append({f'{entity_name}': f'Sync id {data["sync_id"]} in {entity_name} data sets must be unique'})
@@ -210,11 +210,23 @@ def validate_collections(action,
         errors[f'{action}_errors'].append({'collection': f'Value "image" for collection {cl_sync_id} is required'})
 
     if ctgrs:
-        for cat in ctgrs:
+        if isinstance(ctgrs, list):
+            for cat in ctgrs:
+                try:
+                    uuid_obj = uuid.UUID(cat, version=4)
+                except:
+                    errors[f'{action}_errors'].append({'collection': f'Inappropriate collection category sync id {cat}'})
+
+                category_object = Categories.objects.filter(sync_id=uuid_obj).first()
+                if category_object:
+                    data['category'].append(category_object)
+                else:
+                    errors[f'{action}_errors'].append({'collection': 'Inappropriate or absent category sync_id'})
+        elif isinstance(ctgrs, str):
             try:
-                uuid_obj = uuid.UUID(cat, version=4)
+                uuid_obj = uuid.UUID(ctgrs, version=4)
             except:
-                errors[f'{action}_errors'].append({'collection': f'Inappropriate collection category sync id {cat}'})
+                errors[f'{action}_errors'].append({'collection': f'Inappropriate collection category sync id {ctgrs}'})
 
             category_object = Categories.objects.filter(sync_id=uuid_obj).first()
             if category_object:
