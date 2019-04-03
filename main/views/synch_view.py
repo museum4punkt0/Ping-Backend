@@ -406,7 +406,12 @@ class Synchronization(APIView):
                 finished = chat.get('finished')
                 history = chat.get('history')
                 last_step = chat.get('last_step')
-                logging.error(f'!!!!POST CHAT ch_sync_id: {ch_sync_id, type(ch_sync_id)}, created_at: {created_at, type(created_at)}, updated_at: {updated_at, type(updated_at)}, ob_sync_id{ob_sync_id, type(ob_sync_id)}, finished: {finished, type(finished)}')
+                logging.error(f'!!!!POST CHAT \
+                    ch_sync_id: {ch_sync_id, type(ch_sync_id)}, \
+                    created_at: {created_at, type(created_at)}, \
+                    updated_at: {updated_at, type(updated_at)}, \
+                    ob_sync_id{ob_sync_id, type(ob_sync_id)}, \
+                    finished: {finished, type(finished)}')
 
                 validated_data, errors = validate_chats('add',
                                                          data,
@@ -477,7 +482,12 @@ class Synchronization(APIView):
                 ob_sync_id = collection.get('object_sync_id')
                 image = collection.get('image')
                 ctgrs = collection.get('categories')
-                logging.error(f'!!!!POST COLLECTION ch_sync_id: {cl_sync_id, type(cl_sync_id)}, created_at: {created_at, type(created_at)}, updated_at: {updated_at, type(updated_at)}, ob_sync_id{ob_sync_id, type(ob_sync_id)}, image: {type(image)}, category {ctgrs, type(ctgrs)}')
+                logging.error(f'!!!!POST COLLECTION \
+                     ch_sync_id: {cl_sync_id, type(cl_sync_id)}, \
+                     created_at: {created_at, type(created_at)}, \
+                     updated_at: {updated_at, type(updated_at)}, \
+                     ob_sync_id{ob_sync_id, type(ob_sync_id)}, \
+                     image: {type(image)}, category {ctgrs, type(ctgrs)}')
 
                 validated_data, errors = validate_collections('add',
                                                                data,
@@ -658,13 +668,14 @@ class Synchronization(APIView):
             language = up_user_data.get('language')
             language_style = up_user_data.get('language_style')
             score = up_user_data.get('score')
-            logging.error(f'!!!!POST COLLECTION \
+            logging.error(f'!!!!POST USER \
                 ch_sync_id: {us_sync_id, type(us_sync_id)}, \
                 created_at: {created_at, type(created_at)}, updated_at: {updated_at, type(updated_at)}, \
                 us_sync_id{us_sync_id, type(us_sync_id)}, floor: {floor, type(floor)}, \
                 category {category, type(category)}, language: {language, type(language)}, \
                 language_style: {language_style, type(language_style)}, \
                 score: {score, type(score)}')
+
             validated_data, errors = validate_user('update',
                                                     data,
                                                     user,
