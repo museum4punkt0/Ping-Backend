@@ -62,11 +62,19 @@ def serialized_data(museum, user=None, settings=None, categories=None):
     # museum serialization
     serialized_museum = MuseumsSerializer(museum).data
     museum_table = {'id': None,
+                    'name': None,
+                    'floor_amount': None,
+                    'tensor_flow_model': None,
+                    'tensor_flow_lables': None,
                     'images': [],
                     'objects': [],
                     'categories': []}
 
     museum_table['id'] = serialized_museum['id']
+    museum_table['name'] = serialized_museum['name']
+    museum_table['floor_amount'] = serialized_museum['floor_amount']
+    museum_table['tensor_flow_model'] = serialized_museum['tensor_flow_model']
+    museum_table['tensor_flow_lables'] = serialized_museum['tensor_flow_lables']
 
     serialized_museumsimages = serialized_museum['museumimages']
     for image in serialized_museumsimages:
