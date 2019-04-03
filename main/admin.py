@@ -152,7 +152,7 @@ class UsersLanguageStylesInline(MinValidatedInlineMixIn, admin.TabularInline):
     model = UsersLanguageStyles
     min_num = NUMBER_OF_LOCALIZATIONS
     extra = 0
-    readonly_fields = ['updated_at']
+    readonly_fields = ['language_style', 'score', 'updated_at']
     exclude = ('synced',)
 
 
@@ -183,7 +183,7 @@ class ChatsInline(admin.TabularInline):
 class UsersAdmin(admin.ModelAdmin):
     inlines = [UsersLanguageStylesInline, VotingsInline, CollectionsInline,
                ChatsInline]
-    readonly_fields = ['updated_at']
+    readonly_fields = ['name', 'avatar', 'device_id', 'category', 'positionx', 'positiony', 'floor', 'language', 'updated_at']
     exclude = ('synced',)
 
 

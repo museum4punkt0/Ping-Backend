@@ -109,7 +109,7 @@ class Users(models.Model):
     name = models.CharField(max_length=45, blank=True, null=True)
     avatar = models.ImageField(blank=True, null=True)
     device_id = models.CharField(max_length=45, default=None)
-    category = models.OneToOneField(Categories, models.CASCADE, blank=True, null=True)
+    category = models.ForeignKey(Categories, models.CASCADE, blank=True, null=True)
     positionx = models.DecimalField(db_column='positionX', max_digits=3, decimal_places=0, default=0)
     positiony = models.DecimalField(db_column='positionY', max_digits=3, decimal_places=0, default=0)
     floor = models.IntegerField(blank=True, null=True)
