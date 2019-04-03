@@ -5,8 +5,14 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem, \
                     ObjectsLocalizations, Votings, ObjectsMap
 
 
+class SyncObjectField(serializers.RelatedField):
+    def to_representation(self, value):
+        return '{}'.format(value.sync_id)
+
+
 class CollectionsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
+    objects_item = SyncObjectField(read_only=True)
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -23,9 +29,9 @@ class CollectionsSerializer(serializers.ModelSerializer):
         model = Collections
         fields = ('__all__')
 
-
 class ChatsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
+    objects_item = SyncObjectField(read_only=True)
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -45,6 +51,7 @@ class ChatsSerializer(serializers.ModelSerializer):
 
 class VotingsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
+    objects_item = SyncObjectField(read_only=True)
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
