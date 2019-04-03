@@ -209,7 +209,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
         user_table['positionY'] = serialized_user['positiony']
         user_table['floor'] = serialized_user['floor']
         user_table['language'] = serialized_user['language']
-        uls = getattr(user, 'serslanguagestyles', None)
+        uls = getattr(user, 'userslanguagestyles', None)
         language_style = getattr(uls, 'language_style', None)
         score = getattr(uls, 'score', None)
         user_table['language_style'] = language_style
