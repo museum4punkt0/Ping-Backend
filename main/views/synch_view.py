@@ -477,6 +477,7 @@ class Synchronization(APIView):
                 ob_sync_id = collection.get('object_sync_id')
                 image = collection.get('image')
                 ctgrs = collection.get('categories')
+                logging.error(f'!!!!POST COLLECTION ch_sync_id: {cl_sync_id, type(cl_sync_id)}, created_at: {created_at, type(created_at)}, updated_at: {updated_at, type(updated_at)}, ob_sync_id{ob_sync_id, type(ob_sync_id)}, image: {type(image)}, category {ctgrs, type(ctgrs)}')
 
                 validated_data, errors = validate_collections('add',
                                                                data,
@@ -651,8 +652,8 @@ class Synchronization(APIView):
             name = up_user_data.get('name')
             avatar = up_user_data.get('avatar')
             category = up_user_data.get('category')
-            positionx = up_user_data.get('positionx')
-            positiony = up_user_data.get('positiony')
+            positionx = up_user_data.get('positionX')
+            positiony = up_user_data.get('positionY')
             floor = up_user_data.get('floor')
             language = up_user_data.get('language')
             language_style = up_user_data.get('language_style')

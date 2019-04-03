@@ -108,12 +108,12 @@ def validate_chats(action,
     else:
         errors[f'{action}_errors'].append({'chat': f'Value "finished" for chat {ch_sync_id} is required'})
 
-    if history:
+    if history is not None:
         data['history'] = history
     else:
         errors[f'{action}_errors'].append({'chat': f'Value "history" for chat {ch_sync_id} is required'})
 
-    if last_step:
+    if last_step is not None:
         try:
             ls = int(last_step)
             data['last_step'] = ls
@@ -299,7 +299,7 @@ def validate_user(action,
     else:
         errors[f'{action}_errors'].append({'user': 'Sync id for user category is required'})
 
-    if positionx:
+    if positionx is not None:
         try:
             px = int(positionx)
             data['positionx'] = px
@@ -308,7 +308,7 @@ def validate_user(action,
     else:
         errors[f'{action}_errors'].append({'user': f'Value "positionx" for user {us_sync_id} is required'})
 
-    if positiony:
+    if positiony is not None:
         try:
             py = int(positiony)
             data['positiony'] = py
@@ -317,7 +317,7 @@ def validate_user(action,
     else:
         errors[f'{action}_errors'].append({'user': f'Value "positiony" for user {us_sync_id} is required'})
 
-    if floor:
+    if floor is not None:
         try:
             fl = int(floor)
             data['floor'] = fl
@@ -341,7 +341,7 @@ def validate_user(action,
     else:
         errors[f'{action}_errors'].append({'user': f'Value "language_style" for user {us_sync_id} is not available'})
 
-    if score:
+    if score is not None:
         try:
             sc = int(score)
             data['language_style'].score = score

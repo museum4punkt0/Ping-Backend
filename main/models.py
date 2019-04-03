@@ -112,7 +112,7 @@ class Users(models.Model):
     category = models.ForeignKey(Categories, models.CASCADE, blank=True, null=True)
     positionx = models.DecimalField(db_column='positionX', max_digits=3, decimal_places=0, default=0)
     positiony = models.DecimalField(db_column='positionY', max_digits=3, decimal_places=0, default=0)
-    floor = models.IntegerField(blank=True, null=True)
+    floor = models.IntegerField(blank=True, null=True, default=0)
     language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.en)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
