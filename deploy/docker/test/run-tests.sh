@@ -52,11 +52,11 @@ function run_tests() {
     nginx
   )
 
-  if !([ "$CIRCLE_BRANCH" == "master" ] || [ "$CIRCLE_BRANCH" == "feat-aws-ci-cd" ] || [ "$CIRCLE_BRANCH" == "stage" ])
+  if !([ "$CIRCLE_BRANCH" == "master" ] || [ "$CIRCLE_BRANCH" == "qa" ] || [ "$CIRCLE_BRANCH" == "stage" ])
   then
     echo 'Deleting images for test branches'
     for images in ${images[@]}; do
-      aws ecr batch-delete-image --repository-name backend_application_images --image-ids imageTag=${images}_${CIRCLE_WORKFLOW_ID} --region "$aws_region"
+      aws ecr batch-delete-image --repository-name "${ENVIRONMENT}_images" --image-ids imageTag=${images}_${CIRCLE_WORKFLOW_ID} --region "$aws_region"
     done
   fi
 
