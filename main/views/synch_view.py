@@ -333,9 +333,9 @@ class Synchronization(APIView):
         if user_id:
             try:
                 user = Users.objects.get(device_id=user_id)
-            except:
-                logging.error(f'Existing user id must be provided, device id: {user_id}')
-                return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
+            except Exception as e:
+                logging.error(f'User id {user_id} does not exist {e.args}')
+                return JsonResponse({'error': f'User id {user_id} does not exist {e.args}'}, safe=True)
         else:
             logging.error(f'Existing user id must be provided, device id: {user_id}')
             return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
