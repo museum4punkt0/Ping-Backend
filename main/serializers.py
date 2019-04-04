@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Collections, Users, Settings, Museums, ObjectsItem, \
                     Categories, ObjectsCategories, Categorieslocalizations, Chats, \
                     ObjectsImages, PredefinedAvatars, MuseumsImages, \
-                    ObjectsLocalizations, Votings, ObjectsMap
+                    ObjectsLocalizations, Votings, ObjectsMap, MusemsTensor
 
 
 class SyncObjectField(serializers.RelatedField):
@@ -220,9 +220,27 @@ class MuseumsImagesSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 
 
+class MusemsTensorSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(MusemsTensorSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+    class Meta:
+        model = MusemsTensor
+        fields = ('__all__')
+
+
 class MuseumsSerializer(serializers.ModelSerializer):
     objectsitems = ObjectsItemSerializer(source='objects_query', many=True)
     museumimages = MuseumsImagesSerializer(many=True)
+    museumtensor = MusemsTensorSerializer(many=True)
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -237,9 +255,9 @@ class MuseumsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Museums
-        fields = ('id', 'name', 'floor_amount', 'settings', 'tensor_flow_model', 
-            'tensor_flow_lables', 'sync_id', 'synced', 'created_at',
-            'updated_at', 'objectsitems', 'museumimages')
+        fields = ('id', 'name', 'floor_amount', 'settings', 'museumtensor',
+                  'sync_id', 'synced', 'created_at',
+                  'updated_at', 'objectsitems', 'museumimages')
 
 
 class CategorieslocalizationsSerializer(serializers.ModelSerializer):

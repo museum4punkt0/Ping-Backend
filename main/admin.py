@@ -4,7 +4,8 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     Categories, Categorieslocalizations, ObjectsCategories,\
                     ObjectsImages, Chats, ObjectsImages, MuseumsImages,\
                     ObjectsLocalizations, UsersLanguageStyles, Votings, \
-                    PredefinedAvatars, SettingsPredefinedObjectsItems, ObjectsMap
+                    PredefinedAvatars, SettingsPredefinedObjectsItems, \
+                    ObjectsMap, MusemsTensor
 from mein_objekt.settings import NUMBER_OF_LOCALIZATIONS
 
 admin.site.site_header = "Museums Admin"
@@ -62,8 +63,16 @@ class MuseumsImagesInline(admin.TabularInline):
     formset = MusImagesFormSet
 
 
+class MusemsTensorInline(admin.TabularInline):
+    model = MusemsTensor
+    min_number = 2
+    extra = 0
+    readonly_fields = ['updated_at']
+    exclude = ('synced',)
+
+
 class MuseumsAdmin(admin.ModelAdmin):
-    inlines = [MuseumsImagesInline,]
+    inlines = [MusemsTensorInline, MuseumsImagesInline,]
     readonly_fields = ['updated_at']
     exclude = ('synced',)
 

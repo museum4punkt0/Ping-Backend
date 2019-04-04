@@ -208,8 +208,6 @@ class Museums(models.Model):
     name = models.CharField(max_length=45, unique=True, default=DEFAULT_MUSEUM)
     floor_amount = models.IntegerField()
     settings = models.ForeignKey(Settings, models.SET_NULL, null=True)
-    tensor_flow_model = models.FileField(upload_to='tensor_model/', blank=True, null=True, max_length=110)
-    tensor_flow_lables = models.FileField(upload_to='tensor_label/', blank=True, null=True, max_length=110)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -247,6 +245,29 @@ class Museums(models.Model):
 
     def __str__(self):
         return f'{self.name}'
+
+
+class MusemsTensor(models.Model):
+    class Meta:
+        verbose_name_plural = "Tensor flow models"
+
+    museum = models.ForeignKey(Museums, models.PROTECT, related_name='museumtensor')
+    tensor_flow_model = models.FileField(upload_to='tensor_model/', blank=True, null=True, max_length=110)
+    tensor_flow_lables = models.FileField(upload_to='tensor_label/', blank=True, null=True, max_length=110)
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    synced = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(MusemsTensor, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.id}'
 
 
 class ObjectsItem(models.Model): 

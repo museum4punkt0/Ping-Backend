@@ -33,7 +33,8 @@ from main.serializers import (
     ObjectsCategoriesSerializer,
     ObjectsLocalizationsSerializer,
     ObjectsImagesSerializer,
-    UsersSerializer
+    UsersSerializer,
+    MusemsTensorSerializer
     )
 
 from mein_objekt.settings import DEFAULT_MUSEUM
@@ -93,12 +94,21 @@ def fetch(request):
         s_museum = MuseumsSerializer(museum, fields=FETCH_FIELDS).data
         museum_table = {'sync_id': None,
                         'updated_at': None,
+                        'tensor': [],
                         'images': [],
                         'objects': [],
                         'categories': []}
 
         museum_table['sync_id'] = s_museum['sync_id']
         museum_table['updated_at'] = s_museum['updated_at']
+
+        tensors = museum.museumtensor.all()
+        for tensor in tensors:
+            s_image = MuseumsSerializer(tensor, fields=FETCH_FIELDS).data
+            tensor_dict = {}
+            tensor_dict['sync_id'] = s_image['sync_id']
+            tensor_dict['updated_at'] = s_image['updated_at']
+            museum_table['tensor'].append(tensor_dict)
 
         images = museum.museumsimages_set.all()
         for image in images:
