@@ -344,7 +344,7 @@ def validate_user(action,
 
     if isinstance(language_style, dict):
         try:
-            data['language_style'].language_style = json.dumps(language_style)
+            data['language_style'].language_style = language_style
         except:
             errors[f'{action}_errors'].append({'user': f'Value "language_style" for user {us_sync_id} must be json'})
     else:
