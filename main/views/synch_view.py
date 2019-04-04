@@ -253,7 +253,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
             collection_dict = {}
             collection_dict['object_id'] = collection['objects_item']
             collection_dict['image'] = collection['image']
-            collection_dict['category'] = collection['category']
+            collection_dict['category_id'] = collection['category']
             collection_dict['sync_id'] = collection['sync_id']
             collection_dict['created_at'] = collection['created_at']
             collection_dict['updated_at'] = collection['updated_at']

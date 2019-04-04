@@ -9,10 +9,15 @@ class SyncObjectField(serializers.RelatedField):
     def to_representation(self, value):
         return '{}'.format(value.sync_id)
 
+class SyncCollectionField(serializers.RelatedField):
+    def to_representation(self, value):
+        return '{}'.format(str(value.first().sync_id))
+
 
 class CollectionsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     objects_item = SyncObjectField(read_only=True)
+    category = SyncCollectionField(read_only=True)
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
