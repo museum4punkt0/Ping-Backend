@@ -331,7 +331,11 @@ class Synchronization(APIView):
     def post(self, request, format=None):
         user_id = request.GET.get('user_id', None)
         if user_id:
-            user = Users.objects.get(device_id=user_id)
+            try:
+                user = Users.objects.get(device_id=user_id)
+            except:
+                logging.error(f'Existing user id must be provided, device id: {user_id}')
+                return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
         else:
             logging.error(f'Existing user id must be provided, device id: {user_id}')
             return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
