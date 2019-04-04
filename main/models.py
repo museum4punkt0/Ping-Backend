@@ -542,7 +542,7 @@ class UsersLanguageStyles(models.Model):
         verbose_name_plural = "Users Language Styles"
 
     user = models.OneToOneField(Users, models.CASCADE)
-    language_style = models.CharField(max_length=45, choices=LANGUEAGE_STYLE_CHOICES, null=True, blank=True)
+    language_style = JSONField(max_length=145, blank=True, null=True)
     score = models.IntegerField(blank=True, null=True)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)

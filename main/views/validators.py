@@ -3,6 +3,7 @@ import datetime
 import uuid
 import logging
 import distutils.util
+import json
 from io import BytesIO
 from PIL import Image
 from django.core.files.temp import NamedTemporaryFile
@@ -341,17 +342,13 @@ def validate_user(action,
         ls = UsersLanguageStyles.objects.create(user=user)
     data['language_style'] = ls
 
-    if language_style and language_style.lower() in LANGUEAGE_STYLE_CHOICES:
-        data['language_style'].language_style = language_style.lower()
-    else:
-        errors[f'{action}_errors'].append({'user': f'Value "language_style" for user {us_sync_id} is not available'})
-
-    if score is not None:
+    if isinstance(language_style, dict):
         try:
-            sc = int(score)
-            data['language_style'].score = score
+            data['language_style'].language_style = json.dumps(language_style)
         except:
-            errors[f'{action}_errors'].append({'user': f'Inappropriate or absent "score" integer value for user {us_sync_id} sync_id'})
+            errors[f'{action}_errors'].append({'user': f'Value "language_style" for user {us_sync_id} must be json'})
+    else:
+        errors[f'{action}_errors'].append({'user': f'Value "language_style" for user {us_sync_id} is requir'})
 
     return data, errors
 

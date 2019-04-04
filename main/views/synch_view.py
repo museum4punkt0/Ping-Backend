@@ -83,7 +83,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
         image_dict['image_type'] = image['image_type']
         image_dict['image'] = image['image']
         image_dict['sync_id'] = image['sync_id']
-        image_dict['synced'] = image['synced']
+  #      image_dict['#synced'] = image['synced']
         image_dict['created_at'] = image['created_at']
         image_dict['updated_at'] = image['updated_at']
         museum_table['images'].append(image_dict)
@@ -101,7 +101,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
                       'onboarding': None,
                       'object_map': None,
                       'sync_id': None,
-                      'synced': None,
+     #                 'synced': None,
                       'created_at': None,
                       'updated_at': None,
                       'localizations': [],
@@ -118,7 +118,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
         item_table['onboarding'] = item['onboarding']
         item_table['object_map'] = item['object_map']
         item_table['sync_id'] = item['sync_id']
-        item_table['synced'] = item['synced']
+  #      item_table[#'synced'] = item['synced']
         item_table['created_at'] = item['created_at']
         item_table['updated_at'] = item['updated_at']
 
@@ -133,7 +133,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
             local_dict['title'] = local['title']
             local_dict['object_kind'] = local['object_kind']
             local_dict['sync_id'] = local['sync_id']
-            local_dict['synced'] = local['synced']
+      #      local_dict['#synced'] = local['synced']
             local_dict['created_at'] = local['created_at']
             local_dict['updated_at'] = local['updated_at']
             item_table['localizations'].append(local_dict)
@@ -144,7 +144,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
             image_dict['id'] = image['id']
             image_dict['image'] = image['image']
             image_dict['sync_id'] = image['sync_id']
-            image_dict['synced'] = image['synced']
+      #      image_dict['#synced'] = image['synced']
             image_dict['created_at'] = image['created_at']
             image_dict['updated_at'] = image['updated_at']
             item_table['images'].append(image_dict)
@@ -153,18 +153,16 @@ def serialized_data(museum, user=None, settings=None, categories=None):
     for category in categories:
         serialized_category = CategoriesSerializer(category).data
         category_table = {'id': None,
-                          'object_ids': [],
                           'sync_object_ids': [],
                           'localizations': [],
                           'sync_id': None,
-                          'synced': None,
+         #                 'synced': None,
                           'created_at': None,
                           'updated_at': None}
 
         category_table['id'] = serialized_category['id']
 
         objects = category.objectscategories_set.all()
-        category_table['object_ids'] = [i.objects_item.id for i in objects]
         category_table['sync_object_ids'] = [str(i.objects_item.sync_id) for i in objects]
 
         localizations = serialized_category['localizations']
@@ -174,13 +172,13 @@ def serialized_data(museum, user=None, settings=None, categories=None):
             local_dict['language'] = local['language']
             local_dict['title'] = local['title']
             local_dict['sync_id'] = local['sync_id']
-            local_dict['synced'] = local['synced']
+      #      local_dict['#synced'] = local['synced']
             local_dict['created_at'] = local['created_at']
             local_dict['updated_at'] = local['updated_at']
             category_table['localizations'].append(local_dict)
 
         category_table['sync_id'] = serialized_category['sync_id']
-        category_table['synced'] = serialized_category['synced']
+      #  category_table['synced'] = ser#ialized_category['synced']
         category_table['created_at'] = serialized_category['created_at']
         category_table['updated_at'] = serialized_category['updated_at']
         museum_table['categories'].append(category_table)
@@ -201,7 +199,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
                       'language_style': None,
                       'score': None,
                       'sync_id': None,
-                      'synced': None,
+     #                 'synced': None,
                       'created_at': None,
                       'updated_at': None,
                       'chats': [],
@@ -223,7 +221,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
         user_table['language_style'] = language_style
         user_table['score'] = score
         user_table['sync_id'] = serialized_user['sync_id']
-        user_table['synced'] = serialized_user['synced']
+  #      user_table['synced'] =# serialized_user['synced']
         user_table['created_at'] = serialized_user['created_at']
         user_table['updated_at'] = serialized_user['updated_at']
 
@@ -236,7 +234,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
             chat_dict['finished'] = chat['finished']
             chat_dict['history'] = chat['history']
             chat_dict['sync_id'] = chat['sync_id']
-            chat_dict['synced'] = chat['synced']
+     #       chat_dict[#'synced'] = chat['synced']
             chat_dict['created_at'] = chat['created_at']
             chat_dict['updated_at'] = chat['updated_at']
             user_table['chats'].append(chat_dict)
@@ -248,7 +246,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
             vote_dict['object_id'] = vote['objects_item']
             vote_dict['vote'] = vote['vote']
             vote_dict['sync_id'] = vote['sync_id']
-            vote_dict['synced'] = vote['synced']
+     #       vote_dict[#'synced'] = vote['synced']
             vote_dict['created_at'] = vote['created_at']
             vote_dict['updated_at'] = vote['updated_at']
             user_table['votings'].append(vote_dict)
@@ -260,7 +258,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
             collection_dict['image'] = collection['image']
             collection_dict['category'] = collection['category']
             collection_dict['sync_id'] = collection['sync_id']
-            collection_dict['synced'] = collection['synced']
+           # collection_dict['synce#d'] = collection['synced']
             collection_dict['created_at'] = collection['created_at']
             collection_dict['updated_at'] = collection['updated_at']
             user_table['collections'].append(collection_dict)
@@ -285,7 +283,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
                               'predefined_avatars': None,
                               'languages': [],
                               'sync_id': None,
-                              'synced': None,
+             #                 'synced': None,
                               'created_at': None,
                               'updated_at': None}
 
@@ -301,7 +299,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
             settings_table['predefined_avatars'] = [i['image'] for i in serialized_settings['predefined_avatars']]
             settings_table['languages'] = serialized_settings['languages']
             settings_table['sync_id'] = serialized_settings['sync_id']
-            settings_table['synced'] = serialized_settings['synced']
+          #  settings_table['synced'] = ser#ialized_settings['synced']
             settings_table['created_at'] = serialized_settings['created_at']
             settings_table['updated_at'] = serialized_settings['updated_at']
             data['settings'] = settings_table
