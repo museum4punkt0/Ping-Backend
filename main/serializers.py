@@ -132,7 +132,8 @@ class SettingsSerializer(serializers.ModelSerializer):
         model = Settings
         fields = ('id', 'position_score', 'category_score', 'exit_position', 
             'likes_score', 'chat_score', 'priority_score',
-             'distance_score', 'predifined_collections', 'languages', 'sync_id', 'synced', 'created_at', 'updated_at', 'predefined_avatars')
+            'distance_score', 'predifined_collections', 'languages', 'language_styles', 
+            'sync_id', 'synced', 'created_at', 'updated_at', 'predefined_avatars')
 
 
 class ObjectsLocalizationsSerializer(serializers.ModelSerializer):

@@ -61,13 +61,15 @@ def serialized_data(museum, user=None, settings=None, categories=None):
 
     # museum serialization
     serialized_museum = MuseumsSerializer(museum).data
-    museum_table = {'name': None,
+    museum_table = {'sync_id': None,
+                    'name': None,
                     'floor_amount': None,
                     'tensor': [],
                     'images': [],
                     'objects': [],
                     'categories': []}
 
+    museum_table['sync_id'] = serialized_museum['sync_id']
     museum_table['name'] = serialized_museum['name']
     museum_table['floor_amount'] = serialized_museum['floor_amount']
 
@@ -276,6 +278,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
                               'predefined_categories': None,
                               'predefined_avatars': None,
                               'languages': [],
+                              'language_styles': [],
                               'sync_id': None,
                               'created_at': None,
                               'updated_at': None}
@@ -291,6 +294,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
             settings_table['distance_scores'] = serialized_settings['distance_score']
             settings_table['predefined_avatars'] = [i['image'] for i in serialized_settings['predefined_avatars']]
             settings_table['languages'] = serialized_settings['languages']
+            settings_table['language_styles'] = serialized_settings['language_styles']
             settings_table['sync_id'] = serialized_settings['sync_id']
             settings_table['created_at'] = serialized_settings['created_at']
             settings_table['updated_at'] = serialized_settings['updated_at']

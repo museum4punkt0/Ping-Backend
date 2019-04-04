@@ -342,7 +342,7 @@ def validate_user(action,
         ls = UsersLanguageStyles.objects.create(user=user)
     data['language_style'] = ls
 
-    if isinstance(language_style, dict):
+    if isinstance(language_style, list):
         try:
             data['language_style'].language_style = language_style
         except:

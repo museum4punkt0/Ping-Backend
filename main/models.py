@@ -1,4 +1,4 @@
-from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.fields import JSONField, ArrayField
 from django.db import models
 from django.utils import timezone
 from django.core.files.temp import NamedTemporaryFile
@@ -158,7 +158,10 @@ class Settings(models.Model):
     languages = MultiSelectField(choices=LOCALIZATIONS_CHOICES,
                                  max_choices=2,
                                  max_length=20)
-    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    language_styles = MultiSelectField(choices=LANGUEAGE_STYLE_CHOICES,
+                                 max_choices=4,
+                                 max_length=80)
+    sync_id = models.UUIDField(default=uuid.uuid4,editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
@@ -563,7 +566,7 @@ class UsersLanguageStyles(models.Model):
         verbose_name_plural = "Users Language Styles"
 
     user = models.OneToOneField(Users, models.CASCADE)
-    language_style = JSONField(max_length=145, blank=True, null=True)
+    language_style = JSONField(max_length=145, blank=True, null=True, default=list)
     score = models.IntegerField(blank=True, null=True)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
@@ -599,6 +602,28 @@ class Votings(models.Model):
             self.created_at = timezone.now()
         self.updated_at = timezone.now()
         return super(Votings, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.id}'
+
+
+class DeletedItems(models.Model):
+    class Meta:
+        verbose_name_plural = "Deleted Items"
+
+    objects_item = models.UUIDField(blank=True, null=True)
+    category = models.UUIDField(blank=True, null=True)
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    synced = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(DeletedItems, self).save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.id}'
