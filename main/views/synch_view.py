@@ -648,7 +648,8 @@ class Synchronization(APIView):
                     'language': None,
                     'sync_id': None,
                     'created_at': None,
-                    'updated_at': None}
+                    'updated_at': None,
+                    'device_id': None}
 
             us_sync_id = up_user_data.get('sync_id')
             created_at = up_user_data.get('created_at')
@@ -662,6 +663,8 @@ class Synchronization(APIView):
             language = up_user_data.get('language')
             language_style = up_user_data.get('language_style')
             score = up_user_data.get('score')
+            device_id = up_user_data.get('device_id')
+
             logging.error(f'!!!!POST USER \
                 ch_sync_id: {us_sync_id, type(us_sync_id)}, \
                 created_at: {created_at, type(created_at)}, updated_at: {updated_at, type(updated_at)}, \
@@ -685,7 +688,8 @@ class Synchronization(APIView):
                                                     floor,
                                                     language,
                                                     language_style,
-                                                    score)
+                                                    score,
+                                                    device_id)
 
             if len(errors['update_errors']) > 0:
                 return JsonResponse(errors, safe=True)

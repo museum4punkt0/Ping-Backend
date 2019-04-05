@@ -260,7 +260,8 @@ def validate_user(action,
                   floor,
                   language,
                   language_style,
-                  score):
+                  score,
+                  device_id):
     uuid_obj = None
 
     c_errors = validate_common_fields('user',
@@ -349,6 +350,10 @@ def validate_user(action,
             errors[f'{action}_errors'].append({'user': f'Value "language_style" for user {us_sync_id} must be json'})
     else:
         errors[f'{action}_errors'].append({'user': f'Value "language_style" for user {us_sync_id} is requir'})
+
+    if device_id:
+        if isinstance(device_id, str) and 'DELETE' in device_id:
+            data['device_id'] = device_id
 
     return data, errors
 

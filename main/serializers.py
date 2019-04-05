@@ -2,16 +2,17 @@ from rest_framework import serializers
 from .models import Collections, Users, Settings, Museums, ObjectsItem, \
                     Categories, ObjectsCategories, Categorieslocalizations, Chats, \
                     ObjectsImages, PredefinedAvatars, MuseumsImages, \
-                    ObjectsLocalizations, Votings, ObjectsMap, MusemsTensor
 
 
 class SyncObjectField(serializers.RelatedField):
     def to_representation(self, value):
         return '{}'.format(value.sync_id)
 
+
 class SyncCollectionField(serializers.RelatedField):
     def to_representation(self, value):
-        return '{}'.format(str(value.first().sync_id))
+        if value.first():
+            return '{}'.format(str(value.first().sync_id))
 
 
 class CollectionsSerializer(serializers.ModelSerializer):
@@ -33,6 +34,7 @@ class CollectionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collections
         fields = ('__all__')
+
 
 class ChatsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
@@ -185,7 +187,9 @@ class ObjectsImagesSerializer(serializers.ModelSerializer):
 class ObjectsMapField(serializers.RelatedField):
 
     def to_representation(self, value):
-        return '{}'.format(value.image.url)
+        if getattr(value, 'image', None):
+            return '{}'.format(value.image.url)
+
 
 class ObjectsItemSerializer(serializers.ModelSerializer):
     images = ObjectsImagesSerializer(many=True)
