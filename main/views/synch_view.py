@@ -648,8 +648,7 @@ class Synchronization(APIView):
                     'language': None,
                     'sync_id': None,
                     'created_at': None,
-                    'updated_at': None,
-                    'device_id': None}
+                    'updated_at': None}
 
             us_sync_id = up_user_data.get('sync_id')
             created_at = up_user_data.get('created_at')
