@@ -3,6 +3,8 @@ from django.db import models
 from django.utils import timezone
 from django.core.files.temp import NamedTemporaryFile
 from django.utils.html import format_html
+from django.db.models.signals import pre_delete, post_save
+from django.dispatch import receiver
 from model_utils import Choices
 import urllib
 import uuid
@@ -11,6 +13,8 @@ from PIL import Image
 from io import BytesIO
 from mein_objekt.settings import DEFAULT_MUSEUM
 from multiselectfield import MultiSelectField
+
+
 
 LANGUEAGE_STYLE_CHOICES = Choices(
         ('easy', 'Easy'),
@@ -302,37 +306,6 @@ class ObjectsItem(models.Model):
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
-        museum = self.museum
-        mus_map = museum.museumsimages_set.filter(image_type=f'{self.floor}_map')
-        mus_pointer = museum.museumsimages_set.filter(image_type='pnt')
-        if mus_map and mus_pointer:
-            if getattr(mus_map[0], 'image', None) and \
-               getattr(mus_pointer[0], 'image', None):
-                mus_response = urllib.request.urlopen(mus_map[0].image.url).read()
-                pnt_response = urllib.request.urlopen(mus_pointer[0].image.url).read()
-
-                if mus_response and pnt_response:
-                    mus_io = BytesIO(mus_response)
-                    pnt_io = BytesIO(pnt_response)
-
-                    mus_image = Image.open(mus_io)
-                    pnt_image = Image.open(pnt_io).convert("RGBA")
-
-                    pnt_image = pnt_image.resize((40, 40))
-                    mus_image.paste(pnt_image, (int(self.positionx), int(self.positiony)), pnt_image.split()[3])
-
-                    image_buffer = BytesIO()
-                    mus_image.save(image_buffer, "PNG")
-
-                    img_temp = NamedTemporaryFile(delete=True)
-                    img_temp.write(image_buffer.getvalue())
-
-                    if getattr(self, 'object_map', None):
-                        self.object_map.delete()
-                    om = ObjectsMap()
-                    om.objects_item = self
-                    om.image.save(f'/o_maps/{str(self.sync_id)}/map.png', img_temp)
-
         if not self.id:
             self.created_at = timezone.now()
         self.updated_at = timezone.now()
@@ -341,6 +314,40 @@ class ObjectsItem(models.Model):
     def __str__(self):
         return f'{self.id}'
 
+
+@receiver(post_save, sender=ObjectsItem, dispatch_uid="create_map")
+def create_maps(sender, instance, **kwargs):
+    museum = instance.museum
+    mus_map = museum.museumsimages_set.filter(image_type=f'{instance.floor}_map')
+    mus_pointer = museum.museumsimages_set.filter(image_type='pnt')
+    if mus_map and mus_pointer:
+        if getattr(mus_map[0], 'image', None) and \
+           getattr(mus_pointer[0], 'image', None):
+            mus_response = urllib.request.urlopen(mus_map[0].image.url).read()
+            pnt_response = urllib.request.urlopen(mus_pointer[0].image.url).read()
+
+            if mus_response and pnt_response:
+                mus_io = BytesIO(mus_response)
+                pnt_io = BytesIO(pnt_response)
+
+                mus_image = Image.open(mus_io)
+                pnt_image = Image.open(pnt_io).convert("RGBA")
+
+                pnt_image = pnt_image.resize((40, 40))
+                mus_image.paste(pnt_image, (int(instance.positionx), int(instance.positiony)), pnt_image.split()[3])
+
+                image_buffer = BytesIO()
+                mus_image.save(image_buffer, "PNG")
+
+                img_temp = NamedTemporaryFile(delete=True)
+                img_temp.write(image_buffer.getvalue())
+
+                if getattr(instance, 'object_map', None):
+                    instance.object_map.delete()
+
+                om = ObjectsMap()
+                om.objects_item = instance
+                om.image.save(f'/o_maps/{str(instance.sync_id)}/map.png', img_temp)
 
 class SettingsPredefinedObjectsItems(models.Model):
     class Meta:
