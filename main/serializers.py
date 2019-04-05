@@ -1,7 +1,22 @@
 from rest_framework import serializers
-from .models import Collections, Users, Settings, Museums, ObjectsItem, \
-                    Categories, ObjectsCategories, Categorieslocalizations, Chats, \
-                    ObjectsImages, PredefinedAvatars, MuseumsImages, \
+from main.models import (
+                     Collections,
+                     Users,
+                     Settings,
+                     Museums,
+                     ObjectsItem,
+                     Categories,
+                     ObjectsCategories,
+                     Categorieslocalizations,
+                     Chats,
+                     ObjectsImages,
+                     PredefinedAvatars,
+                     MuseumsImages,
+                     ObjectsLocalizations,
+                     Votings,
+                     ObjectsMap,
+                     MusemsTensor,
+                     DeletedItems)
 
 
 class SyncObjectField(serializers.RelatedField):
