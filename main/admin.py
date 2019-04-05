@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib import messages
 from django.core.exceptions import ValidationError
 from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     Categories, Categorieslocalizations, ObjectsCategories,\
@@ -119,6 +120,10 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                ObjectsCategoriesInline, ObjectsMapInline]
     readonly_fields = ['updated_at']
     exclude = ('synced',)
+    def save_model(self, request, obj, form, change):
+        if not getattr(obj, 'object_map', None):
+            messages.add_message(request, messages.INFO, 'For Objects Map been autocreated Museum Map for every museum floor and pointer images must be added as museum images with corresponding image types')
+        super(ObjectsItemAdmin, self).save_model(request, obj, form, change)
 
     # def get_queryset(self, request):
     #     return super(ObjectsItemAdmin,self).get_queryset(request).select_related('objectslocalizations_set')

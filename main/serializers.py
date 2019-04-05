@@ -73,9 +73,11 @@ class VotingsSerializer(serializers.ModelSerializer):
         model = Votings
         fields = ('__all__')
 
+
 class UserCategoryField(serializers.RelatedField):
     def to_representation(self, value):
         return '{}'.format(value.sync_id)
+
 
 class UsersSerializer(serializers.ModelSerializer):
     chats = ChatsSerializer(many=True)
