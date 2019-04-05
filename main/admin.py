@@ -115,7 +115,7 @@ class ObjectsMapInline(admin.TabularInline):
 
 class ObjectsItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'avatar_id', 'museum', 'onboarding', 'vip',
-                    'updated_at', 'categories')
+                    'updated_at', 'categories', 'localizations', 'images_number')
     inlines = [ObjectsLocalizationsInline, ObjectsImagesInline,
                ObjectsCategoriesInline, ObjectsMapInline]
     readonly_fields = ['updated_at']
@@ -133,7 +133,6 @@ class ObjectsItemAdmin(admin.ModelAdmin):
         if avatar:
             return avatar.name.split('/')[-1][:20]
 
-
     def title(self, obj):
         obj = obj.objectslocalizations_set.first()
         title = getattr(obj, 'title', None)
@@ -146,6 +145,16 @@ class ObjectsItemAdmin(admin.ModelAdmin):
             categories = obj_cat.category.all()
             if categories:
                 return [i.id for i in categories]
+
+    def localizations(self, obj):
+        obj_loc = getattr(obj, 'objectslocalizations_set', None)
+        if obj_loc:
+            localizations = obj_loc.all()
+            if localizations:
+                return [i.language for i in localizations]
+
+    def images_number(self, obj):
+        return obj.objectsimages_set.count()
 
 
 class CategorieslocalizationsInline(MinValidatedInlineMixIn, admin.TabularInline):
