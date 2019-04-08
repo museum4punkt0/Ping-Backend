@@ -11,6 +11,8 @@ from django.http import JsonResponse
 
 from main.models import ObjectsItem, Chats, Votings, Collections, Categories, UsersLanguageStyles, LOCALIZATIONS_CHOICES, LANGUEAGE_STYLE_CHOICES
 
+POSITION_RANGE = {'x': (0, 500), 'y': (0, 999)}
+
 def validate_common_fields(entity_name, data, action, sync_ids=None, o_model=None, entity_sync_id=None, created_at=None, updated_at=None, ob_sync_id=None):
     uuid_obj = None
     errors = []
@@ -310,6 +312,8 @@ def validate_user(action,
         try:
             px = int(positionx)
             data['positionx'] = px
+            if not POSITION_RANGE['x'][0] < px < POSITION_RANGE['x'][1]:
+                errors[f'{action}_errors'].append({'user': f'"positionx"  value for user {us_sync_id} sync_id must be in range {POSITION_RANGE["x"]}'})
         except:
             errors[f'{action}_errors'].append({'user': f'Inappropriate "positionx" integer value for user {us_sync_id} sync_id'})
     else:
@@ -319,6 +323,8 @@ def validate_user(action,
         try:
             py = int(positiony)
             data['positiony'] = py
+            if not POSITION_RANGE['y'][0] < py < POSITION_RANGE['y'][1]:
+                errors[f'{action}_errors'].append({'user': f'"positiony"  value for user {us_sync_id} sync_id must be in range {POSITION_RANGE["y"]}'})
         except:
             errors[f'{action}_errors'].append({'user': f'Inappropriate "positiony" integer value for user {us_sync_id} sync_id'})
     else:
