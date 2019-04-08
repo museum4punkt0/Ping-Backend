@@ -14,7 +14,8 @@ from main.models import (
     Chats,
     MuseumsImages,
     ObjectsLocalizations,
-    ObjectsImages
+    ObjectsImages,
+    DeletedItems
 )
 
 from main.serializers import (
@@ -53,7 +54,8 @@ def fetch(request):
         settings = museum.settings
         data = {'museums': None,
                 'users': None,
-                'settings': None}
+                'settings': None,
+                'deleted': None}
 
         s_user = UsersSerializer(user, fields=FETCH_FIELDS).data
         user_table = {'sync_id': None,
@@ -173,5 +175,22 @@ def fetch(request):
         settings_table['sync_id'] = s_settings['sync_id']
         settings_table['updated_at'] = s_settings['updated_at']
         data['settings'] = settings_table
+
+        deleted_table = {'objects': None,
+                         'categories': None,
+                         'updated_at': None}
+
+        del_obj = DeletedItems.objects.filter(category__isnull=True).order_by('-created_at')
+        del_cat = DeletedItems.objects.filter(objects_item__isnull=True).order_by('-created_at')
+
+        if del_obj:
+            deleted_table['objects'] = [i.objects_item for i in del_obj]
+            deleted_table['updated_at'] = del_obj[0].created_at
+        if del_cat:
+            deleted_table['categories'] = [i.category for i in del_cat]
+            if del_cat[0].created_at > del_obj[0].created_at:
+                deleted_table['updated_at'] = del_cat[0].created_at
+
+        data['deleted'] = deleted_table
 
         return JsonResponse(data, safe=True)

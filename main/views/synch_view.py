@@ -23,7 +23,8 @@ from main.models import (
     Chats,
     MuseumsImages,
     ObjectsLocalizations,
-    ObjectsImages
+    ObjectsImages,
+    DeletedItems
 )
 import logging
 
@@ -43,7 +44,8 @@ from main.serializers import (
     ObjectsCategoriesSerializer,
     ObjectsLocalizationsSerializer,
     ObjectsImagesSerializer,
-    UsersSerializer
+    UsersSerializer,
+    DeletedItemsSerializer
     )
 from main.views.validators import (validate_chats,
                                    validate_votings,
@@ -57,7 +59,8 @@ logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.ERROR)
 def serialized_data(museum, user=None, settings=None, categories=None):
     data = {'museums': None,
             'users': None,
-            'settings': None}
+            'settings': None,
+            'deleted': None}
 
     # museum serialization
     serialized_museum = MuseumsSerializer(museum).data
@@ -302,6 +305,13 @@ def serialized_data(museum, user=None, settings=None, categories=None):
     else:
         data['settings'] = None
 
+    deleted_table = {}
+
+    del_obj = DeletedItems.objects.all().order_by('-created_at')
+    deleted_table['updated_at'] = del_obj[0].created_at
+
+    data['deleted'] = deleted_table
+
     return data
 
 
@@ -309,6 +319,7 @@ class Synchronization(APIView):
 
     def get(self, request, format=None):
         user_id = request.GET.get('user_id', None)
+        user = None
         if user_id:
             try:
                 user = Users.objects.get(device_id=user_id)

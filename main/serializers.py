@@ -343,3 +343,20 @@ class ObjectsCategoriesSerializer(serializers.ModelSerializer):
         model = ObjectsCategories
         fields = ('__all__')
 
+
+class DeletedItemsSerializer(serializers.ModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(DeletedItemsSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+    class Meta:
+        model = DeletedItems
+        fields = ('__all__')

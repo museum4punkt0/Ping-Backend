@@ -105,6 +105,10 @@ class Categories(models.Model):
     def __str__(self):
         return f'{self.id}'
 
+@receiver(pre_delete, sender=Categories, dispatch_uid="create_delete_category")
+def create_delete_category(sender, instance, **kwargs):
+    DeletedItems.objects.create(category=instance.sync_id)
+
 
 class Users(models.Model):
     class Meta:
@@ -314,6 +318,9 @@ class ObjectsItem(models.Model):
     def __str__(self):
         return f'{self.id}'
 
+@receiver(pre_delete, sender=ObjectsItem, dispatch_uid="create_delete_object")
+def create_delete_objects(sender, instance, **kwargs):
+    DeletedItems.objects.create(objects_item=instance.sync_id)
 
 @receiver(post_save, sender=ObjectsItem, dispatch_uid="create_map")
 def create_maps(sender, instance, **kwargs):
