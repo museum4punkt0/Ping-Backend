@@ -304,9 +304,7 @@ def validate_user(action,
         if category_object:
             data['category'] = category_object
         else:
-            errors[f'{action}_errors'].append({'user': 'Inappropriate or absent category sync_id'})
-    else:
-        errors[f'{action}_errors'].append({'user': 'Sync id for user category is required'})
+            errors[f'{action}_errors'].append({'user': 'Inappropriate category sync_id'})
 
     if positionx is not None:
         try:

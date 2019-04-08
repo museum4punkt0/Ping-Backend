@@ -653,7 +653,6 @@ class Synchronization(APIView):
         if up_user_data:
             data = {'name': None,
                     'avatar': None,
-                    'category': None,
                     'positionx': None,
                     'positiony': None,
                     'floor': None,
