@@ -3,8 +3,14 @@
     {
       "name": "${SERVICE_NAME}",
       "image": "081960884429.dkr.ecr.eu-central-1.amazonaws.com/${ENVIRONMENT}_images:python_${TAG}",
-      "cpu": 750,
-      "memory": 750,
+      "cpu": 700,
+      "memory": 700,
+      "logConfiguration": {
+        "logDriver": "syslog",
+        "options": {
+          "syslog-address": "udp://${ELK_HOST}:${LOGS_PORT_DJANGO}"
+        }
+      },
       "entryPoint": [
         "${APP_PATH}/deploy/docker/python/init.sh"
       ],
@@ -53,13 +59,20 @@
           "name": "AWS_STORAGE_BUCKET_NAME",
           "value": "${APP_AWS_STORAGE_BUCKET_NAME}"
         }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "logs",
+          "containerPath": "/var/log/uwsgi",
+          "readOnly": false
+        }
       ]
     },
     {
       "name": "nginx",
       "image": "081960884429.dkr.ecr.eu-central-1.amazonaws.com/${ENVIRONMENT}_images:nginx_${TAG}",
-      "cpu": 150,
-      "memory": 150,
+      "cpu": 100,
+      "memory": 100,
       "portMappings": [
         {
           "containerPort": ${PORT},
@@ -69,6 +82,35 @@
       "links": [
         "${SERVICE_NAME}"
       ]
+    },
+    {
+      "name": "filebeat",
+      "image": "081960884429.dkr.ecr.eu-central-1.amazonaws.com/${ENVIRONMENT}_images:filebeat_${TAG}",
+      "cpu": 100,
+      "memory": 100,
+      "environment": [
+        {
+          "name": "LOGS_PORT_FILEBEAT",
+          "value": "${LOGS_PORT_FILEBEAT}"
+        }
+      ],
+      "links": [
+        "${SERVICE_NAME}"
+      ],
+      "volumesFrom": [
+        {
+          "sourceContainer": "${SERVICE_NAME}",
+          "readOnly": false
+        }
+      ]
+    }
+  ],
+  "volumes": [
+    {
+      "name": "logs",
+      "host": {  
+        "sourcePath": "/var/log/uwsgi"
+      }
     }
   ],
   "family": "${SERVICE_NAME}"
