@@ -17,7 +17,7 @@ from main.models import (
     ObjectsImages,
     DeletedItems
 )
-
+import logging
 from main.serializers import (
     CollectionsSerializer,
     UsersSerializer,
@@ -39,16 +39,24 @@ from main.serializers import (
     )
 
 from mein_objekt.settings import DEFAULT_MUSEUM
+
+
 FETCH_FIELDS = ('sync_id', 'updated_at')
+
 @api_view(['GET'])
 def fetch(request):
 
     if request.method == 'GET':
         user_id = request.GET.get('user_id', None)
         if user_id:
-            user = Users.objects.get(device_id=user_id)
+            try:
+                user = Users.objects.get(device_id=user_id)
+            except Exception as e:
+                logging.error(f'User id {user_id} does not exist {e.args}')
+                return JsonResponse({'error': f'User id {user_id} does not exist {e.args}'}, safe=True)
         else:
-            return JsonResponse({'error': 'user id must be passed'}, safe=True)
+            logging.error(f'Existing user id must be provided, device id: {user_id}')
+            return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
 
         museum = Museums.objects.get(name=DEFAULT_MUSEUM)
         settings = museum.settings
