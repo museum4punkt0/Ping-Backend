@@ -310,7 +310,7 @@ def validate_user(action,
         try:
             px = int(positionx)
             data['positionx'] = px
-            if not POSITION_RANGE['x'][0] < px < POSITION_RANGE['x'][1]:
+            if not POSITION_RANGE['x'][0] <= px <= POSITION_RANGE['x'][1]:
                 errors[f'{action}_errors'].append({'user': f'"positionx"  value for user {us_sync_id} sync_id must be in range {POSITION_RANGE["x"]}'})
         except:
             errors[f'{action}_errors'].append({'user': f'Inappropriate "positionx" integer value for user {us_sync_id} sync_id'})
@@ -321,7 +321,7 @@ def validate_user(action,
         try:
             py = int(positiony)
             data['positiony'] = py
-            if not POSITION_RANGE['y'][0] < py < POSITION_RANGE['y'][1]:
+            if not POSITION_RANGE['y'][0] <= py <= POSITION_RANGE['y'][1]:
                 errors[f'{action}_errors'].append({'user': f'"positiony"  value for user {us_sync_id} sync_id must be in range {POSITION_RANGE["y"]}'})
         except:
             errors[f'{action}_errors'].append({'user': f'Inappropriate "positiony" integer value for user {us_sync_id} sync_id'})
