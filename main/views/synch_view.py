@@ -308,7 +308,8 @@ def serialized_data(museum, user=None, settings=None, categories=None):
     deleted_table = {}
 
     del_obj = DeletedItems.objects.all().order_by('-created_at')
-    deleted_table['updated_at'] = del_obj[0].created_at
+    if del_obj:
+        deleted_table['updated_at'] = del_obj[0].created_at
 
     data['deleted'] = deleted_table
 
@@ -676,7 +677,7 @@ class Synchronization(APIView):
             device_id = up_user_data.get('device_id')
 
             logging.error(f'!!!!POST USER \
-                ch_sync_id: {us_sync_id, type(us_sync_id)}, \
+                us_sync_id: {us_sync_id, type(us_sync_id)}, \
                 created_at: {created_at, type(created_at)}, updated_at: {updated_at, type(updated_at)}, \
                 us_sync_id{us_sync_id, type(us_sync_id)}, floor: {floor, type(floor)}, \
                 category {category, type(category)}, language: {language, type(language)}, \
