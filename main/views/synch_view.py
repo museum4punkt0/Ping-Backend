@@ -354,7 +354,7 @@ class Synchronization(APIView):
             add_values = post_data.get('add')
             update_values = post_data.get('update')
         else:
-            return JsonResponse({'error': 'json data with structure {"add": {}, "update": {},"delete": {}, "get": {} } must be transfered'}, safe=True)
+            return JsonResponse({'error': 'json data with schema {"add": {}, "update": {},"delete": {}, "get": {} } must be transfered'}, safe=True)
         objects_sync_ids = []
         categories_sync_ids = []
 
