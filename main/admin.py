@@ -208,6 +208,7 @@ class ChatsInline(admin.TabularInline):
 class UsersAdmin(admin.ModelAdmin):
     inlines = [UsersLanguageStylesInline, VotingsInline, CollectionsInline,
                ChatsInline]
+    list_display = ['name', 'device_id']
     readonly_fields = ['name', 'avatar', 'device_id', 'category', 'positionx', 'positiony', 'floor', 'language', 'updated_at']
     exclude = ('synced',)
 
