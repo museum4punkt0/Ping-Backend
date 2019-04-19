@@ -122,9 +122,9 @@ class ObjectsItemAdmin(admin.ModelAdmin):
     exclude = ('synced',)
     def save_model(self, request, obj, form, change):
         if not getattr(obj, 'object_map', None):
-            messages.add_message(request, messages.INFO, 'For Objects Map been \
-                autocreated Museum Map for every museum floor so as pointer images \
-                 must be added as museum images with corresponding image types')
+            messages.add_message(request, messages.INFO, 'For objects Map been \
+                autocreated you should add Museum Map for every museum floor \
+                and a pointer image with corresponding image type')
         super(ObjectsItemAdmin, self).save_model(request, obj, form, change)
 
     # def get_queryset(self, request):
