@@ -13,7 +13,7 @@ from PIL import Image
 from io import BytesIO
 from mein_objekt.settings import DEFAULT_MUSEUM
 from multiselectfield import MultiSelectField
-
+from django.db import transaction
 
 
 LANGUEAGE_STYLE_CHOICES = Choices(
@@ -440,11 +440,15 @@ class ObjectsCategories(models.Model):
         ''' On save, update timestamps '''
         if not self.id:
             self.created_at = timezone.now()
+            transaction.on_commit(self.update_role)
         self.updated_at = timezone.now()
         return super(ObjectsCategories, self).save(*args, **kwargs)
 
     def __str__(self):
         return f'{self.id}'
+
+    def update_role(self):        
+        [i.save() for i in self.category.all()]
 
 
 class Chats(models.Model):
