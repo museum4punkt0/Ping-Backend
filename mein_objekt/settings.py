@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'main.apps.MainConfig',
     'storages',
+    'django_nose',
     # 'debug_toolbar'
 ]
 
@@ -75,6 +76,7 @@ DATABASES = {
         'PASSWORD' : os.environ.get('POSTGRES_PASSWORD', default=None),
         'HOST' : os.environ.get('POSTGRES_HOST', default=None),
         'PORT' : os.environ.get('POSTGRES_PORT', default=5432),
+        'TEST': {'NAME': 'mytestdatabase'}
     }
 }
 # Password validation
@@ -114,8 +116,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 #S3
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-# STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', default=None)
 
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', default=None)
@@ -142,6 +142,6 @@ STATICFILES_DIRS = ()
 
 INTERNAL_IPS = ('127.0.0.1',)
 
-NUMBER_OF_LOCALIZATIONS = 1
+# TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
-DEFAULT_MUSEUM = 'Humboldt Museum'
+# WSGI = True

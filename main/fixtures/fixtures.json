@@ -1,0 +1,795 @@
+[
+{
+  "model": "main.categories",
+  "pk": 8,
+  "fields": {
+    "sync_id": "66251f34-27fd-4030-8a0a-62eeb9f33090",
+    "synced": false,
+    "created_at": "2019-03-21T16:37:39.110Z",
+    "updated_at": "2019-04-18T15:47:09.065Z"
+  }
+},
+{
+  "model": "main.categories",
+  "pk": 9,
+  "fields": {
+    "sync_id": "608ee818-ec0e-4872-a968-58e23393fca9",
+    "synced": false,
+    "created_at": "2019-03-21T16:38:00.604Z",
+    "updated_at": "2019-04-18T16:10:03.429Z"
+  }
+},
+{
+  "model": "main.settings",
+  "pk": 6,
+  "fields": {
+    "position_score": [
+      {
+        "score": 5,
+        "position": 1
+      },
+      {
+        "score": 3,
+        "position": 2
+      }
+    ],
+    "category_score": 10,
+    "exit_position": {
+      "positionX": 15,
+      "positionY": 15
+    },
+    "likes_score": {
+      "like": 1,
+      "dislike": 1
+    },
+    "chat_score": {
+      "exited": 3,
+      "finished": 3
+    },
+    "priority_score": [
+      {
+        "score": 100,
+        "priority": 0
+      },
+      {
+        "score": 3,
+        "priority": 1
+      },
+      {
+        "score": 2,
+        "priority": 2
+      },
+      {
+        "score": 1,
+        "priority": 3
+      }
+    ],
+    "distance_score": {
+      "divider": 10,
+      "basic_point": 10
+    },
+    "predifined_collections": {
+      "divider": 10,
+      "basic_point": 10
+    },
+    "languages": "en,de",
+    "language_styles": "easy,fun,kids,professional",
+    "sync_id": "ae301590-aa01-4ae7-8c48-0fdbb3da448e",
+    "synced": false,
+    "created_at": "2019-03-22T10:36:26.721Z",
+    "updated_at": "2019-04-04T13:25:17.721Z",
+    "predefined_categories": [
+      8,
+      9
+    ]
+  }
+},
+{
+  "model": "main.predefinedavatars",
+  "pk": 1,
+  "fields": {
+    "image": "images/Museum/PredefinedAvatars/image2.jpeg",
+    "settings": null,
+    "sync_id": "6510a0dd-94c1-4d0a-a735-bdd8ebaa296c",
+    "synced": false,
+    "created_at": "2019-03-12T15:07:30.500Z",
+    "updated_at": "2019-03-12T15:07:30.500Z"
+  }
+},
+{
+  "model": "main.predefinedavatars",
+  "pk": 2,
+  "fields": {
+    "image": "images/Museum/PredefinedAvatars/image1.jpeg",
+    "settings": null,
+    "sync_id": "28a8137b-9e31-490e-bb0b-e8c8e4f9d1ca",
+    "synced": false,
+    "created_at": "2019-03-12T15:07:47.994Z",
+    "updated_at": "2019-03-17T12:41:32.779Z"
+  }
+},
+{
+  "model": "main.predefinedavatars",
+  "pk": 9,
+  "fields": {
+    "image": "",
+    "settings": 6,
+    "sync_id": "55bb0d04-c5b1-46f7-9632-209775852039",
+    "synced": false,
+    "created_at": "2019-03-22T10:36:26.728Z",
+    "updated_at": "2019-03-27T11:01:32.270Z"
+  }
+},
+{
+  "model": "main.predefinedavatars",
+  "pk": 10,
+  "fields": {
+    "image": "",
+    "settings": 6,
+    "sync_id": "58f52e0d-ac4e-43b4-9d1a-e8be7d0e4999",
+    "synced": false,
+    "created_at": "2019-03-22T10:36:29.039Z",
+    "updated_at": "2019-03-27T11:01:32.272Z"
+  }
+},
+{
+  "model": "main.museums",
+  "pk": 2,
+  "fields": {
+    "name": "Humboldt Museum",
+    "floor_amount": 3,
+    "settings": 6,
+    "sync_id": "74b617d6-4f07-48a9-b056-b5863a370f82",
+    "synced": false,
+    "created_at": "2019-03-20T13:48:06.796Z",
+    "updated_at": "2019-04-18T09:33:41.691Z"
+  }
+},
+{
+  "model": "main.musemstensor",
+  "pk": 1,
+  "fields": {
+    "museum": 2,
+    "tensor_flow_model": null,
+    "tensor_flow_lables": null,
+    "sync_id": "0179bea5-c9d6-44ea-8cb0-c565fa5e0824",
+    "synced": false,
+    "created_at": "2019-04-04T10:30:46.815Z",
+    "updated_at": "2019-04-18T09:33:41.692Z"
+  }
+},
+{
+  "model": "main.objectsitem",
+  "pk": 12,
+  "fields": {
+    "priority": 3,
+    "museum": 2,
+    "floor": 3,
+    "positionx": "89",
+    "positiony": "0",
+    "vip": true,
+    "language_style": "professional",
+    "avatar": "",
+    "onboarding": false,
+    "sync_id": "b6402a4e-e4d6-4593-a99f-992e15942593",
+    "synced": false,
+    "created_at": "2019-03-21T16:25:19.066Z",
+    "updated_at": "2019-04-18T15:12:04.627Z"
+  }
+},
+{
+  "model": "main.objectsitem",
+  "pk": 13,
+  "fields": {
+    "priority": 1,
+    "museum": 2,
+    "floor": 2,
+    "positionx": "32",
+    "positiony": "98",
+    "vip": true,
+    "language_style": "easy",
+    "avatar": "",
+    "onboarding": false,
+    "sync_id": "60633249-2731-4bd7-bd2d-ea36b87352d3",
+    "synced": false,
+    "created_at": "2019-03-21T16:26:15.365Z",
+    "updated_at": "2019-04-18T15:12:16.829Z"
+  }
+},
+{
+  "model": "main.objectsitem",
+  "pk": 14,
+  "fields": {
+    "priority": 1,
+    "museum": 2,
+    "floor": 2,
+    "positionx": "32",
+    "positiony": "43",
+    "vip": false,
+    "language_style": "professional",
+    "avatar": "",
+    "onboarding": false,
+    "sync_id": "78d1f1b2-6274-46d5-b94c-6028b55b6a00",
+    "synced": false,
+    "created_at": "2019-03-21T16:27:12.497Z",
+    "updated_at": "2019-04-18T15:11:38.446Z"
+  }
+},
+{
+  "model": "main.objectsitem",
+  "pk": 15,
+  "fields": {
+    "priority": 1,
+    "museum": 2,
+    "floor": 3,
+    "positionx": "89",
+    "positiony": "43",
+    "vip": false,
+    "language_style": "easy",
+    "avatar": "",
+    "onboarding": false,
+    "sync_id": "cb595eef-51d0-486d-90aa-fded98a755d3",
+    "synced": false,
+    "created_at": "2019-03-21T16:28:35.857Z",
+    "updated_at": "2019-04-18T15:11:55.646Z"
+  }
+},
+{
+  "model": "main.objectsitem",
+  "pk": 17,
+  "fields": {
+    "priority": 1,
+    "museum": 2,
+    "floor": 1,
+    "positionx": "300",
+    "positiony": "100",
+    "vip": true,
+    "language_style": "easy",
+    "avatar": "",
+    "onboarding": false,
+    "sync_id": "da7e29ec-9e50-4b91-9139-9d47523cdf2c",
+    "synced": false,
+    "created_at": "2019-03-21T16:32:06.427Z",
+    "updated_at": "2019-04-18T14:31:00.404Z"
+  }
+},
+{
+  "model": "main.objectsitem",
+  "pk": 31,
+  "fields": {
+    "priority": 1,
+    "museum": 2,
+    "floor": 1,
+    "positionx": "89",
+    "positiony": "43",
+    "vip": false,
+    "language_style": "easy",
+    "avatar": "",
+    "onboarding": false,
+    "sync_id": "9b0b4a36-6929-4b39-8d04-39e100018a86",
+    "synced": false,
+    "created_at": "2019-04-18T15:25:12.375Z",
+    "updated_at": "2019-04-18T15:53:04.467Z"
+  }
+},
+{
+  "model": "main.objectsitem",
+  "pk": 32,
+  "fields": {
+    "priority": 1,
+    "museum": 2,
+    "floor": 1,
+    "positionx": "32",
+    "positiony": "55",
+    "vip": false,
+    "language_style": "easy",
+    "avatar": "",
+    "onboarding": false,
+    "sync_id": "5e97bcb2-2095-41d9-a624-1bfcaa1ddcc7",
+    "synced": false,
+    "created_at": "2019-04-18T15:54:38.692Z",
+    "updated_at": "2019-04-18T15:55:46.854Z"
+  }
+},
+{
+  "model": "main.objectsitem",
+  "pk": 38,
+  "fields": {
+    "priority": 1,
+    "museum": 2,
+    "floor": 1,
+    "positionx": "1500",
+    "positiony": "4",
+    "vip": false,
+    "language_style": "easy",
+    "avatar": "",
+    "onboarding": false,
+    "sync_id": "94fa7cfc-20c7-4938-9d9b-f1a9938d6d31",
+    "synced": false,
+    "created_at": "2019-04-18T16:08:41.439Z",
+    "updated_at": "2019-04-19T07:28:22.662Z"
+  }
+},
+{
+  "model": "main.settingspredefinedobjectsitems",
+  "pk": 10,
+  "fields": {
+    "setting": 6,
+    "predefined_object": 12,
+    "sync_id": "1a5cbcd5-619f-4671-a146-bf7f74402c08",
+    "synced": false,
+    "created_at": "2019-03-22T10:36:30.631Z",
+    "updated_at": "2019-03-22T10:36:30.631Z"
+  }
+},
+{
+  "model": "main.settingspredefinedobjectsitems",
+  "pk": 11,
+  "fields": {
+    "setting": 6,
+    "predefined_object": 13,
+    "sync_id": "dcfc15db-a232-4f89-a192-1c1d3677e927",
+    "synced": false,
+    "created_at": "2019-03-22T10:36:30.633Z",
+    "updated_at": "2019-03-22T10:36:30.633Z"
+  }
+},
+{
+  "model": "main.settingspredefinedobjectsitems",
+  "pk": 12,
+  "fields": {
+    "setting": 6,
+    "predefined_object": 14,
+    "sync_id": "5817f062-7c9b-4703-b27e-eb8b2ba4d3eb",
+    "synced": false,
+    "created_at": "2019-03-22T10:36:30.634Z",
+    "updated_at": "2019-03-22T10:36:30.634Z"
+  }
+},
+{
+  "model": "main.settingspredefinedobjectsitems",
+  "pk": 13,
+  "fields": {
+    "setting": 6,
+    "predefined_object": 15,
+    "sync_id": "f79d1cb4-09d7-49a2-8c7e-2f6e69a2fb33",
+    "synced": false,
+    "created_at": "2019-03-22T10:36:30.635Z",
+    "updated_at": "2019-03-22T10:36:30.635Z"
+  }
+},
+{
+  "model": "main.settingspredefinedobjectsitems",
+  "pk": 15,
+  "fields": {
+    "setting": 6,
+    "predefined_object": 17,
+    "sync_id": "26417389-8ccf-4818-abd0-7920fefdc1a5",
+    "synced": false,
+    "created_at": "2019-03-22T10:36:30.637Z",
+    "updated_at": "2019-03-22T10:36:30.637Z"
+  }
+},
+{
+  "model": "main.categorieslocalizations",
+  "pk": 6,
+  "fields": {
+    "category": 8,
+    "title": "New category 2",
+    "language": "de",
+    "sync_id": "e268cf52-5c03-479b-afb9-42fe89d0214b",
+    "synced": false,
+    "created_at": "2019-03-21T16:37:39.112Z",
+    "updated_at": "2019-03-21T16:37:39.112Z"
+  }
+},
+{
+  "model": "main.categorieslocalizations",
+  "pk": 7,
+  "fields": {
+    "category": 9,
+    "title": "Fashion",
+    "language": "de",
+    "sync_id": "ae092ed1-769b-4a6b-ae7a-e197e79334ee",
+    "synced": false,
+    "created_at": "2019-03-21T16:38:00.605Z",
+    "updated_at": "2019-03-21T16:38:00.605Z"
+  }
+},
+{
+  "model": "main.objectscategories",
+  "pk": 9,
+  "fields": {
+    "objects_item": 12,
+    "sync_id": "941dc75e-8195-4a0c-9ca4-20bffec5e177",
+    "synced": false,
+    "created_at": "2019-03-21T16:25:28.313Z",
+    "updated_at": "2019-04-18T15:12:04.630Z",
+    "category": [
+      9
+    ]
+  }
+},
+{
+  "model": "main.objectscategories",
+  "pk": 10,
+  "fields": {
+    "objects_item": 13,
+    "sync_id": "2be2ba13-af84-473a-8c36-69b7a5bd1ebe",
+    "synced": false,
+    "created_at": "2019-03-21T16:26:19.728Z",
+    "updated_at": "2019-04-18T15:12:16.833Z",
+    "category": [
+      8,
+      9
+    ]
+  }
+},
+{
+  "model": "main.objectscategories",
+  "pk": 11,
+  "fields": {
+    "objects_item": 14,
+    "sync_id": "ad7c6890-68e0-4502-8486-cf61311edeb8",
+    "synced": false,
+    "created_at": "2019-03-21T16:27:12.499Z",
+    "updated_at": "2019-04-18T15:11:38.451Z",
+    "category": [
+      9
+    ]
+  }
+},
+{
+  "model": "main.objectscategories",
+  "pk": 12,
+  "fields": {
+    "objects_item": 15,
+    "sync_id": "7610eb8f-a31c-4775-9c39-fa9cc5aee92c",
+    "synced": false,
+    "created_at": "2019-03-21T16:28:39.634Z",
+    "updated_at": "2019-04-18T15:11:55.653Z",
+    "category": [
+      9
+    ]
+  }
+},
+{
+  "model": "main.objectscategories",
+  "pk": 14,
+  "fields": {
+    "objects_item": 17,
+    "sync_id": "04eb13cf-9c1e-460a-a619-55315a953b72",
+    "synced": false,
+    "created_at": "2019-03-21T16:32:08.807Z",
+    "updated_at": "2019-04-08T13:18:30.817Z",
+    "category": [
+      8
+    ]
+  }
+},
+{
+  "model": "main.objectscategories",
+  "pk": 26,
+  "fields": {
+    "objects_item": 31,
+    "sync_id": "726231f5-95c7-4b5e-8ab3-5ce7ba0cfcfc",
+    "synced": false,
+    "created_at": "2019-04-18T15:26:53.915Z",
+    "updated_at": "2019-04-18T15:47:09.060Z",
+    "category": [
+      8
+    ]
+  }
+},
+{
+  "model": "main.objectscategories",
+  "pk": 27,
+  "fields": {
+    "objects_item": 32,
+    "sync_id": "bae75384-77fb-4bd8-bc41-66accaa87272",
+    "synced": false,
+    "created_at": "2019-04-18T15:54:39.827Z",
+    "updated_at": "2019-04-18T15:54:39.827Z",
+    "category": [
+      9
+    ]
+  }
+},
+{
+  "model": "main.objectscategories",
+  "pk": 30,
+  "fields": {
+    "objects_item": 38,
+    "sync_id": "66919c9c-85d8-4444-ac8a-b182b26c5498",
+    "synced": false,
+    "created_at": "2019-04-18T16:08:42.566Z",
+    "updated_at": "2019-04-18T16:08:42.566Z",
+    "category": [
+      9
+    ]
+  }
+},
+{
+  "model": "main.objectsimages",
+  "pk": 10,
+  "fields": {
+    "objects_item": 12,
+    "image": "",
+    "sync_id": "2632068f-86a9-4ee1-a096-8fcc6cd66523",
+    "synced": false,
+    "created_at": "2019-03-21T16:25:22.544Z",
+    "updated_at": "2019-03-27T10:59:41.476Z"
+  }
+},
+{
+  "model": "main.objectsimages",
+  "pk": 11,
+  "fields": {
+    "objects_item": 12,
+    "image": "",
+    "sync_id": "acaad5be-a2ef-4b28-883e-163950efce25",
+    "synced": false,
+    "created_at": "2019-03-21T16:25:24.899Z",
+    "updated_at": "2019-03-27T10:59:41.478Z"
+  }
+},
+{
+  "model": "main.objectsimages",
+  "pk": 12,
+  "fields": {
+    "objects_item": 13,
+    "image": "",
+    "sync_id": "d7ceb91d-4074-48af-897f-e7f3c6640825",
+    "synced": false,
+    "created_at": "2019-03-21T16:26:18.329Z",
+    "updated_at": "2019-03-27T10:59:26.662Z"
+  }
+},
+{
+  "model": "main.objectsimages",
+  "pk": 13,
+  "fields": {
+    "objects_item": 15,
+    "image": "",
+    "sync_id": "77aa8d4b-3514-4c18-a504-f9aa29bed186",
+    "synced": false,
+    "created_at": "2019-03-21T16:28:38.147Z",
+    "updated_at": "2019-03-27T10:58:48.406Z"
+  }
+},
+{
+  "model": "main.objectsimages",
+  "pk": 15,
+  "fields": {
+    "objects_item": 17,
+    "image": "",
+    "sync_id": "7969c7a6-18b4-4b8d-a8f5-40d95ff939d8",
+    "synced": false,
+    "created_at": "2019-03-21T16:32:06.431Z",
+    "updated_at": "2019-03-27T10:58:14.738Z"
+  }
+},
+{
+  "model": "main.objectsmap",
+  "pk": 57,
+  "fields": {
+    "objects_item": 17,
+    "image": "/o_maps/da7e29ec-9e50-4b91-9139-9d47523cdf2c/map.png",
+    "sync_id": "54c7d602-4ab5-4477-95fa-3da159b69fea",
+    "synced": false,
+    "created_at": "2019-04-18T14:31:01.461Z",
+    "updated_at": "2019-04-18T14:31:01.461Z"
+  }
+},
+{
+  "model": "main.objectsmap",
+  "pk": 70,
+  "fields": {
+    "objects_item": 31,
+    "image": "/o_maps/9b0b4a36-6929-4b39-8d04-39e100018a86/map.png",
+    "sync_id": "6220ad0e-0042-4a31-a026-f806d7ace0bc",
+    "synced": false,
+    "created_at": "2019-04-18T15:53:05.662Z",
+    "updated_at": "2019-04-18T15:53:05.662Z"
+  }
+},
+{
+  "model": "main.objectsmap",
+  "pk": 72,
+  "fields": {
+    "objects_item": 32,
+    "image": "/o_maps/5e97bcb2-2095-41d9-a624-1bfcaa1ddcc7/map.png",
+    "sync_id": "9a7f5d60-d627-43ed-93b3-5e1a2dcdfaa4",
+    "synced": false,
+    "created_at": "2019-04-18T15:55:47.756Z",
+    "updated_at": "2019-04-18T15:55:47.756Z"
+  }
+},
+{
+  "model": "main.objectsmap",
+  "pk": 76,
+  "fields": {
+    "objects_item": 38,
+    "image": "/o_maps/94fa7cfc-20c7-4938-9d9b-f1a9938d6d31/map.png",
+    "sync_id": "78220960-7074-4566-89c8-c1186130dac3",
+    "synced": false,
+    "created_at": "2019-04-19T07:28:23.816Z",
+    "updated_at": "2019-04-19T07:28:23.817Z"
+  }
+},
+{
+  "model": "main.museumsimages",
+  "pk": 3,
+  "fields": {
+    "image": "images/Museum/Humboldt Museum/image1.jpg",
+    "image_type": "smpl",
+    "museum": 2,
+    "sync_id": "2244c630-1dfb-4384-9b05-c6af9d8f47ee",
+    "synced": false,
+    "created_at": "2019-03-20T13:48:06.800Z",
+    "updated_at": "2019-03-27T11:37:54.625Z"
+  }
+},
+{
+  "model": "main.museumsimages",
+  "pk": 4,
+  "fields": {
+    "image": "images/Museum/Humboldt Museum/image4.jpg",
+    "image_type": "1_map",
+    "museum": 2,
+    "sync_id": "88430bd4-f466-4b70-ad69-478f6617a088",
+    "synced": false,
+    "created_at": "2019-03-26T09:19:30.555Z",
+    "updated_at": "2019-03-28T09:51:29.781Z"
+  }
+},
+{
+  "model": "main.museumsimages",
+  "pk": 8,
+  "fields": {
+    "image": "images/Museum/Humboldt Museum/image5.jpg",
+    "image_type": "pnt",
+    "museum": 2,
+    "sync_id": "d983c98a-c369-4bf4-bb57-ca6080ec0b5d",
+    "synced": false,
+    "created_at": "2019-04-08T13:47:35.103Z",
+    "updated_at": "2019-04-08T13:47:35.103Z"
+  }
+},
+{
+  "model": "main.objectslocalizations",
+  "pk": 9,
+  "fields": {
+    "objects_item": 12,
+    "language": "en",
+    "conversation": "",
+    "description": "descript",
+    "title": "test_localization",
+    "object_kind": "Sample kind",
+    "phrase": "Ich k\u00e4mpfe um meine Heimat, ich streite f\u00fcr G",
+    "sync_id": "053cc2f5-de45-447e-8860-374a1d74e8f6",
+    "synced": false,
+    "created_at": "2019-03-21T16:25:22.542Z",
+    "updated_at": "2019-03-21T16:25:22.542Z"
+  }
+},
+{
+  "model": "main.objectslocalizations",
+  "pk": 10,
+  "fields": {
+    "objects_item": 13,
+    "language": "en",
+    "conversation": "",
+    "description": "",
+    "title": "test_localization",
+    "object_kind": "Sample kind",
+    "phrase": "Ich k\u00e4mpfe um meine Heimat, ich streite f\u00fcr G",
+    "sync_id": "42911907-b065-449e-9158-ef2148e5251e",
+    "synced": false,
+    "created_at": "2019-03-21T16:26:17.025Z",
+    "updated_at": "2019-03-27T10:59:26.661Z"
+  }
+},
+{
+  "model": "main.objectslocalizations",
+  "pk": 11,
+  "fields": {
+    "objects_item": 14,
+    "language": "en",
+    "conversation": "",
+    "description": "",
+    "title": "Florentinischer Bildhauer",
+    "object_kind": "Sample kind",
+    "phrase": "Ich k\u00e4mpfe um meine Heimat, ich streite f\u00fcr G",
+    "sync_id": "b5a07ad6-ce0f-4999-9499-a54f90788f10",
+    "synced": false,
+    "created_at": "2019-03-21T16:27:12.498Z",
+    "updated_at": "2019-03-21T16:27:12.498Z"
+  }
+},
+{
+  "model": "main.objectslocalizations",
+  "pk": 12,
+  "fields": {
+    "objects_item": 15,
+    "language": "en",
+    "conversation": "",
+    "description": "",
+    "title": "Florentinischer Bildhauer",
+    "object_kind": "Exposition gegen\u00fcber dem Museum",
+    "phrase": "Ich k\u00e4mpfe um meine Heimat, ich streite f\u00fcr G",
+    "sync_id": "d8220369-137d-4695-8ad5-36304d7c0945",
+    "synced": false,
+    "created_at": "2019-03-21T16:28:38.146Z",
+    "updated_at": "2019-03-21T16:28:38.146Z"
+  }
+},
+{
+  "model": "main.objectslocalizations",
+  "pk": 14,
+  "fields": {
+    "objects_item": 17,
+    "language": "en",
+    "conversation": "",
+    "description": "sasda",
+    "title": "Herkules und Kakus",
+    "object_kind": "Sample kind",
+    "phrase": "Ich k\u00e4mpfe um meine Heimat, ich streite f\u00fcr G",
+    "sync_id": "afdb76d1-f7c7-4161-b547-f14446c264ac",
+    "synced": false,
+    "created_at": "2019-03-21T16:32:06.428Z",
+    "updated_at": "2019-03-21T16:32:06.428Z"
+  }
+},
+{
+  "model": "main.objectslocalizations",
+  "pk": 26,
+  "fields": {
+    "objects_item": 31,
+    "language": "en",
+    "conversation": "",
+    "description": "xfhgn",
+    "title": null,
+    "object_kind": null,
+    "phrase": null,
+    "sync_id": "aab5c4f7-9262-4fd2-9a14-4a499fd8ec55",
+    "synced": false,
+    "created_at": "2019-04-18T15:25:13.540Z",
+    "updated_at": "2019-04-18T15:25:13.540Z"
+  }
+},
+{
+  "model": "main.objectslocalizations",
+  "pk": 27,
+  "fields": {
+    "objects_item": 32,
+    "language": "en",
+    "conversation": "",
+    "description": "rtrjjj",
+    "title": null,
+    "object_kind": null,
+    "phrase": null,
+    "sync_id": "aa2d5ecf-abe5-491a-914b-6d228a5b5150",
+    "synced": false,
+    "created_at": "2019-04-18T15:54:39.824Z",
+    "updated_at": "2019-04-18T15:54:39.824Z"
+  }
+},
+{
+  "model": "main.objectslocalizations",
+  "pk": 33,
+  "fields": {
+    "objects_item": 38,
+    "language": "en",
+    "conversation": "",
+    "description": "hjvh",
+    "title": null,
+    "object_kind": null,
+    "phrase": null,
+    "sync_id": "4d3f59bd-c823-4905-a3ec-b636314d0595",
+    "synced": false,
+    "created_at": "2019-04-18T16:08:42.563Z",
+    "updated_at": "2019-04-18T16:08:42.563Z"
+  }
+}
+]

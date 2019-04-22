@@ -17,9 +17,10 @@ router.register('objectslocalizations', rest_views.ObjectsLocalizationsView)
 
 urlpatterns = [
     path(r'api/v1/', include(router.urls)),
-    path('api/v1/synchronise/', synch_view.Synchronization.as_view()),
-    path('api/v1/fetch/', fetch_view.fetch),
-    path('api/v1/recognize/', tensor_view.recognize),
+    path('api/v1/synchronise/', synch_view.Synchronization.as_view(),
+         name='synchronise'),
+    path('api/v1/fetch/', fetch_view.fetch, name='fetch'),
+    path('api/v1/recognize/', tensor_view.recognize, name='recognize'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 urlpatterns +=  static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

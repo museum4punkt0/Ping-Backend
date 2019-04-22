@@ -27,3 +27,4 @@ django-multiselectfield==0.1.8
 boto3==1.9.122
 tensorflow==1.13.1
 numpy==1.16.2
+django-nose==1.4.6
