@@ -11,7 +11,7 @@ import uuid
 import os
 from PIL import Image
 from io import BytesIO
-from mein_objekt.settings import DEFAULT_MUSEUM
+from main.variables import DEFAULT_MUSEUM
 from multiselectfield import MultiSelectField
 from django.db import transaction
 

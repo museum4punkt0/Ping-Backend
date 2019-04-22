@@ -38,7 +38,7 @@ from main.serializers import (
     MusemsTensorSerializer
     )
 
-from mein_objekt.settings import DEFAULT_MUSEUM
+from main.variables import DEFAULT_MUSEUM
 
 
 FETCH_FIELDS = ('sync_id', 'updated_at')

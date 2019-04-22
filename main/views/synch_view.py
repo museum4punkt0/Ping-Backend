@@ -52,7 +52,7 @@ from main.views.validators import (validate_chats,
                                    validate_collections,
                                    validate_user
                                    )
-from mein_objekt.settings import DEFAULT_MUSEUM
+from main.variables import DEFAULT_MUSEUM
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.ERROR)
 

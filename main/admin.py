@@ -7,7 +7,7 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     ObjectsLocalizations, UsersLanguageStyles, Votings, \
                     PredefinedAvatars, SettingsPredefinedObjectsItems, \
                     ObjectsMap, MusemsTensor
-from mein_objekt.settings import NUMBER_OF_LOCALIZATIONS
+from main.variables import NUMBER_OF_LOCALIZATIONS
 
 admin.site.site_header = "Museums Admin"
 admin.site.site_title = "Museums Admin"
