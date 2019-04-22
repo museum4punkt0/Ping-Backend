@@ -43,7 +43,9 @@ def recognize(request):
     if model_obj and label_obj:
         predict = label_image.recognize(model_obj, img_data, label_obj)
         first = max(predict, key=predict.get)
+        splited = first.split(' ')
+        sync_id = '-'.join(splited[-5:])
     else:
         return JsonResponse({'error': 'No tensor model or labels preloaded for museum'}, safe=True)
 
-    return JsonResponse({first: str(predict[first])})
+    return JsonResponse({'sync_id': sync_id, 'prediction': str(predict[first])})
