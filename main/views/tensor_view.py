@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from main.models import Users, Museums
 from main.utils import label_image
 from main.apps import tensors
+import logging
 
 @api_view(['POST'])
 def recognize(request):

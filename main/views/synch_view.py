@@ -326,6 +326,9 @@ class Synchronization(APIView):
                 user = Users.objects.get(device_id=user_id)
             except:
                 user = Users.objects.create(device_id=user_id)
+        else:
+            logging.error(f'User id must be provided')
+            return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
 
         museum = Museums.objects.get(name=DEFAULT_MUSEUM)
         settings = (museum.settings,)

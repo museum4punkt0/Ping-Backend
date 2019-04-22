@@ -114,8 +114,10 @@ class ObjectsMapInline(admin.TabularInline):
 
 
 class ObjectsItemAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'avatar_id', 'museum', 'onboarding', 'vip',
-                    'updated_at', 'categories', 'localizations', 'images_number')
+    list_display = ('id', 'title', 'avatar_id', 'chat_id', 'museum',
+                    'onboarding', 'vip',
+                    'updated_at', 'categories', 'localizations',
+                    'images_number', 'sync_id')
     inlines = [ObjectsLocalizationsInline, ObjectsImagesInline,
                ObjectsCategoriesInline, ObjectsMapInline]
     readonly_fields = ['updated_at']
@@ -134,6 +136,11 @@ class ObjectsItemAdmin(admin.ModelAdmin):
         avatar = getattr(obj, 'avatar', None)
         if avatar:
             return avatar.name.split('/')[-1][:20]
+
+    def chat_id(self, obj):
+        obj_loc = getattr(obj, 'objectslocalizations_set', None)
+        if obj_loc:
+            return [i.conversation.name.split('/')[-1][:20] for i in obj_loc.all()]
 
     def title(self, obj):
         obj = obj.objectslocalizations_set.first()
