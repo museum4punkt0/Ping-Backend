@@ -1,0 +1,4 @@
+
+NUMBER_OF_LOCALIZATIONS = 1
+
+DEFAULT_MUSEUM = 'Humboldt Museum'

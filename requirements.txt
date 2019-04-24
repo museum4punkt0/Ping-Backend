@@ -19,3 +19,12 @@ six==1.12.0
 traitlets==4.3.2
 wcwidth==0.1.7
 wmctrl==0.3
+gunicorn==19.9.0
+whitenoise==4.1.2
+django-storages==1.7.1
+django-debug-toolbar==1.11
+django-multiselectfield==0.1.8
+boto3==1.9.122
+tensorflow==1.13.1
+numpy==1.16.2
+django-nose==1.4.6
