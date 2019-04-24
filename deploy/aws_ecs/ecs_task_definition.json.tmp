@@ -1,0 +1,117 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "${SERVICE_NAME}",
+      "image": "081960884429.dkr.ecr.eu-central-1.amazonaws.com/${ENVIRONMENT}_images:python_${TAG}",
+      "cpu": 700,
+      "memory": 700,
+      "logConfiguration": {
+        "logDriver": "syslog",
+        "options": {
+          "syslog-address": "udp://${ELK_HOST}:${LOGS_PORT_DJANGO}"
+        }
+      },
+      "entryPoint": [
+        "${APP_PATH}/deploy/docker/python/init.sh"
+      ],
+      "environment": [
+        {
+          "name": "DJANGO_SECRET_KEY",
+          "value": "${DJANGO_SECRET_KEY}"
+        },
+        {
+          "name": "POSTGRES_HOST",
+          "value": "${POSTGRES_HOST}"
+        },
+        {
+          "name": "POSTGRES_NAME",
+          "value": "${POSTGRES_NAME}"
+        },
+        {
+          "name": "POSTGRES_PASSWORD",
+          "value": "${POSTGRES_PASSWORD}"
+        },
+        {
+          "name": "POSTGRES_USER",
+          "value": "${POSTGRES_USER}"
+        },
+        {
+          "name": "APP_PATH",
+          "value": "${APP_PATH}"
+        },
+        {
+          "name": "AWS_ACCESS_KEY_ID",
+          "value": "${APP_AWS_ACCESS_KEY_ID}"
+        },
+        {
+          "name": "AWS_S3_REGION_NAME",
+          "value": "${APP_AWS_S3_REGION_NAME}"
+        },
+        {
+          "name": "AWS_S3_SIGNATURE_VERSION",
+          "value": "${APP_AWS_S3_SIGNATURE_VERSION}"
+        },
+        {
+          "name": "AWS_SECRET_ACCESS_KEY",
+          "value": "${APP_AWS_SECRET_ACCESS_KEY}"
+        },
+        {
+          "name": "AWS_STORAGE_BUCKET_NAME",
+          "value": "${APP_AWS_STORAGE_BUCKET_NAME}"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "logs",
+          "containerPath": "/var/log/uwsgi",
+          "readOnly": false
+        }
+      ]
+    },
+    {
+      "name": "nginx",
+      "image": "081960884429.dkr.ecr.eu-central-1.amazonaws.com/${ENVIRONMENT}_images:nginx_${TAG}",
+      "cpu": 100,
+      "memory": 100,
+      "portMappings": [
+        {
+          "containerPort": ${PORT},
+          "hostPort": 0
+        }
+      ],
+      "links": [
+        "${SERVICE_NAME}"
+      ]
+    },
+    {
+      "name": "filebeat",
+      "image": "081960884429.dkr.ecr.eu-central-1.amazonaws.com/${ENVIRONMENT}_images:filebeat_${TAG}",
+      "cpu": 100,
+      "memory": 100,
+      "environment": [
+        {
+          "name": "LOGS_PORT_FILEBEAT",
+          "value": "${LOGS_PORT_FILEBEAT}"
+        }
+      ],
+      "links": [
+        "${SERVICE_NAME}"
+      ],
+      "volumesFrom": [
+        {
+          "sourceContainer": "${SERVICE_NAME}",
+          "readOnly": false
+        }
+      ]
+    }
+  ],
+  "volumes": [
+    {
+      "name": "logs",
+      "host": {  
+        "sourcePath": "/var/log/uwsgi"
+      }
+    }
+  ],
+  "family": "${SERVICE_NAME}"
+}

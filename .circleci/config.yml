@@ -1,34 +1,158 @@
 version: 2
 jobs:
-  deploy:
-    machine:
-      enabled: true
-    working_directory: ~/project
+  build:
+    docker:
+      - image: circleci/python:3.6
+    working_directory: ~/mein-objekt-python-backend
     steps:
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
-          name: Deploy to Heroku
+          name: Install dependencies
           command: |
-            if [ "${CIRCLE_BRANCH}" == 'master' ]; then
-              git push https://heroku:"${HEROKU_API_KEY}"@git.heroku.com/"${PROD_PROJECT_NAME}".git master
-              heroku restart --app "${PROD_PROJECT_NAME}"
-            elif [ "${CIRCLE_BRANCH}" == 'staging' ]; then
-              git push https://heroku:"${HEROKU_API_KEY}"@git.heroku.com/"${STAGING_PROJECT_NAME}".git staging:master
-              heroku restart --app "${STAGING_PROJECT_NAME}"
-            elif [ "${CIRCLE_BRANCH}" == 'qa' ]; then
-              git push https://heroku:"${HEROKU_API_KEY}"@git.heroku.com/"${QA_PROJECT_NAME}".git qa:master
-              heroku restart --app "${QA_PROJECT_NAME}"
+            sudo pip install awscli
+            sudo apt-get update && sudo apt-get  install -y gettext
+      - run:
+          name: Build docker image
+          command: |
+            if [ "$CIRCLE_BRANCH" == "master" ]; then
+              bash deploy/aws_ecs/build_docker_image.sh -k ${PROD_ENV_PREFIX} -a ${AWS_ACCESS_KEY_ID} -s ${AWS_SECRET_ACCESS_KEY}
             else
-                CIRCLECI=true
+              bash deploy/aws_ecs/build_docker_image.sh -k ${QA_ENV_PREFIX} -a ${AWS_ACCESS_KEY_ID} -s ${AWS_SECRET_ACCESS_KEY}
+            fi
+  test:
+    docker:
+      - image: circleci/python:3.6
+    working_directory: ~/mein-objekt-python-backend
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Install dependencies
+          command: |
+            sudo pip install awscli
+            sudo apt-get update && sudo apt-get  install -y gettext
+      - run:
+          name: Run tests
+          command: |
+            if [ "$CIRCLE_BRANCH" == "master" ]; then
+              bash deploy/docker/test/run-tests.sh -k ${PROD_ENV_PREFIX} -a ${AWS_ACCESS_KEY_ID} -s ${AWS_SECRET_ACCESS_KEY}
+            else
+              bash deploy/docker/test/run-tests.sh -k ${QA_ENV_PREFIX} -a ${AWS_ACCESS_KEY_ID} -s ${AWS_SECRET_ACCESS_KEY}
+            fi
+  migrate:
+    docker:
+      - image: circleci/python:3.6
+    working_directory: ~/mein-objekt-python-backend
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true 
+      - run:
+          name: Install dependencies
+          command: |
+            sudo pip install awscli
+            sudo apt-get update && sudo apt-get  install -y gettext
+      - run:
+          name: Create database snapshot
+          command: |
+            if [ "$CIRCLE_BRANCH" == "master" ]; then
+              bash deploy/docker/migrations/run_snapshot.sh -k ${PROD_ENV_PREFIX} -r ${AWS_REGION}
+            elif [ "$CIRCLE_BRANCH" == "qa" ]; then
+              bash deploy/docker/migrations/run_snapshot.sh -k ${QA_ENV_PREFIX} -r ${AWS_REGION}
+            else
+              echo 'Migrations for main branches only'
+            fi
+          no_output_timeout: 1200
+      - run:
+          name: Run migrations
+          command: |
+            if [ "$CIRCLE_BRANCH" == "master" ]; then
+              bash deploy/docker/migrations/run_migration.sh -k ${PROD_ENV_PREFIX} -a ${AWS_ACCESS_KEY_ID} -s ${AWS_SECRET_ACCESS_KEY}
+            elif [ "$CIRCLE_BRANCH" == "qa" ]; then
+              bash deploy/docker/migrations/run_migration.sh -k ${QA_ENV_PREFIX} -a ${AWS_ACCESS_KEY_ID} -s ${AWS_SECRET_ACCESS_KEY}
+            else
+              echo 'Migrations for main branches only'
+            fi
+          no_output_timeout: 1200
+  deploy:
+    docker:
+      - image: circleci/python:3.6
+    working_directory: ~/mein-objekt-python-backend
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true 
+      - run:
+          name: Install dependencies
+          command: |
+            sudo pip install awscli
+            sudo apt-get update && sudo apt-get  install -y gettext
+      - run: 
+          name: Generate ecs task definition and deploy
+          command: |
+            if [ "$CIRCLE_BRANCH" == "master" ]; then
+              bash deploy/aws_ecs/generate_and_deploy.sh -k ${PROD_ENV_PREFIX} -a ${AWS_ACCESS_KEY_ID} -s ${AWS_SECRET_ACCESS_KEY}
+            elif [ "$CIRCLE_BRANCH" == "qa" ]; then
+              bash deploy/aws_ecs/generate_and_deploy.sh -k ${QA_ENV_PREFIX} -a ${AWS_ACCESS_KEY_ID} -s ${AWS_SECRET_ACCESS_KEY}
+            else
+              echo "Deploy for main branches only"
+            fi
+  release:
+    docker:
+      - image: circleci/python:3.6
+    working_directory: ~/mein-objekt-python-backend
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true 
+      - run:
+          name: Install dependencies
+          command: |
+            sudo pip install awscli
+            sudo apt-get update && sudo apt-get  install -y gettext
+      - run:
+          name: Run blue-green deployment
+          command: |
+            if [ "$CIRCLE_BRANCH" == "master" ]; then
+              timeout 15m bash deploy/aws_ecs/blue-green.sh -c blue-green -k ${PROD_CLUSTER_NAME} -t ${CIRCLE_WORKFLOW_ID} -a ${AWS_ACCESS_KEY_ID} -s ${AWS_SECRET_ACCESS_KEY}
+            elif [ "$CIRCLE_BRANCH" == "qa" ]; then
+              timeout 15m bash deploy/aws_ecs/blue-green.sh -c blue-green -k ${QA_CLUSTER_NAME} -t ${CIRCLE_WORKFLOW_ID} -a ${AWS_ACCESS_KEY_ID} -s ${AWS_SECRET_ACCESS_KEY}
+            else
+              echo 'Release scripts for main branches only'
             fi
 workflows:
   version: 2
   deploy:
     jobs:
-      - deploy:
+      - build
+      - test:
+          requires:
+            - build
+      - migrate:
+          requires:
+            - test
           filters:
             branches:
               only:
-                - qa
-                - staging
                 - master
+                - qa
+      - deploy:
+          requires:
+            - migrate
+          filters:
+            branches:
+              only:
+                - master
+                - qa
+      - release:
+          requires:
+            - deploy
+          filters:
+            branches:
+              only:
+                - master
+                - qa
+
