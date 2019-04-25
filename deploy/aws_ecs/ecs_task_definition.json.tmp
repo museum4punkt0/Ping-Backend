@@ -58,6 +58,10 @@
         {
           "name": "AWS_STORAGE_BUCKET_NAME",
           "value": "${APP_AWS_STORAGE_BUCKET_NAME}"
+        },
+        {
+          "name": "ENVIRONMENT",
+          "value": "${ENVIRONMENT}"
         }
       ],
       "mountPoints": [
