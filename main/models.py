@@ -480,6 +480,7 @@ class ObjectsImages(models.Model):
     class Meta:
         verbose_name_plural = "Objects Images"
 
+    number = models.PositiveSmallIntegerField()
     objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
     image = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
