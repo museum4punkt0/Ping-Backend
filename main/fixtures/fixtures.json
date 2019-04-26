@@ -513,6 +513,7 @@
   "model": "main.objectsimages",
   "pk": 10,
   "fields": {
+    "number": 0,
     "objects_item": 12,
     "image": "",
     "sync_id": "2632068f-86a9-4ee1-a096-8fcc6cd66523",
@@ -525,6 +526,7 @@
   "model": "main.objectsimages",
   "pk": 11,
   "fields": {
+    "number": 0,
     "objects_item": 12,
     "image": "",
     "sync_id": "acaad5be-a2ef-4b28-883e-163950efce25",
@@ -537,6 +539,7 @@
   "model": "main.objectsimages",
   "pk": 12,
   "fields": {
+    "number": 0,
     "objects_item": 13,
     "image": "",
     "sync_id": "d7ceb91d-4074-48af-897f-e7f3c6640825",
@@ -549,6 +552,7 @@
   "model": "main.objectsimages",
   "pk": 13,
   "fields": {
+    "number": 0,
     "objects_item": 15,
     "image": "",
     "sync_id": "77aa8d4b-3514-4c18-a504-f9aa29bed186",
@@ -561,6 +565,7 @@
   "model": "main.objectsimages",
   "pk": 15,
   "fields": {
+    "number": 0,
     "objects_item": 17,
     "image": "",
     "sync_id": "7969c7a6-18b4-4b8d-a8f5-40d95ff939d8",
