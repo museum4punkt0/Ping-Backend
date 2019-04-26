@@ -11,6 +11,7 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_HOST=postgres
       - APP_PATH=/app
+      - ENVIRONMENT=test
     networks:
       - test_network
   postgres:
