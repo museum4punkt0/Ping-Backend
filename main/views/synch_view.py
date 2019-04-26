@@ -150,6 +150,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
         for image in serialized_images:
             image_dict = {}
             image_dict['id'] = image['id']
+            image_dict['number'] = image['number']
             image_dict['image'] = image['image']
             image_dict['sync_id'] = image['sync_id']
             image_dict['created_at'] = image['created_at']
