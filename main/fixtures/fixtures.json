@@ -796,5 +796,51 @@
     "created_at": "2019-04-18T16:08:42.563Z",
     "updated_at": "2019-04-18T16:08:42.563Z"
   }
+},
+{
+  "model": "main.chats",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "objects_item": 38,
+    "last_step": 0,
+    "finished": true,
+    "sync_id": "7773370d-b574-4208-a458-353a04b0336d",
+    "synced": false,
+    "created_at": "2019-05-03T08:21:17.534Z",
+    "updated_at": "2019-05-03T12:18:11.753Z",
+    "history": "False"
+  }
+},
+{
+  "model": "main.users",
+  "pk": 1,
+  "fields": {
+    "name": null,
+    "avatar": "",
+    "device_id": "test",
+    "category": null,
+    "positionx": "0",
+    "positiony": "0",
+    "floor": 0,
+    "language": "en",
+    "sync_id": "ffdc28a8-99da-4e63-9958-a0aa532ed16c",
+    "synced": false,
+    "created_at": "2019-04-26T14:00:35.013Z",
+    "updated_at": "2019-04-26T14:00:35.013Z"
+  }
+},
+{
+  "model": "main.votings",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "objects_item": 38,
+    "vote": false,
+    "sync_id": "7773370d-b574-4208-a458-353a04b0334d",
+    "synced": false,
+    "created_at": "2019-05-03T09:58:30.043Z",
+    "updated_at": "2019-05-03T09:58:30.043Z"
+  }
 }
 ]
