@@ -329,14 +329,17 @@ class Synchronization(APIView):
                 user = Users.objects.create(device_id=user_id)
         else:
             logging.error(f'User id must be provided')
-            return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
+            return JsonResponse({'error': 'Existing user id must be provided'},
+                                safe=True, status=400)
 
         museum = Museums.objects.get(name=DEFAULT_MUSEUM)
         settings = (museum.settings,)
         categories = Categories.objects.all()
+        serialized_museum = MuseumsSerializer(museum).data
 
         if not settings:
-          return JsonResponse({'error': 'museums settings must be defined'}, safe=True)
+          return JsonResponse({'error': 'museums settings must be defined'},
+                              safe=True, status=400)
 
         return JsonResponse(serialized_data(museum, user, settings, categories), safe=True)
 
@@ -347,10 +350,12 @@ class Synchronization(APIView):
                 user = Users.objects.get(device_id=user_id)
             except Exception as e:
                 logging.error(f'User id {user_id} does not exist {e.args}')
-                return JsonResponse({'error': f'User id {user_id} does not exist {e.args}'}, safe=True)
+                return JsonResponse({'error': f'User id {user_id} does not exist {e.args}'},
+                                    safe=True, status=400)
         else:
             logging.error(f'Existing user id must be provided, device id: {user_id}')
-            return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
+            return JsonResponse({'error': 'Existing user id must be provided'},
+                                safe=True, status=400)
 
         post_data = request.data
         if post_data:
@@ -358,7 +363,8 @@ class Synchronization(APIView):
             add_values = post_data.get('add')
             update_values = post_data.get('update')
         else:
-            return JsonResponse({'error': 'json data with schema {"add": {}, "update": {},"delete": {}, "get": {} } must be transfered'}, safe=True)
+            return JsonResponse({'error': 'json data with schema {"add": {}, "update": {},"delete": {}, "get": {} } must be transfered'},
+                                safe=True, status=400)
         objects_sync_ids = []
         categories_sync_ids = []
 
@@ -436,7 +442,7 @@ class Synchronization(APIView):
                                                          last_step)
 
                 if len(errors['add_errors']) > 0:
-                    return JsonResponse(errors, safe=True)
+                    return JsonResponse(errors, safe=True, status=400)
 
                 try:
                     chats_objects.append(Chats(**validated_data))
@@ -469,7 +475,7 @@ class Synchronization(APIView):
                                                            vote)
 
                 if len(errors['add_errors']) > 0:
-                    return JsonResponse(errors, safe=True)
+                    return JsonResponse(errors, safe=True, status=400)
 
                 try:
                     votings_objects.append(Votings(**validated_data))
@@ -524,7 +530,7 @@ class Synchronization(APIView):
                     errors['add_errors'].append({'collection': e.args})
 
                 if len(errors['add_errors']) > 0:
-                    return JsonResponse(errors, safe=True)
+                    return JsonResponse(errors, safe=True, status=400)
 
         table = {'chats': chats_objects, 'votings': votings_objects,
                  'collections': collections_objects}
@@ -534,7 +540,8 @@ class Synchronization(APIView):
                 try:
                     item.save()
                 except Exception as e:
-                    return JsonResponse({f'{name}': e.args}, safe=True)
+                    return JsonResponse({f'{name}': e.args}, safe=True,
+                                        status=400)
 
         if up_chats:
             for chat in up_chats:
