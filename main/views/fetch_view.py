@@ -48,6 +48,7 @@ def fetch(request):
 
     if request.method == 'GET':
         user_id = request.GET.get('user_id', None)
+        museum_id = request.GET.get('museum_id', None)
         if user_id:
             try:
                 user = Users.objects.get(device_id=user_id)
@@ -59,9 +60,14 @@ def fetch(request):
             logging.error(f'Existing user id must be provided, device id: {user_id}')
             return JsonResponse({'error': 'Existing user id must be provided'},
                                 safe=True, status=400)
+        if museum_id:
+            museum = Museums.objects.get(sync_id=museum_id)
+            settings = getattr(museum, 'settings')
+        else:
+            logging.error(f'Museum id must be provided')
+            return JsonResponse({'error': 'Existing museum id must be provided'},
+                                safe=True, status=400)
 
-        museum = Museums.objects.get(name=DEFAULT_MUSEUM)
-        settings = museum.settings
         data = {'museums': None,
                 'users': None,
                 'settings': None,
