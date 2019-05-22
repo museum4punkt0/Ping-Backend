@@ -150,6 +150,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
         for image in serialized_images:
             image_dict = {}
             image_dict['id'] = image['id']
+            image_dict['number'] = image['number']
             image_dict['image'] = image['image']
             image_dict['sync_id'] = image['sync_id']
             image_dict['created_at'] = image['created_at']
@@ -168,7 +169,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
 
         category_table['id'] = serialized_category['id']
 
-        objects = category.objectscategories_set.all()
+        objects = category.objectscategories_set.filter(objects_item__museum=museum)
         category_table['sync_object_ids'] = [str(i.objects_item.sync_id) for i in objects]
 
         localizations = serialized_category['localizations']
@@ -267,7 +268,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
 
     # settings serialization
     if settings:
-        for setting in settings:
+        for setting in (settings,):
             serialized_settings = SettingsSerializer(setting).data
             settings_table = {'id': None,
                               'position_scores': None,
@@ -320,6 +321,7 @@ class Synchronization(APIView):
 
     def get(self, request, format=None):
         user_id = request.GET.get('user_id', None)
+        museum_id = request.GET.get('museum_id', None)
         user = None
         if user_id:
             try:
@@ -328,28 +330,39 @@ class Synchronization(APIView):
                 user = Users.objects.create(device_id=user_id)
         else:
             logging.error(f'User id must be provided')
-            return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
+            return JsonResponse({'error': 'Existing user id must be provided'},
+                                safe=True, status=400)
+        if museum_id:
+            museum = Museums.objects.get(sync_id=museum_id)
+            settings = getattr(museum, 'settings')
+            serialized_museum = MuseumsSerializer(museum).data
+        else:
+            logging.error(f'Museum id must be provided')
+            return JsonResponse({'error': 'Existing museum id must be provided'},
+                                safe=True, status=400)
 
-        museum = Museums.objects.get(name=DEFAULT_MUSEUM)
-        settings = (museum.settings,)
         categories = Categories.objects.all()
 
         if not settings:
-          return JsonResponse({'error': 'museums settings must be defined'}, safe=True)
+          return JsonResponse({'error': 'museums settings must be defined'},
+                              safe=True, status=400)
 
         return JsonResponse(serialized_data(museum, user, settings, categories), safe=True)
 
     def post(self, request, format=None):
         user_id = request.GET.get('user_id', None)
+        museum_id = request.GET.get('museum_id', None)
         if user_id:
             try:
                 user = Users.objects.get(device_id=user_id)
             except Exception as e:
                 logging.error(f'User id {user_id} does not exist {e.args}')
-                return JsonResponse({'error': f'User id {user_id} does not exist {e.args}'}, safe=True)
+                return JsonResponse({'error': f'User id {user_id} does not exist {e.args}'},
+                                    safe=True, status=400)
         else:
             logging.error(f'Existing user id must be provided, device id: {user_id}')
-            return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
+            return JsonResponse({'error': 'Existing user id must be provided'},
+                                safe=True, status=400)
 
         post_data = request.data
         if post_data:
@@ -357,22 +370,34 @@ class Synchronization(APIView):
             add_values = post_data.get('add')
             update_values = post_data.get('update')
         else:
-            return JsonResponse({'error': 'json data with schema {"add": {}, "update": {},"delete": {}, "get": {} } must be transfered'}, safe=True)
+            return JsonResponse({'error': 'json data with schema {"add": {}, \
+                        "update": {},"delete": {}, "get": {} } must be transfered'},
+                                safe=True, status=400)
         objects_sync_ids = []
         categories_sync_ids = []
 
-        # traverse 'get' table
-        museum = Museums.objects.get(name=DEFAULT_MUSEUM)
+        if museum_id:
+            museum = Museums.objects.get(sync_id=museum_id)
+        else:
+            logging.error(f'Museum id must be provided')
+            return JsonResponse({'error': 'Existing museum id must be provided'},
+                                safe=True, status=400)
+
         if get_values.get('objects'):
             objects_sync_ids.extend(get_values.get('objects'))
 
+        # traverse 'get' table
         museum.objects_to_serialize = list(set(objects_sync_ids))
-        logging.error(f'!!!! GET objects to serialize {objects_sync_ids} ')
+        logging.info(f'GET objects to serialize {objects_sync_ids} ')
 
         if get_values.get('categories'):
             categories_sync_ids.extend(get_values.get('categories'))
 
-        logging.error(f'!!!! GET objects: {get_values.get("objects")}, object_images: {get_values.get("object_images")}, object_localizations: {get_values.get("object_localizations")}, categories{get_values.get("categories")}, category_localizations: {get_values.get("category_localizations")}')
+        logging.info(f'GET objects: {get_values.get("objects")}, \
+                      object_images: {get_values.get("object_images")}, \
+                      object_localizations: {get_values.get("object_localizations")}, \
+                      categories{get_values.get("categories")}, \
+                      category_localizations: {get_values.get("category_localizations")}')
 
         categories = Categories.objects.filter(sync_id__in=categories_sync_ids)
         settings = Settings.objects.filter(sync_id__in=get_values.get('settings', []))
@@ -415,7 +440,7 @@ class Synchronization(APIView):
                 finished = chat.get('finished')
                 history = chat.get('history')
                 last_step = chat.get('last_step')
-                logging.error(f'!!!!POST CHAT \
+                logging.info(f'POST CHAT \
                     ch_sync_id: {ch_sync_id, type(ch_sync_id)}, \
                     created_at: {created_at, type(created_at)}, \
                     updated_at: {updated_at, type(updated_at)}, \
@@ -435,7 +460,7 @@ class Synchronization(APIView):
                                                          last_step)
 
                 if len(errors['add_errors']) > 0:
-                    return JsonResponse(errors, safe=True)
+                    return JsonResponse(errors, safe=True, status=400)
 
                 try:
                     chats_objects.append(Chats(**validated_data))
@@ -468,7 +493,7 @@ class Synchronization(APIView):
                                                            vote)
 
                 if len(errors['add_errors']) > 0:
-                    return JsonResponse(errors, safe=True)
+                    return JsonResponse(errors, safe=True, status=400)
 
                 try:
                     votings_objects.append(Votings(**validated_data))
@@ -491,7 +516,7 @@ class Synchronization(APIView):
                 ob_sync_id = collection.get('object_sync_id')
                 image = collection.get('image')
                 ctgrs = collection.get('categories')
-                logging.error(f'!!!!POST COLLECTION \
+                logging.info(f'POST COLLECTION \
                      ch_sync_id: {cl_sync_id, type(cl_sync_id)}, \
                      created_at: {created_at, type(created_at)}, \
                      updated_at: {updated_at, type(updated_at)}, \
@@ -523,7 +548,7 @@ class Synchronization(APIView):
                     errors['add_errors'].append({'collection': e.args})
 
                 if len(errors['add_errors']) > 0:
-                    return JsonResponse(errors, safe=True)
+                    return JsonResponse(errors, safe=True, status=400)
 
         table = {'chats': chats_objects, 'votings': votings_objects,
                  'collections': collections_objects}
@@ -533,7 +558,8 @@ class Synchronization(APIView):
                 try:
                     item.save()
                 except Exception as e:
-                    return JsonResponse({f'{name}': e.args}, safe=True)
+                    return JsonResponse({f'{name}': e.args}, safe=True,
+                                        status=400)
 
         if up_chats:
             for chat in up_chats:

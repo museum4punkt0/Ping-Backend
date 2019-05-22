@@ -15,8 +15,11 @@ services:
     networks:
       - test_network
   postgres:
-    image: circleci/postgres:9.5.13-alpine-ram
+    image: circleci/postgres:9.5.14-postgis
     container_name: postgres
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_NAME=circle_test
     ports:
       - 5432:5432
     networks:

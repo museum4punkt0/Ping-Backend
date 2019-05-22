@@ -513,6 +513,7 @@
   "model": "main.objectsimages",
   "pk": 10,
   "fields": {
+    "number": 0,
     "objects_item": 12,
     "image": "",
     "sync_id": "2632068f-86a9-4ee1-a096-8fcc6cd66523",
@@ -525,6 +526,7 @@
   "model": "main.objectsimages",
   "pk": 11,
   "fields": {
+    "number": 0,
     "objects_item": 12,
     "image": "",
     "sync_id": "acaad5be-a2ef-4b28-883e-163950efce25",
@@ -537,6 +539,7 @@
   "model": "main.objectsimages",
   "pk": 12,
   "fields": {
+    "number": 0,
     "objects_item": 13,
     "image": "",
     "sync_id": "d7ceb91d-4074-48af-897f-e7f3c6640825",
@@ -549,6 +552,7 @@
   "model": "main.objectsimages",
   "pk": 13,
   "fields": {
+    "number": 0,
     "objects_item": 15,
     "image": "",
     "sync_id": "77aa8d4b-3514-4c18-a504-f9aa29bed186",
@@ -561,6 +565,7 @@
   "model": "main.objectsimages",
   "pk": 15,
   "fields": {
+    "number": 0,
     "objects_item": 17,
     "image": "",
     "sync_id": "7969c7a6-18b4-4b8d-a8f5-40d95ff939d8",
@@ -749,9 +754,9 @@
     "language": "en",
     "conversation": "",
     "description": "xfhgn",
-    "title": null,
-    "object_kind": null,
-    "phrase": null,
+    "title": "test_title",
+    "object_kind": "test_kind",
+    "phrase": "test_phrase",
     "sync_id": "aab5c4f7-9262-4fd2-9a14-4a499fd8ec55",
     "synced": false,
     "created_at": "2019-04-18T15:25:13.540Z",
@@ -765,10 +770,10 @@
     "objects_item": 32,
     "language": "en",
     "conversation": "",
-    "description": "rtrjjj",
-    "title": null,
-    "object_kind": null,
-    "phrase": null,
+    "description": "test_description",
+    "title": "test_title",
+    "object_kind": "test_kind",
+    "phrase": "test_phrase",
     "sync_id": "aa2d5ecf-abe5-491a-914b-6d228a5b5150",
     "synced": false,
     "created_at": "2019-04-18T15:54:39.824Z",
@@ -782,14 +787,60 @@
     "objects_item": 38,
     "language": "en",
     "conversation": "",
-    "description": "hjvh",
-    "title": null,
-    "object_kind": null,
-    "phrase": null,
+    "description": "test_description",
+    "title": "test_title",
+    "object_kind": "test_kind",
+    "phrase": "test_phrase",
     "sync_id": "4d3f59bd-c823-4905-a3ec-b636314d0595",
     "synced": false,
     "created_at": "2019-04-18T16:08:42.563Z",
     "updated_at": "2019-04-18T16:08:42.563Z"
+  }
+},
+{
+  "model": "main.chats",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "objects_item": 38,
+    "last_step": 0,
+    "finished": true,
+    "sync_id": "7773370d-b574-4208-a458-353a04b0336d",
+    "synced": false,
+    "created_at": "2019-05-03T08:21:17.534Z",
+    "updated_at": "2019-05-03T12:18:11.753Z",
+    "history": "False"
+  }
+},
+{
+  "model": "main.users",
+  "pk": 1,
+  "fields": {
+    "name": "test_name",
+    "avatar": "",
+    "device_id": "test",
+    "category": null,
+    "positionx": "0",
+    "positiony": "0",
+    "floor": 0,
+    "language": "en",
+    "sync_id": "ffdc28a8-99da-4e63-9958-a0aa532ed16c",
+    "synced": false,
+    "created_at": "2019-04-26T14:00:35.013Z",
+    "updated_at": "2019-04-26T14:00:35.013Z"
+  }
+},
+{
+  "model": "main.votings",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "objects_item": 38,
+    "vote": false,
+    "sync_id": "7773370d-b574-4208-a458-353a04b0334d",
+    "synced": false,
+    "created_at": "2019-05-03T09:58:30.043Z",
+    "updated_at": "2019-05-03T09:58:30.043Z"
   }
 }
 ]

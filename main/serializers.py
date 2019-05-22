@@ -287,6 +287,12 @@ class MuseumsSerializer(serializers.ModelSerializer):
                   'updated_at', 'objectsitems', 'museumimages')
 
 
+class ShortMuseumsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Museums
+        fields = ('name', 'sync_id', 'created_at', 'updated_at')
+
+
 class CategorieslocalizationsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
 

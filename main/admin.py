@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.contrib.gis.admin import OSMGeoAdmin
+from django.contrib.gis.db import models
+from mapwidgets.widgets import GooglePointFieldWidget
 from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     Categories, Categorieslocalizations, ObjectsCategories,\
                     ObjectsImages, Chats, ObjectsImages, MuseumsImages,\
@@ -76,6 +79,9 @@ class MuseumsAdmin(admin.ModelAdmin):
     inlines = [MusemsTensorInline, MuseumsImagesInline,]
     readonly_fields = ['updated_at']
     exclude = ('synced',)
+    formfield_overrides = {
+        models.PointField: {"widget": GooglePointFieldWidget}
+    }
 
 
 class ObjectsImagesInline(admin.TabularInline):

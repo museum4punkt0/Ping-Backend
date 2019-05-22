@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     'main.apps.MainConfig',
     'storages',
     'django_nose',
+    'django.contrib.gis',
+    'mapwidgets'
     # 'debug_toolbar'
 ]
 
@@ -70,7 +72,7 @@ WSGI = 'django.core.wsgi' in sys.modules
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': os.environ.get('POSTGRES_NAME', default=None),
         'USER' : os.environ.get('POSTGRES_USER', default=None),
         'PASSWORD' : os.environ.get('POSTGRES_PASSWORD', default=None),
@@ -112,23 +114,6 @@ USE_L10N = True
 USE_TZ = True
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-#S3
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', default=None)
-
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', default=None)
-
-AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME', default=None)
-
-AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', default=None)
-
-AWS_S3_SIGNATURE_VERSION = os.environ.get('AWS_S3_SIGNATURE_VERSION', default=None)
-
-AWS_DEFAULT_ACL = None
-
-AWS_QUERYSTRING_AUTH = False
 
 # static files
 STATIC_URL = '/static/'

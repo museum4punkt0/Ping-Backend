@@ -48,18 +48,26 @@ def fetch(request):
 
     if request.method == 'GET':
         user_id = request.GET.get('user_id', None)
+        museum_id = request.GET.get('museum_id', None)
         if user_id:
             try:
                 user = Users.objects.get(device_id=user_id)
             except Exception as e:
                 logging.error(f'User id {user_id} does not exist {e.args}')
-                return JsonResponse({'error': f'User id {user_id} does not exist {e.args}'}, safe=True)
+                return JsonResponse({'error': f'User id {user_id} does not exist {e.args}'},
+                                    safe=True, status=400)
         else:
             logging.error(f'Existing user id must be provided, device id: {user_id}')
-            return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
+            return JsonResponse({'error': 'Existing user id must be provided'},
+                                safe=True, status=400)
+        if museum_id:
+            museum = Museums.objects.get(sync_id=museum_id)
+            settings = getattr(museum, 'settings')
+        else:
+            logging.error(f'Museum id must be provided')
+            return JsonResponse({'error': 'Existing museum id must be provided'},
+                                safe=True, status=400)
 
-        museum = Museums.objects.get(name=DEFAULT_MUSEUM)
-        settings = museum.settings
         data = {'museums': None,
                 'users': None,
                 'settings': None,
@@ -194,7 +202,7 @@ def fetch(request):
         if del_obj:
             deleted_table['objects'] = [i.objects_item for i in del_obj]
             deleted_table['updated_at'] = del_obj[0].created_at
-        if del_cat:
+        if del_cat and del_obj:
             deleted_table['categories'] = [i.category for i in del_cat]
             if del_cat[0].created_at > del_obj[0].created_at:
                 deleted_table['updated_at'] = del_cat[0].created_at

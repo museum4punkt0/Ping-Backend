@@ -353,7 +353,7 @@ def validate_user(action,
         except:
             errors[f'{action}_errors'].append({'user': f'Value "language_style" for user {us_sync_id} must be json'})
     else:
-        errors[f'{action}_errors'].append({'user': f'Value "language_style" for user {us_sync_id} is requir'})
+        errors[f'{action}_errors'].append({'user': f'Value "language_style" for user {us_sync_id} is required'})
 
     if device_id:
         if isinstance(device_id, str) and 'DELETE' in device_id:
