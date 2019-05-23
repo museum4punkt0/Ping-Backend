@@ -842,5 +842,22 @@
     "created_at": "2019-05-03T09:58:30.043Z",
     "updated_at": "2019-05-03T09:58:30.043Z"
   }
+},
+{
+  "model": "main.semanticrelation",
+  "pk": 11,
+  "fields": {
+    "from_object_item": 12,
+  "to_object_item": 17
+  }
+},
+{
+  "model": "main.semanticrelationlocalization",
+  "pk": 1,
+  "fields": {
+    "objects_item": 11,
+    "language": "en",
+    "description": "test"
+  }
 }
 ]

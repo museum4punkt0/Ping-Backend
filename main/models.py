@@ -295,6 +295,7 @@ class ObjectsItem(models.Model):
     language_style = models.CharField(max_length=45, choices=LANGUEAGE_STYLE_CHOICES, default='easy')
     avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
     onboarding = models.BooleanField(default=False)
+    semantic_relation = models.ManyToManyField('self', through='SemanticRelation', symmetrical=False)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -316,7 +317,33 @@ class ObjectsItem(models.Model):
         return super(ObjectsItem, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.id}'
+        if self.localizations.filter(language="en").exists():
+            return f'{self.localizations.get(language="en").title}'
+        elif self.localizations.filter(language="de").exists():
+            return f'{self.localizations.get(language="de").title}'
+        else:
+            return f'{self.id}'
+
+
+class SemanticRelation(models.Model):
+    from_object_item = models.ForeignKey(ObjectsItem, on_delete=models.CASCADE, related_name='from_object_item')
+    to_object_item = models.ForeignKey(ObjectsItem, on_delete=models.CASCADE, related_name='to_object_item')
+
+    def __str__(self):
+        return f'{self.from_object_item} - {self.to_object_item}'
+
+
+class SemanticRelationLocalization(models.Model):
+    objects_item = models.ForeignKey(SemanticRelation, models.CASCADE,
+                                     related_name='localizations',
+                                     related_query_name='localizations')
+    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES,
+                                default=LOCALIZATIONS_CHOICES.en)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.language}'
+
 
 @receiver(pre_delete, sender=ObjectsItem, dispatch_uid="create_delete_object")
 def create_delete_objects(sender, instance, **kwargs):
