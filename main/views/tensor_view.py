@@ -11,6 +11,8 @@ import logging
 @api_view(['POST'])
 def recognize(request):
     user_id = request.GET.get('user_id', None)
+    museum_id = request.GET.get('museum_id', None)
+
     if user_id:
         try:
             user = Users.objects.get(device_id=user_id)
@@ -21,10 +23,15 @@ def recognize(request):
         logging.error(f'Existing user id must be provided, device id: {user_id}')
         return JsonResponse({'error': 'Existing user id must be provided'}, safe=True)
 
-    mus = Museums.objects.first()
+    if museum_id:
+        museum = Museums.objects.get(sync_id=museum_id)
+    else:
+        logging.error(f'Museum id must be provided')
+        return JsonResponse({'error': 'Existing museum id must be provided'},
+                            safe=True, status=400)
 
     if tensors:
-        museum_tensor = tensors[mus.name]
+        museum_tensor = tensors[museum.name]
         model_obj = museum_tensor.get('tensor_flow_model', None)
         label_obj = museum_tensor.get('tensor_flow_lables', None)
 

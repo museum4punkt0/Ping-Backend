@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     'main.apps.MainConfig',
     'storages',
     'django_nose',
+    'django.contrib.gis',
+    'mapwidgets'
     # 'debug_toolbar'
 ]
 
@@ -70,7 +72,7 @@ WSGI = 'django.core.wsgi' in sys.modules
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': os.environ.get('POSTGRES_NAME', default=None),
         'USER' : os.environ.get('POSTGRES_USER', default=None),
         'PASSWORD' : os.environ.get('POSTGRES_PASSWORD', default=None),

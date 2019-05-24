@@ -6,14 +6,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 router = routers.DefaultRouter()
-router.register('collections', rest_views.CollectionsView)
-router.register('objects', rest_views.ObjectsView)
-router.register('chats', rest_views.ChatsView)
-router.register('users', rest_views.UsersView)
+
 router.register('museums', rest_views.MuseumsView)
-router.register('settings', rest_views.SettingsView)
-router.register('objectsimages', rest_views.ObjectsImagesView)
-router.register('objectslocalizations', rest_views.ObjectsLocalizationsView)
 
 urlpatterns = [
     path(r'api/v1/', include(router.urls)),

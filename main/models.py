@@ -1,5 +1,5 @@
 from django.contrib.postgres.fields import JSONField, ArrayField
-from django.db import models
+from django.contrib.gis.db import models
 from django.utils import timezone
 from django.core.files.temp import NamedTemporaryFile
 from django.utils.html import format_html
@@ -50,6 +50,7 @@ DEFAULT_MUSEUM_SETTINGS = {
 
 IMAGE_TYPES = Choices(
         ('smpl', 'Simple'),
+        ('logo', 'Logo'),
         ('pnt', 'Pointer'),
         ('1_map', 'First floor map'),
         ('2_map', 'Second floor map'),
@@ -219,6 +220,7 @@ class Museums(models.Model):
     name = models.CharField(max_length=45, unique=True, default=DEFAULT_MUSEUM)
     floor_amount = models.IntegerField()
     settings = models.ForeignKey(Settings, models.SET_NULL, null=True)
+    location = models.PointField(null=True)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -236,9 +238,9 @@ class Museums(models.Model):
 
     def objects_query(self):
         if self.objects_to_serialize is not None:
-            return ObjectsItem.objects.filter(sync_id__in=self._objects_to_serialize)
+            return self.objectsitem_set.filter(sync_id__in=self._objects_to_serialize)
         else:
-            return ObjectsItem.objects.all()
+            return self.objectsitem_set.all()
 
     @property
     def objectsitems(self):
