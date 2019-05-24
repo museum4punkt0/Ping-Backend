@@ -130,7 +130,7 @@ class TestSynchronization(APITestCase):
         self.assertIsInstance(object_item['images'][0]['number'], int)
 
         # museum_object_semantic_relations
-        semantic_relations = object['semantic_relations'][0]
+        semantic_relations = object_item['semantic_relations'][0]
         self.assertIsInstance(semantic_relations['object_item_id'], str)
         self.assertIsInstance(semantic_relations['localizations'], list)
         self.assertIsInstance(semantic_relations['localizations'][0]['language'], str)
