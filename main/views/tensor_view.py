@@ -7,6 +7,8 @@ from main.models import Users, Museums
 from main.utils import label_image
 from main.apps import tensors
 import logging
+from main.variables import DEFAULT_MUSEUM
+
 
 @api_view(['POST'])
 def recognize(request):
@@ -26,9 +28,11 @@ def recognize(request):
     if museum_id:
         museum = Museums.objects.get(sync_id=museum_id)
     else:
-        logging.error(f'Museum id must be provided')
-        return JsonResponse({'error': 'Existing museum id must be provided'},
-                            safe=True, status=400)
+        # logging.error(f'Museum id must be provided')
+        # return JsonResponse({'error': 'Existing museum id must be provided'},
+        #                     safe=True, status=400)
+        museum = Museums.objects.get(name=DEFAULT_MUSEUM)
+        settings = getattr(museum, 'settings')
 
     if tensors:
         museum_tensor = tensors[museum.name]
