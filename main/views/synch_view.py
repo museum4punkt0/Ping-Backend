@@ -67,6 +67,8 @@ def serialized_data(museum, user=None, settings=None, categories=None):
     museum_table = {'sync_id': None,
                     'name': None,
                     'floor_amount': None,
+                    'opennings': None,
+                    'specialization': None,
                     'tensor': [],
                     'images': [],
                     'objects': [],
@@ -75,6 +77,8 @@ def serialized_data(museum, user=None, settings=None, categories=None):
     museum_table['sync_id'] = serialized_museum['sync_id']
     museum_table['name'] = serialized_museum['name']
     museum_table['floor_amount'] = serialized_museum['floor_amount']
+    museum_table['opennings'] = serialized_museum['opennings']
+    museum_table['specialization'] = serialized_museum['specialization']
 
     serialized_museumtensor = serialized_museum['museumtensor']
     for tensor in serialized_museumtensor:

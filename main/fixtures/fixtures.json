@@ -139,10 +139,47 @@
     "name": "Humboldt Museum",
     "floor_amount": 3,
     "settings": 6,
+    "location": "SRID=4326;POINT (24.04635270390083 49.82413241292625)",
+    "specialization": "Some specialization",
     "sync_id": "74b617d6-4f07-48a9-b056-b5863a370f82",
     "synced": false,
     "created_at": "2019-03-20T13:48:06.796Z",
-    "updated_at": "2019-04-18T09:33:41.691Z"
+    "updated_at": "2019-05-24T08:26:22.436Z"
+  }
+},
+{
+  "model": "main.museums",
+  "pk": 3,
+  "fields": {
+    "name": "Another Museum",
+    "floor_amount": 2,
+    "settings": 6,
+    "location": "SRID=4326;POINT (8.233445027474659 51.17505173453132)",
+    "specialization": "Some specialization",
+    "sync_id": "2ffcc5c3-7ff7-494c-a866-e7ec05724575",
+    "synced": false,
+    "created_at": "2019-05-13T09:48:54.487Z",
+    "updated_at": "2019-05-24T12:01:06.121Z"
+  }
+},
+{
+  "model": "main.openningtime",
+  "pk": 1,
+  "fields": {
+    "museum": 2,
+    "weekday": "monday,tuesday,wednesday",
+    "from_hour": "16:18:16",
+    "to_hour": "16:18:18"
+  }
+},
+{
+  "model": "main.openningtime",
+  "pk": 2,
+  "fields": {
+    "museum": 3,
+    "weekday": "monday,tuesday,wednesday,thursday",
+    "from_hour": "09:45:36",
+    "to_hour": "09:45:37"
   }
 },
 {
@@ -627,7 +664,7 @@
   "pk": 3,
   "fields": {
     "image": "images/Museum/Humboldt Museum/image1.jpg",
-    "image_type": "smpl",
+    "image_type": "logo",
     "museum": 2,
     "sync_id": "2244c630-1dfb-4384-9b05-c6af9d8f47ee",
     "synced": false,
@@ -659,6 +696,58 @@
     "synced": false,
     "created_at": "2019-04-08T13:47:35.103Z",
     "updated_at": "2019-04-08T13:47:35.103Z"
+  }
+},
+{
+  "model": "main.museumsimages",
+  "pk": 9,
+  "fields": {
+    "image": "images/Museum/Humboldt Museum/image5.jpg",
+    "image_type": "smpl",
+    "museum": 3,
+    "sync_id": "16b25ed2-cf2e-4d40-b23a-f65a3da7d26e",
+    "synced": false,
+    "created_at": "2019-05-13T09:48:54.489Z",
+    "updated_at": "2019-05-13T09:48:54.489Z"
+  }
+},
+{
+  "model": "main.museumsimages",
+  "pk": 10,
+  "fields": {
+    "image": "images/Museum/Humboldt Museum/image5.jpg",
+    "image_type": "1_map",
+    "museum": 3,
+    "sync_id": "0ef5b25f-6da9-4cc1-899f-c11d183b57d9",
+    "synced": false,
+    "created_at": "2019-05-13T09:48:54.506Z",
+    "updated_at": "2019-05-13T09:48:54.506Z"
+  }
+},
+{
+  "model": "main.museumsimages",
+  "pk": 11,
+  "fields": {
+    "image": "images/Museum/Humboldt Museum/image5.jpg",
+    "image_type": "pnt",
+    "museum": 3,
+    "sync_id": "621b64dd-e15d-43c8-aa86-52ee41ca9f09",
+    "synced": false,
+    "created_at": "2019-05-13T09:48:54.517Z",
+    "updated_at": "2019-05-13T09:48:54.517Z"
+  }
+},
+{
+  "model": "main.museumsimages",
+  "pk": 12,
+  "fields": {
+    "image": "images/Museum/Humboldt Museum/image5.jpg",
+    "image_type": "logo",
+    "museum": 3,
+    "sync_id": "1085d7c4-8498-4a41-9e58-95066534cc25",
+    "synced": false,
+    "created_at": "2019-05-17T15:34:12.160Z",
+    "updated_at": "2019-05-17T15:34:12.160Z"
   }
 },
 {

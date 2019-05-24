@@ -16,7 +16,9 @@ from main.models import (
                      Votings,
                      ObjectsMap,
                      MusemsTensor,
-                     DeletedItems)
+                     DeletedItems,
+                     OpenningTime
+                     )
 
 
 class SyncObjectField(serializers.RelatedField):
@@ -264,10 +266,28 @@ class MusemsTensorSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 
 
+class OpenningTimeSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(OpenningTimeSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+    class Meta:
+        model = OpenningTime
+        fields = ('weekday', 'from_hour', 'to_hour')
+
+
 class MuseumsSerializer(serializers.ModelSerializer):
     objectsitems = ObjectsItemSerializer(source='objects_query', many=True)
     museumimages = MuseumsImagesSerializer(many=True)
     museumtensor = MusemsTensorSerializer(many=True)
+    opennings = OpenningTimeSerializer()
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -282,7 +302,8 @@ class MuseumsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Museums
-        fields = ('id', 'name', 'floor_amount', 'settings', 'museumtensor',
+        fields = ('id', 'name', 'floor_amount', 'settings', 'opennings',
+                  'specialization', 'museumtensor',
                   'sync_id', 'synced', 'created_at',
                   'updated_at', 'objectsitems', 'museumimages')
 
