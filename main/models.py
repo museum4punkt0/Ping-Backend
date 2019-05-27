@@ -328,8 +328,12 @@ class ObjectsItem(models.Model):
 
 
 class SemanticRelation(models.Model):
-    from_object_item = models.ForeignKey(ObjectsItem, on_delete=models.CASCADE, related_name='from_object_item')
-    to_object_item = models.ForeignKey(ObjectsItem, on_delete=models.CASCADE, related_name='to_object_item')
+    from_object_item = models.ForeignKey(ObjectsItem,
+                                         on_delete=models.CASCADE,
+                                         related_name='from_object_item')
+    to_object_item = models.ForeignKey(ObjectsItem,
+                                       on_delete=models.CASCADE,
+                                       related_name='to_object_item')
 
     def __str__(self):
         return f'{self.from_object_item} - {self.to_object_item}'
