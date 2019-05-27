@@ -115,7 +115,8 @@ def serialized_data(museum, user=None, settings=None, categories=None):
                       'created_at': None,
                       'updated_at': None,
                       'localizations': [],
-                      'images': []}
+                      'images': [],
+                      'semantic_relations': []}
 
         item_table['id'] = item['id']
         item_table['priority'] = item['priority']
@@ -130,6 +131,7 @@ def serialized_data(museum, user=None, settings=None, categories=None):
         item_table['sync_id'] = item['sync_id']
         item_table['created_at'] = item['created_at']
         item_table['updated_at'] = item['updated_at']
+        item_table['semantic_relations'] = item['semantic_relation']
 
         localizations = item['localizations']
         for local in localizations:
