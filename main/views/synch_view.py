@@ -4,6 +4,7 @@ import uuid
 import base64
 from PIL import Image
 from io import BytesIO
+from collections import defaultdict
 from django.core.files.temp import NamedTemporaryFile
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -56,11 +57,17 @@ from main.variables import DEFAULT_MUSEUM
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.ERROR)
 
-def serialized_data(museum, user=None, settings=None, categories=None):
+def serialized_data(museum,
+                    user=None,
+                    settings=None,
+                    categories=None,
+                    foreign_museums=None):
+
     data = {'museums': None,
             'users': None,
             'settings': None,
-            'deleted': None}
+            'deleted': None,
+            'foreign_objects': None}
 
     # museum serialization
     serialized_museum = MuseumsSerializer(museum).data
@@ -272,46 +279,51 @@ def serialized_data(museum, user=None, settings=None, categories=None):
 
     # settings serialization
     if settings:
-        for setting in (settings,):
-            serialized_settings = SettingsSerializer(setting).data
-            settings_table = {'id': None,
-                              'position_scores': None,
-                              'category_score': None,
-                              'exit_position': None,
-                              'likes_scores': None,
-                              'chat_scores': None,
-                              'predifined_objects': [],
-                              'priority_scores': None,
-                              'distance_scores': None,
-                              'predefined_categories': None,
-                              'predefined_avatars': None,
-                              'languages': [],
-                              'language_styles': [],
-                              'sync_id': None,
-                              'created_at': None,
-                              'updated_at': None}
+        serialized_settings = SettingsSerializer(settings).data
+        settings_table = {'id': None,
+                          'position_scores': None,
+                          'category_score': None,
+                          'exit_position': None,
+                          'likes_scores': None,
+                          'chat_scores': None,
+                          'predifined_objects': [],
+                          'priority_scores': None,
+                          'distance_scores': None,
+                          'predefined_categories': None,
+                          'predefined_avatars': None,
+                          'languages': [],
+                          'language_styles': [],
+                          'sync_id': None,
+                          'created_at': None,
+                          'updated_at': None}
 
-            settings_table['id'] = serialized_settings['id']
-            settings_table['position_scores'] = serialized_settings['position_score']
-            settings_table['category_score'] = serialized_settings['category_score']
-            settings_table['exit_position'] = serialized_settings['exit_position']
-            settings_table['likes_scores'] = serialized_settings['likes_score']
-            settings_table['chat_scores'] = serialized_settings['chat_score']
-            settings_table['predifined_objects'] = [str(i.predefined_object.sync_id) for i in setting.settingspredefinedobjectsitems_set.all()]
-            settings_table['priority_scores'] = serialized_settings['priority_score']
-            settings_table['distance_scores'] = serialized_settings['distance_score']
-            settings_table['predefined_avatars'] = [i['image'] for i in serialized_settings['predefined_avatars']]
-            settings_table['languages'] = serialized_settings['languages']
-            settings_table['language_styles'] = serialized_settings['language_styles']
-            settings_table['sync_id'] = serialized_settings['sync_id']
-            settings_table['created_at'] = serialized_settings['created_at']
-            settings_table['updated_at'] = serialized_settings['updated_at']
-            data['settings'] = settings_table
+        settings_table['position_scores'] = serialized_settings['position_score']
+        settings_table['category_score'] = serialized_settings['category_score']
+        settings_table['exit_position'] = serialized_settings['exit_position']
+        settings_table['likes_scores'] = serialized_settings['likes_score']
+        settings_table['chat_scores'] = serialized_settings['chat_score']
+        settings_table['predifined_objects'] = [str(i.predefined_object.sync_id) for i in settings.settingspredefinedobjectsitems_set.all()]
+        settings_table['priority_scores'] = serialized_settings['priority_score']
+        settings_table['distance_scores'] = serialized_settings['distance_score']
+        settings_table['predefined_avatars'] = [i['image'] for i in serialized_settings['predefined_avatars']]
+        settings_table['languages'] = serialized_settings['languages']
+        settings_table['language_styles'] = serialized_settings['language_styles']
+        settings_table['sync_id'] = serialized_settings['sync_id']
+        settings_table['created_at'] = serialized_settings['created_at']
+        settings_table['updated_at'] = serialized_settings['updated_at']
+        data['settings'] = settings_table
     else:
         data['settings'] = None
 
-    deleted_table = {}
+    f_objects = []
+    if foreign_museums:
+        for f_mus in foreign_museums:
+            serialized_museum = MuseumsSerializer(f_mus).data
+            f_objects.append(serialized_museum['objectsitems'])
 
+    data['foreign_objects'] = f_objects
+
+    deleted_table = {}
     del_obj = DeletedItems.objects.all().order_by('-created_at')
     if del_obj:
         deleted_table['updated_at'] = del_obj[0].created_at
@@ -327,6 +339,7 @@ class Synchronization(APIView):
         user_id = request.GET.get('user_id', None)
         museum_id = request.GET.get('museum_id', None)
         user = None
+
         if user_id:
             try:
                 user = Users.objects.get(device_id=user_id)
@@ -344,6 +357,21 @@ class Synchronization(APIView):
             logging.error(f'Museum id must be provided')
             return JsonResponse({'error': 'Existing museum id must be provided'},
                                 safe=True, status=400)
+        foreign_colns = user.collections_set.exclude(objects_item__in=museum.objectsitem_set.all())
+        foreign_chats = user.chats_set.exclude(objects_item__in=museum.objectsitem_set.all())
+        foreign_objects = [i.objects_item for i in foreign_colns]
+        foreign_objects.extend([i.objects_item for i in foreign_chats])
+        foreign_museums = list(set([i.museum for i in foreign_objects]))
+        mus_obj_table = defaultdict(list)
+        for mus in foreign_museums:
+            for obj in foreign_objects:
+                if obj in mus.objectsitem_set.all():
+                    mus_obj_table[mus].append(obj)
+
+        f_musems_to_serialize = []
+        for mus, objects in mus_obj_table.items():
+            mus.objects_to_serialize = list(set([str(i.sync_id) for i in objects]))
+            f_musems_to_serialize.append(mus)
 
         categories = Categories.objects.all()
 
@@ -351,7 +379,8 @@ class Synchronization(APIView):
           return JsonResponse({'error': 'museums settings must be defined'},
                               safe=True, status=400)
 
-        return JsonResponse(serialized_data(museum, user, settings, categories), safe=True)
+        return JsonResponse(serialized_data(museum, user, settings,
+                                categories, f_musems_to_serialize), safe=True)
 
     def post(self, request, format=None):
         user_id = request.GET.get('user_id', None)
@@ -404,7 +433,10 @@ class Synchronization(APIView):
                       category_localizations: {get_values.get("category_localizations")}')
 
         categories = Categories.objects.filter(sync_id__in=categories_sync_ids)
-        settings = Settings.objects.filter(sync_id__in=get_values.get('settings', []))
+
+        settings = None
+        if get_values.get('settings'):
+            settings = Settings.objects.get(sync_id__in=get_values.get('settings'))
 
         # traverse 'add' values
         errors = {'add_errors': [], 'update_errors': []}

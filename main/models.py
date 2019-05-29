@@ -410,7 +410,7 @@ class Collections(models.Model):
     user = models.ForeignKey(Users, models.CASCADE, blank=True, null=True)
     objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
     category = models.ManyToManyField(Categories)
-    image = models.ImageField()
+    image = models.ImageField(max_length=110)
     sync_id = models.UUIDField(default=uuid.uuid4, unique=True)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)

@@ -153,7 +153,6 @@ class TestSynchronization(APITestCase):
         self.assertEqual(response.status_code, 200)
         _settings = response.json()['settings']
 
-        self.assertIsInstance(_settings['id'], int)
         self.assertIsInstance(_settings['sync_id'], str)
         self.assertIsInstance(_settings['position_scores'][0]['score'], int)
         self.assertIsInstance(_settings['position_scores'][0]['position'], int)

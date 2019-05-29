@@ -140,7 +140,6 @@ class PredefinedAvatarsSerializer(serializers.ModelSerializer):
 
 
 class SettingsSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
     predefined_avatars = PredefinedAvatarsSerializer(many=True)
 
     def __init__(self, *args, **kwargs):
@@ -156,7 +155,7 @@ class SettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Settings
-        fields = ('id', 'position_score', 'category_score', 'exit_position', 
+        fields = ('position_score', 'category_score', 'exit_position', 
             'likes_score', 'chat_score', 'priority_score',
             'distance_score', 'predifined_collections', 'languages', 'language_styles', 
             'sync_id', 'synced', 'created_at', 'updated_at', 'predefined_avatars')
