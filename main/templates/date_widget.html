@@ -1,0 +1,32 @@
+{% load i18n %}
+
+<input id="reportrangeinput" style="display: none;" type="text" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}>
+<p>{{widget.attr}}</p>
+<div id="reportrange" style="cursor: pointer; border: 0.07143rem solid #ecf2f6; padding: 7px; border-radius: 4px; display: inline">
+    <i class="fa fa-calendar"></i>&nbsp;
+    <span>{% if widget.value != None %}{{ widget.value|stringformat:'s' }}{% endif %}</span> <i class="fa fa-caret-down"></i>
+</div>
+
+<script type="text/javascript">
+$(function() {
+
+    function cb(start, end) {
+        $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+        $('#reportrangeinput').attr('value', start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+    }
+
+    $('#reportrange').daterangepicker({
+        startDate: moment('{{ widget.value }}'.split(' - ')[0]),
+        endDate: moment('{{ widget.value }}'.split(' - ')[1]),
+        ranges: {
+           'Today': [moment(), moment()],
+           'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+           'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+           'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+           'This Month': [moment().startOf('month'), moment().endOf('month')],
+           'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+        }
+    }, cb);
+
+});
+</script>

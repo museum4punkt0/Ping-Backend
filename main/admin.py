@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.contrib import messages
+from django.urls import path, reverse_lazy
+from django.http import HttpResponseRedirect
 from django.core.exceptions import ValidationError
+from jet.admin import CompactInline
 from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     Categories, Categorieslocalizations, ObjectsCategories,\
                     ObjectsImages, Chats, ObjectsImages, MuseumsImages,\
@@ -20,7 +23,7 @@ class MinValidatedInlineMixIn:
         return super().get_formset(validate_min=self.validate_min, *args, **kwargs)
 
 
-class PredefinedAvatarsInline(MinValidatedInlineMixIn, admin.TabularInline):
+class PredefinedAvatarsInline(MinValidatedInlineMixIn, CompactInline):
     model = PredefinedAvatars
     min_num = 0 # should be 6
     extra = 0
@@ -28,7 +31,7 @@ class PredefinedAvatarsInline(MinValidatedInlineMixIn, admin.TabularInline):
     exclude = ('synced',)
 
 
-class SettingsPredefinedObjectsItemsInline(MinValidatedInlineMixIn, admin.TabularInline):
+class SettingsPredefinedObjectsItemsInline(MinValidatedInlineMixIn, CompactInline):
     model = SettingsPredefinedObjectsItems
     min_num = 8
     extra = 0
@@ -55,7 +58,7 @@ class MusImagesFormSet(BaseInlineFormSet):
             raise ValidationError('There must be exatly one pointer image with type "pnt"!')
 
 
-class MuseumsImagesInline(admin.TabularInline):
+class MuseumsImagesInline(CompactInline):
     model = MuseumsImages
     min_number = 2
     extra = 0
@@ -64,7 +67,7 @@ class MuseumsImagesInline(admin.TabularInline):
     formset = MusImagesFormSet
 
 
-class MusemsTensorInline(admin.TabularInline):
+class MusemsTensorInline(CompactInline):
     model = MusemsTensor
     min_number = 2
     extra = 0
@@ -73,19 +76,40 @@ class MusemsTensorInline(admin.TabularInline):
 
 
 class MuseumsAdmin(admin.ModelAdmin):
-    inlines = [MusemsTensorInline, MuseumsImagesInline,]
+    inlines = [MusemsTensorInline, MuseumsImagesInline]
     readonly_fields = ['updated_at']
     exclude = ('synced',)
+    # change_list_template = 'analysis.html'
+    period = None
+
+    # def changelist_view(self, request, extra_context=None):
+    #     print(extra_context)
+    #     data = super().changelist_view(request, extra_context=extra_context)
+    #
+    #     data.context_data['period'] = self.period
+    #
+    #     return data
+    #
+    # def get_urls(self):
+    #     urls = super().get_urls()
+    #     custom_urls = [
+    #         path('<str:period>/', self.change_period)
+    #     ]
+    #     return custom_urls + urls
+    #
+    # def change_period(self, request, period):
+    #     self.period = period
+    #     return HttpResponseRedirect("../")
 
 
-class ObjectsImagesInline(admin.TabularInline):
+class ObjectsImagesInline(CompactInline):
     model = ObjectsImages
     extra = 0
     readonly_fields = ['updated_at']
     exclude = ('synced',)
 
 
-class ObjectsLocalizationsInline(MinValidatedInlineMixIn, admin.TabularInline):
+class ObjectsLocalizationsInline(MinValidatedInlineMixIn, CompactInline):
     model = ObjectsLocalizations
     min_num = NUMBER_OF_LOCALIZATIONS
     extra = 0
@@ -93,7 +117,7 @@ class ObjectsLocalizationsInline(MinValidatedInlineMixIn, admin.TabularInline):
     exclude = ('synced',)
 
 
-class ObjectsCategoriesInline(MinValidatedInlineMixIn, admin.TabularInline):
+class ObjectsCategoriesInline(MinValidatedInlineMixIn, CompactInline):
     model = ObjectsCategories
     min_num = 1
     extra = 0
@@ -120,8 +144,9 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                     'images_number', 'sync_id')
     inlines = [ObjectsLocalizationsInline, ObjectsImagesInline,
                ObjectsCategoriesInline, ObjectsMapInline]
-    readonly_fields = ['updated_at']
+    readonly_fields = ['likes', 'dislikes', 'collections', 'updated_at']
     exclude = ('synced',)
+
     def save_model(self, request, obj, form, change):
         if not getattr(obj, 'object_map', None):
             messages.add_message(request, messages.INFO, 'For objects Map been \
@@ -131,6 +156,15 @@ class ObjectsItemAdmin(admin.ModelAdmin):
 
     # def get_queryset(self, request):
     #     return super(ObjectsItemAdmin,self).get_queryset(request).select_related('objectslocalizations_set')
+
+    def collections(self, obj):
+        return Collections.objects.filter(objects_item=obj).count()
+
+    def likes(self, obj):
+        return obj.votings_set.filter(vote=True).count()
+
+    def dislikes(self, obj):
+        return obj.votings_set.filter(vote=False).count()
 
     def avatar_id(self, obj):
         avatar = getattr(obj, 'avatar', None)
@@ -166,7 +200,7 @@ class ObjectsItemAdmin(admin.ModelAdmin):
         return obj.objectsimages_set.count()
 
 
-class CategorieslocalizationsInline(MinValidatedInlineMixIn, admin.TabularInline):
+class CategorieslocalizationsInline(MinValidatedInlineMixIn, CompactInline):
     model = Categorieslocalizations
     min_num = NUMBER_OF_LOCALIZATIONS
     extra = 0
@@ -180,7 +214,7 @@ class CategoriesAdmin(admin.ModelAdmin):
     exclude = ('synced',)
 
 
-class UsersLanguageStylesInline(MinValidatedInlineMixIn, admin.TabularInline):
+class UsersLanguageStylesInline(MinValidatedInlineMixIn, CompactInline):
     model = UsersLanguageStyles
     min_num = NUMBER_OF_LOCALIZATIONS
     extra = 0
@@ -188,7 +222,7 @@ class UsersLanguageStylesInline(MinValidatedInlineMixIn, admin.TabularInline):
     exclude = ('synced',)
 
 
-class VotingsInline(admin.TabularInline):
+class VotingsInline(CompactInline):
     model = Votings
     extra = 0
     readonly_fields = ['objects_item', 'vote', 'updated_at', 'sync_id']
@@ -196,7 +230,7 @@ class VotingsInline(admin.TabularInline):
     exclude = ('synced',)
 
 
-class CollectionsInline(admin.TabularInline):
+class CollectionsInline(CompactInline):
     model = Collections
     extra = 0
     readonly_fields = ['objects_item', 'category', 'image', 'updated_at', 'sync_id']
@@ -204,7 +238,7 @@ class CollectionsInline(admin.TabularInline):
     exclude = ('synced',)
 
 
-class ChatsInline(admin.TabularInline):
+class ChatsInline(CompactInline):
     model = Chats
     extra = 0
     readonly_fields = ['objects_item', 'last_step', 'history', 'finished', 'updated_at', 'sync_id']
