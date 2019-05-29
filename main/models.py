@@ -334,6 +334,8 @@ class SemanticRelation(models.Model):
     to_object_item = models.ForeignKey(ObjectsItem,
                                        on_delete=models.CASCADE,
                                        related_name='to_object_item')
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f'{self.from_object_item} - {self.to_object_item}'
@@ -346,6 +348,8 @@ class SemanticRelationLocalization(models.Model):
     language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES,
                                 default=LOCALIZATIONS_CHOICES.en)
     description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f'{self.language}'

@@ -122,6 +122,7 @@ class ObjectsMapInline(admin.TabularInline):
 
 
 class SemanticRelatedLocalizationInline(admin.TabularInline):
+    readonly_fields = ['updated_at']
     model = SemanticRelationLocalization
     extra = 0
 
@@ -154,6 +155,7 @@ class SemanticRelationForm(forms.ModelForm):
 
 
 class SemanticRelationAdmin(admin.ModelAdmin):
+    readonly_fields = ['updated_at']
     model = SemanticRelation
     inlines = [SemanticRelatedLocalizationInline]
     form = SemanticRelationForm
