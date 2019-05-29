@@ -19,7 +19,7 @@ from main.models import (
                      MusemsTensor,
                      DeletedItems,
                      SemanticRelation,
-                     SemanticRelationLocalization
+                     SemanticRelationLocalization,
                      OpenningTime
                      )
 
