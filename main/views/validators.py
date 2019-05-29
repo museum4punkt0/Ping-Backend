@@ -8,6 +8,7 @@ from io import BytesIO
 from PIL import Image
 from django.core.files.temp import NamedTemporaryFile
 from django.http import JsonResponse
+from django.conf import settings
 
 from main.models import ObjectsItem, Chats, Votings, Collections, Categories, UsersLanguageStyles, LOCALIZATIONS_CHOICES, LANGUEAGE_STYLE_CHOICES
 
@@ -209,7 +210,7 @@ def validate_collections(action,
             pil_image.save(image_buffer, "PNG")
             img_temp = NamedTemporaryFile(delete=True)
             img_temp.write(image_buffer.getvalue())
-            img_temp.name = f'/Collections/{str(cl_sync_id)}/image_{cl_sync_id}.jpg'
+            img_temp.name = f'{settings.MEDIA_ROOT}/{str(cl_sync_id)}/image.jpg'
             data['image'] = img_temp
         except:
             errors[f'{action}_errors'].append({'collection': f'Inappropriate "image" encoding for collection {cl_sync_id} sync_id'})
