@@ -218,6 +218,8 @@ class SemanticRelationLocalizationSerializer(serializers.ModelSerializer):
 class SemanticRelationSerializer(serializers.Serializer):
     object_item_id = serializers.UUIDField()
     localizations = SemanticRelationLocalizationSerializer(many=True)
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
 
 
 class ObjectsItemSerializer(serializers.ModelSerializer):
