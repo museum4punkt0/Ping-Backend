@@ -1,3 +1,4 @@
+from django.db.models import F
 from rest_framework import serializers
 from main.models import (
                      Collections,
@@ -17,6 +18,8 @@ from main.models import (
                      ObjectsMap,
                      MusemsTensor,
                      DeletedItems,
+                     SemanticRelation,
+                     SemanticRelationLocalization
                      OpenningTime
                      )
 
@@ -207,10 +210,22 @@ class ObjectsMapField(serializers.RelatedField):
             return '{}'.format(value.image.url)
 
 
+class SemanticRelationLocalizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SemanticRelationLocalization
+        fields = ('language', 'description')
+
+
+class SemanticRelationSerializer(serializers.Serializer):
+    object_item_id = serializers.UUIDField()
+    localizations = SemanticRelationLocalizationSerializer(many=True)
+
+
 class ObjectsItemSerializer(serializers.ModelSerializer):
     images = ObjectsImagesSerializer(many=True)
     localizations = ObjectsLocalizationsSerializer(many=True)
     object_map = ObjectsMapField(read_only=True)
+    semantic_relation = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -228,7 +243,21 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
         fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony', 
             'vip', 'language_style', 'avatar', 'onboarding', 'object_map',
             'sync_id', 'synced', 'created_at', 'updated_at', 'images',
-            'localizations')
+            'localizations', 'semantic_relation')
+
+    @staticmethod
+    def get_semantic_relation(obj):
+        relations_from = SemanticRelation.objects.filter(from_object_item=obj.id)\
+            .annotate(object_item_id=F('to_object_item__sync_id'))
+        relations_to = SemanticRelation.objects.filter(to_object_item=obj.id)\
+            .annotate(object_item_id=F('from_object_item__sync_id'))
+
+        relations_from = SemanticRelationSerializer(relations_from, many=True).data
+        relations_to = SemanticRelationSerializer(relations_to, many=True).data
+
+        relations = relations_from + relations_to
+
+        return relations
 
 
 class MuseumsImagesSerializer(serializers.ModelSerializer):

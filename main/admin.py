@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django import forms
 from django.contrib.gis.admin import OSMGeoAdmin
 from django.contrib.gis.db import models
 from mapwidgets.widgets import GooglePointFieldWidget
@@ -9,7 +10,8 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     ObjectsImages, Chats, ObjectsImages, MuseumsImages,\
                     ObjectsLocalizations, UsersLanguageStyles, Votings, \
                     PredefinedAvatars, SettingsPredefinedObjectsItems, \
-                    ObjectsMap, MusemsTensor, OpenningTime
+                    ObjectsMap, MusemsTensor, SemanticRelationLocalization, \
+                    SemanticRelation, OpenningTime
 from main.variables import NUMBER_OF_LOCALIZATIONS
 
 admin.site.site_header = "Museums Admin"
@@ -127,6 +129,44 @@ class ObjectsMapInline(admin.TabularInline):
     fields = ('thumbnail',)
     readonly_fields = ['thumbnail']
     exclude = ('synced',)
+
+
+class SemanticRelatedLocalizationInline(admin.TabularInline):
+    model = SemanticRelationLocalization
+    extra = 0
+
+
+class SemanticRelationForm(forms.ModelForm):
+    def clean(self):
+        cleaned_data = super().clean()
+
+        to_object_item = cleaned_data.get('to_object_item')
+        from_object_item = self.cleaned_data.get('from_object_item')
+
+        if to_object_item and from_object_item:
+
+            if to_object_item == from_object_item:
+                raise forms.ValidationError(
+                    'Semantic relation to self impossible')
+
+            relations1 = SemanticRelation.objects.filter(
+                to_object_item=to_object_item,
+                from_object_item=from_object_item).exists()
+            relations2 = SemanticRelation.objects.filter(
+                to_object_item=from_object_item,
+                from_object_item=to_object_item).exists()
+
+            if relations1 or relations2:
+                raise forms.ValidationError(
+                    'This semantic relation already exists')
+
+        return cleaned_data
+
+
+class SemanticRelationAdmin(admin.ModelAdmin):
+    model = SemanticRelation
+    inlines = [SemanticRelatedLocalizationInline]
+    form = SemanticRelationForm
 
 
 class ObjectsItemAdmin(admin.ModelAdmin):
@@ -247,3 +287,4 @@ admin.site.register(Settings, SettingsAdmin)
 admin.site.register(Museums, MuseumsAdmin)
 admin.site.register(ObjectsItem, ObjectsItemAdmin)
 admin.site.register(Categories, CategoriesAdmin)
+admin.site.register(SemanticRelation, SemanticRelationAdmin)
