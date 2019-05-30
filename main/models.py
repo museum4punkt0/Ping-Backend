@@ -351,6 +351,7 @@ class ObjectsItem(models.Model):
 
 
 class SemanticRelation(models.Model):
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     from_object_item = models.ForeignKey(ObjectsItem,
                                          on_delete=models.CASCADE,
                                          related_name='from_object_item')
@@ -365,6 +366,7 @@ class SemanticRelation(models.Model):
 
 
 class SemanticRelationLocalization(models.Model):
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     objects_item = models.ForeignKey(SemanticRelation, models.CASCADE,
                                      related_name='localizations',
                                      related_query_name='localizations')

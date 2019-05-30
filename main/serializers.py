@@ -213,10 +213,11 @@ class ObjectsMapField(serializers.RelatedField):
 class SemanticRelationLocalizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SemanticRelationLocalization
-        fields = ('language', 'description', 'created_at', 'updated_at')
+        fields = ('language', 'description', 'created_at', 'updated_at', 'sync_id')
 
 
 class SemanticRelationSerializer(serializers.Serializer):
+    sync_id = serializers.UUIDField()
     object_item_id = serializers.UUIDField()
     localizations = SemanticRelationLocalizationSerializer(many=True)
     created_at = serializers.DateTimeField()
