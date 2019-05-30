@@ -212,7 +212,7 @@ class ObjectsMapField(serializers.RelatedField):
 class SemanticRelationLocalizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = SemanticRelationLocalization
-        fields = ('language', 'description')
+        fields = ('language', 'description', 'created_at', 'updated_at')
 
 
 class SemanticRelationSerializer(serializers.Serializer):
