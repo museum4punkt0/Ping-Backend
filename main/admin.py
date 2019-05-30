@@ -141,25 +141,26 @@ class SemanticRelationForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        # to_object_item = cleaned_data.get('to_object_item')
-        # from_object_item = self.cleaned_data.get('from_object_item')
-        #
-        # if to_object_item and from_object_item:
-        #
-        #     if to_object_item == from_object_item:
-        #         raise forms.ValidationError(
-        #             'Semantic relation to self impossible')
-        #
-        #     relations1 = SemanticRelation.objects.filter(
-        #         to_object_item=to_object_item,
-        #         from_object_item=from_object_item).exists()
-        #     relations2 = SemanticRelation.objects.filter(
-        #         to_object_item=from_object_item,
-        #         from_object_item=to_object_item).exists()
-        #
-        #     if relations1 or relations2:
-        #         raise forms.ValidationError(
-        #             'This semantic relation already exists')
+        to_object_item = cleaned_data.get('to_object_item')
+        from_object_item = self.cleaned_data.get('from_object_item')
+
+        if to_object_item and from_object_item:
+
+            if to_object_item == from_object_item:
+                raise forms.ValidationError(
+                    'Semantic relation to self impossible')
+
+            if not self.instance.id:
+                relations1 = SemanticRelation.objects.filter(
+                    to_object_item=to_object_item,
+                    from_object_item=from_object_item).exists()
+                relations2 = SemanticRelation.objects.filter(
+                    to_object_item=from_object_item,
+                    from_object_item=to_object_item).exists()
+    
+                if relations1 or relations2:
+                    raise forms.ValidationError(
+                        'This semantic relation already exists')
 
         return cleaned_data
 
