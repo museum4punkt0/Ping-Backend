@@ -361,6 +361,15 @@ class SemanticRelation(models.Model):
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        self.updated_at = timezone.now()
+        self.from_object_item.updated_at = timezone.now()
+        self.from_object_item.save()
+        self.to_object_item.updated_at = timezone.now()
+        self.to_object_item.save()
+        return super().save(*args, **kwargs)
+
     def __str__(self):
         return f'{self.from_object_item} - {self.to_object_item}'
 
@@ -376,6 +385,11 @@ class SemanticRelationLocalization(models.Model):
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        self.updated_at = timezone.now()
+        return super().save(*args, **kwargs)
+
     def __str__(self):
         return f'{self.language}'
 
@@ -384,39 +398,39 @@ class SemanticRelationLocalization(models.Model):
 def create_delete_objects(sender, instance, **kwargs):
     DeletedItems.objects.create(objects_item=instance.sync_id)
 
-@receiver(post_save, sender=ObjectsItem, dispatch_uid="create_map")
-def create_maps(sender, instance, **kwargs):
-    museum = instance.museum
-    mus_map = museum.museumsimages_set.filter(image_type=f'{instance.floor}_map')
-    mus_pointer = museum.museumsimages_set.filter(image_type='pnt')
-    if mus_map and mus_pointer:
-        if getattr(mus_map[0], 'image', None) and \
-           getattr(mus_pointer[0], 'image', None):
-            mus_response = urllib.request.urlopen(mus_map[0].image.url).read()
-            pnt_response = urllib.request.urlopen(mus_pointer[0].image.url).read()
-
-            if mus_response and pnt_response:
-                mus_io = BytesIO(mus_response)
-                pnt_io = BytesIO(pnt_response)
-
-                mus_image = Image.open(mus_io)
-                pnt_image = Image.open(pnt_io).convert("RGBA")
-
-                pnt_image = pnt_image.resize((40, 40))
-                mus_image.paste(pnt_image, (int(instance.positionx), int(instance.positiony)), pnt_image.split()[3])
-
-                image_buffer = BytesIO()
-                mus_image.save(image_buffer, "PNG")
-
-                img_temp = NamedTemporaryFile(delete=True)
-                img_temp.write(image_buffer.getvalue())
-
-                if getattr(instance, 'object_map', None):
-                    instance.object_map.delete()
-
-                om = ObjectsMap()
-                om.objects_item = instance
-                om.image.save(f'/o_maps/{str(instance.sync_id)}/map.png', img_temp)
+# @receiver(post_save, sender=ObjectsItem, dispatch_uid="create_map")
+# def create_maps(sender, instance, **kwargs):
+#     museum = instance.museum
+#     mus_map = museum.museumsimages_set.filter(image_type=f'{instance.floor}_map')
+#     mus_pointer = museum.museumsimages_set.filter(image_type='pnt')
+#     if mus_map and mus_pointer:
+#         if getattr(mus_map[0], 'image', None) and \
+#            getattr(mus_pointer[0], 'image', None):
+#             mus_response = urllib.request.urlopen(mus_map[0].image.url).read()
+#             pnt_response = urllib.request.urlopen(mus_pointer[0].image.url).read()
+#
+#             if mus_response and pnt_response:
+#                 mus_io = BytesIO(mus_response)
+#                 pnt_io = BytesIO(pnt_response)
+#
+#                 mus_image = Image.open(mus_io)
+#                 pnt_image = Image.open(pnt_io).convert("RGBA")
+#
+#                 pnt_image = pnt_image.resize((40, 40))
+#                 mus_image.paste(pnt_image, (int(instance.positionx), int(instance.positiony)), pnt_image.split()[3])
+#
+#                 image_buffer = BytesIO()
+#                 mus_image.save(image_buffer, "PNG")
+#
+#                 img_temp = NamedTemporaryFile(delete=True)
+#                 img_temp.write(image_buffer.getvalue())
+#
+#                 if getattr(instance, 'object_map', None):
+#                     instance.object_map.delete()
+#
+#                 om = ObjectsMap()
+#                 om.objects_item = instance
+#                 om.image.save(f'/o_maps/{str(instance.sync_id)}/map.png', img_temp)
 
 class SettingsPredefinedObjectsItems(models.Model):
     class Meta:
