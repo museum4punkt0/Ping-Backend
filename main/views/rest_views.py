@@ -66,6 +66,6 @@ class MuseumsView(viewsets.ReadOnlyModelViewSet):
                 museums = museums.filter(distance__lte=MINIMAL_DISTANCE)
         serialized = MuseumsSerializer(museums,
             fields=('name', 'opennings', 'specialization','museumimages',
-             'sync_id', 'created_at', 'updated_at'), many=True)
+             'sync_id', 'created_at', 'updated_at', 'museum_site_url'), many=True)
         return Response(serialized.data)
 

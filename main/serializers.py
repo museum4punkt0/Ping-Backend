@@ -161,7 +161,8 @@ class SettingsSerializer(serializers.ModelSerializer):
         fields = ('position_score', 'category_score', 'exit_position', 
             'likes_score', 'chat_score', 'priority_score',
             'distance_score', 'predifined_collections', 'languages', 'language_styles', 
-            'sync_id', 'synced', 'created_at', 'updated_at', 'predefined_avatars')
+            'sync_id', 'synced', 'created_at', 'updated_at', 'predefined_avatars',
+            'site_url')
 
 
 class ObjectsLocalizationsSerializer(serializers.ModelSerializer):
@@ -336,7 +337,7 @@ class MuseumsSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'floor_amount', 'settings', 'opennings',
                   'specialization', 'museumtensor',
                   'sync_id', 'synced', 'created_at',
-                  'updated_at', 'objectsitems', 'museumimages')
+                  'updated_at', 'objectsitems', 'museumimages', 'museum_site_url')
 
 
 class ShortMuseumsSerializer(serializers.ModelSerializer):

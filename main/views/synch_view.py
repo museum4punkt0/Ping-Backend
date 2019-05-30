@@ -79,13 +79,15 @@ def serialized_data(museum,
                     'tensor': [],
                     'images': [],
                     'objects': [],
-                    'categories': []}
+                    'categories': [],
+                    'museum_site_url': None}
 
     museum_table['sync_id'] = serialized_museum['sync_id']
     museum_table['name'] = serialized_museum['name']
     museum_table['floor_amount'] = serialized_museum['floor_amount']
     museum_table['opennings'] = serialized_museum['opennings']
     museum_table['specialization'] = serialized_museum['specialization']
+    museum_table['museum_site_url'] = serialized_museum['museum_site_url']
 
     serialized_museumtensor = serialized_museum['museumtensor']
     for tensor in serialized_museumtensor:
@@ -297,7 +299,8 @@ def serialized_data(museum,
                           'language_styles': [],
                           'sync_id': None,
                           'created_at': None,
-                          'updated_at': None}
+                          'updated_at': None,
+                          'site_url': None}
 
         settings_table['position_scores'] = serialized_settings['position_score']
         settings_table['category_score'] = serialized_settings['category_score']
@@ -313,6 +316,7 @@ def serialized_data(museum,
         settings_table['sync_id'] = serialized_settings['sync_id']
         settings_table['created_at'] = serialized_settings['created_at']
         settings_table['updated_at'] = serialized_settings['updated_at']
+        settings_table['site_url'] = serialized_settings['site_url']
         data['settings'] = settings_table
     else:
         data['settings'] = None

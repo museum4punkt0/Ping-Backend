@@ -157,7 +157,7 @@ class SemanticRelationForm(forms.ModelForm):
                 relations2 = SemanticRelation.objects.filter(
                     to_object_item=from_object_item,
                     from_object_item=to_object_item).exists()
-    
+
                 if relations1 or relations2:
                     raise forms.ValidationError(
                         'This semantic relation already exists')
