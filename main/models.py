@@ -57,6 +57,17 @@ IMAGE_TYPES = Choices(
         ('3_map', 'Third floor map'),
       )
 
+WEEKDAYS = Choices(
+    ('monday', ("Monday")),
+    ('tuesday', ("Tuesday")),
+    ('wednesday', ("Wednesday")),
+    ('thursday', ("Thursday")),
+    ('friday', ("Friday")),
+    ('suturday', ("Saturday")),
+    ('sunday', ("Sunday")),
+ )
+
+
 def get_image_path(instance, filename):
     syncid = getattr(instance, 'sync_id', None).urn.split(':')[-1]
     if instance.__class__.__name__ in ('Users', 'Collections'):
@@ -221,6 +232,7 @@ class Museums(models.Model):
     floor_amount = models.IntegerField()
     settings = models.ForeignKey(Settings, models.SET_NULL, null=True)
     location = models.PointField(null=True)
+    specialization = models.TextField(blank=True, null=True)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -250,6 +262,10 @@ class Museums(models.Model):
     def museumimages(self):
         return self.museumsimages_set.all()
 
+    @property
+    def opennings(self):
+        return self.openningtime_set.first()
+
     def save(self, *args, **kwargs):
         if not self.id:
             self.created_at = timezone.now()
@@ -258,6 +274,13 @@ class Museums(models.Model):
 
     def __str__(self):
         return f'{self.name}'
+
+
+class OpenningTime(models.Model):
+    museum = models.ForeignKey(Museums, models.SET_NULL, null=True)
+    weekday = MultiSelectField(choices=WEEKDAYS, max_length=110)
+    from_hour = models.TimeField()
+    to_hour = models.TimeField()
 
 
 class MusemsTensor(models.Model):
@@ -422,7 +445,7 @@ class Collections(models.Model):
     user = models.ForeignKey(Users, models.CASCADE, blank=True, null=True)
     objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
     category = models.ManyToManyField(Categories)
-    image = models.ImageField()
+    image = models.ImageField(max_length=110)
     sync_id = models.UUIDField(default=uuid.uuid4, unique=True)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)

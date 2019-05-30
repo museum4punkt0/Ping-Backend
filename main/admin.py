@@ -11,7 +11,7 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     ObjectsLocalizations, UsersLanguageStyles, Votings, \
                     PredefinedAvatars, SettingsPredefinedObjectsItems, \
                     ObjectsMap, MusemsTensor, SemanticRelationLocalization, \
-                    SemanticRelation
+                    SemanticRelation, OpenningTime
 from main.variables import NUMBER_OF_LOCALIZATIONS
 
 admin.site.site_header = "Museums Admin"
@@ -54,10 +54,14 @@ class MusImagesFormSet(BaseInlineFormSet):
         mus_image_types = [i.instance.image_type for i in self.forms]
         map_types = [True for i in mus_image_types if 'map' in i]
         pointer_types = [True for i in mus_image_types if 'pnt' in i]
+        logo_types = [True for i in mus_image_types if 'logo' in i]
+
         if not any(map_types):
             raise ValidationError('There must be at least one map image with type "<floor_number>_map"!')
         if len(pointer_types) != 1:
             raise ValidationError('There must be exatly one pointer image with type "pnt"!')
+        if len(logo_types) != 1:
+            raise ValidationError('There must be one image with type "logo"!')
 
 
 class MuseumsImagesInline(admin.TabularInline):
@@ -77,8 +81,14 @@ class MusemsTensorInline(admin.TabularInline):
     exclude = ('synced',)
 
 
+class MusemsOpeningInline(admin.TabularInline):
+    model = OpenningTime
+    min_number = 1
+    extra = 0
+
+
 class MuseumsAdmin(admin.ModelAdmin):
-    inlines = [MusemsTensorInline, MuseumsImagesInline,]
+    inlines = [MusemsOpeningInline, MusemsTensorInline, MuseumsImagesInline]
     readonly_fields = ['updated_at']
     exclude = ('synced',)
     formfield_overrides = {
