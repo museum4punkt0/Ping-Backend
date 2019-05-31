@@ -230,6 +230,7 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
     localizations = ObjectsLocalizationsSerializer(many=True)
     object_map = ObjectsMapField(read_only=True)
     semantic_relation = serializers.SerializerMethodField()
+    museum = serializers.SlugRelatedField(read_only=True, slug_field='sync_id')
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -244,7 +245,7 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ObjectsItem
-        fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony', 
+        fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony',
             'vip', 'language_style', 'avatar', 'onboarding', 'object_map',
             'sync_id', 'synced', 'created_at', 'updated_at', 'images',
             'localizations', 'semantic_relation')
