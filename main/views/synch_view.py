@@ -80,7 +80,8 @@ def serialized_data(museum,
                     'images': [],
                     'objects': [],
                     'categories': [],
-                    'museum_site_url': None}
+                    'museum_site_url': None,
+                    'ratio_pixel_meter': None}
 
     museum_table['sync_id'] = serialized_museum['sync_id']
     museum_table['name'] = serialized_museum['name']
@@ -88,6 +89,7 @@ def serialized_data(museum,
     museum_table['opennings'] = serialized_museum['opennings']
     museum_table['specialization'] = serialized_museum['specialization']
     museum_table['museum_site_url'] = serialized_museum['museum_site_url']
+    museum_table['ratio_pixel_meter'] = serialized_museum['ratio_pixel_meter']
 
     serialized_museumtensor = serialized_museum['museumtensor']
     for tensor in serialized_museumtensor:

@@ -231,6 +231,7 @@ class Museums(models.Model):
 
     name = models.CharField(max_length=45, unique=True, default=DEFAULT_MUSEUM)
     floor_amount = models.IntegerField()
+    ratio_pixel_meter = models.FloatField(blank=True, null=True)
     museum_site_url = models.URLField(blank=True, null=True)
     settings = models.ForeignKey(Settings, models.SET_NULL, null=True)
     location = models.PointField(null=True)

@@ -337,7 +337,8 @@ class MuseumsSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'floor_amount', 'settings', 'opennings',
                   'specialization', 'museumtensor',
                   'sync_id', 'synced', 'created_at',
-                  'updated_at', 'objectsitems', 'museumimages', 'museum_site_url')
+                  'updated_at', 'objectsitems', 'museumimages',
+                  'museum_site_url', 'ratio_pixel_meter')
 
 
 class ShortMuseumsSerializer(serializers.ModelSerializer):
