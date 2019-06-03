@@ -120,8 +120,9 @@ class UsersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ('id', 'name', 'device_id', 'category', 'positionx', 'positiony', 
-            'floor', 'language', 'avatar', 'sync_id', 'synced', 'created_at', 'updated_at', 'chats', 'collections', 'votings')
+        fields = ('id', 'name', 'device_id', 'category', 'positionx',
+            'positiony', 'floor', 'language', 'avatar', 'sync_id', 'synced',
+            'created_at', 'updated_at', 'chats', 'collections', 'votings')
 
 
 class PredefinedAvatarsSerializer(serializers.ModelSerializer):
@@ -296,7 +297,8 @@ class MusemsTensorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MusemsTensor
-        fields = ('__all__')
+        fields = ('mobile_tensor_flow_model', 'mobile_tensor_flow_lables',
+                  'sync_id', 'created_at', 'updated_at')
 
 
 class OpenningTimeSerializer(serializers.ModelSerializer):

@@ -7,6 +7,8 @@ from main.models import Users, Museums
 from main.utils import label_image
 from main.apps import tensors
 import logging
+import boto3
+import uuid
 
 @api_view(['POST'])
 def recognize(request):
@@ -31,7 +33,7 @@ def recognize(request):
                             safe=True, status=400)
 
     if tensors:
-        museum_tensor = tensors[museum.name]
+        museum_tensor = tensors[museum.sync_id]
         model_obj = museum_tensor.get('tensor_flow_model', None)
         label_obj = museum_tensor.get('tensor_flow_lables', None)
 
@@ -46,6 +48,14 @@ def recognize(request):
             img_data = base64.b64decode(image)
         except:
             return JsonResponse({'error': 'Inappropriate "image" encoding'}, safe=True)
+    client = boto3.client('s3')
+
+    buff = BytesIO(img_data)
+    im = Image.open(buff)
+    in_mem = BytesIO()
+    im.save(in_mem, format=im.format)
+    in_mem.seek(0)
+    client.upload_fileobj(in_mem, 'meinobjekt', f'ti/{user_id}-{uuid.uuid4()}.{im.format}')
 
     if model_obj and label_obj:
         predict = label_image.recognize(model_obj, img_data, label_obj)
