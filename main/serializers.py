@@ -39,6 +39,7 @@ class CollectionsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     objects_item = SyncObjectField(read_only=True)
     category = SyncCollectionField(read_only=True)
+    museum_id = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -54,6 +55,9 @@ class CollectionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collections
         fields = ('__all__')
+
+    def get_museum_id(self, obj):
+        return obj.objects_item.museum.sync_id
 
 
 class ChatsSerializer(serializers.ModelSerializer):

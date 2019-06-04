@@ -280,6 +280,7 @@ def serialized_data(museum,
             collection_dict['sync_id'] = collection['sync_id']
             collection_dict['created_at'] = collection['created_at']
             collection_dict['updated_at'] = collection['updated_at']
+            collection_dict['museum_id'] = collection['museum_id']
             user_table['collections'].append(collection_dict)
         data['users'] = user_table
     else:
