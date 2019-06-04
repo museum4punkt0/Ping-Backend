@@ -322,6 +322,7 @@ class ObjectsItem(models.Model):
     vip = models.BooleanField(default=False)
     language_style = models.CharField(max_length=45, choices=LANGUEAGE_STYLE_CHOICES, default='easy')
     avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
+    cropped_avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
     onboarding = models.BooleanField(default=False)
     semantic_relation = models.ManyToManyField('self', through='SemanticRelation', symmetrical=False)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)

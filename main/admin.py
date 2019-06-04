@@ -174,7 +174,7 @@ class SemanticRelationAdmin(admin.ModelAdmin):
 
 class ObjectsItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'avatar_id', 'chat_id', 'museum',
-                    'onboarding', 'vip',
+                    'onboarding', 'vip', 'cropped_avatar',
                     'updated_at', 'categories', 'localizations',
                     'images_number', 'sync_id')
     inlines = [ObjectsLocalizationsInline, ObjectsImagesInline,

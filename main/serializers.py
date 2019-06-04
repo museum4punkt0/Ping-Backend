@@ -248,7 +248,7 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
         fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony',
             'vip', 'language_style', 'avatar', 'onboarding', 'object_map',
             'sync_id', 'synced', 'created_at', 'updated_at', 'images',
-            'localizations', 'semantic_relation')
+            'localizations', 'semantic_relation', 'cropped_avatar')
 
     @staticmethod
     def get_semantic_relation(obj):

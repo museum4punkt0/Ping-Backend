@@ -124,6 +124,7 @@ def serialized_data(museum,
                       'vip': None,
                       'language_style': None,
                       'avatar': None,
+                      'cropped_avatar': None,
                       'onboarding': None,
                       'object_map': None,
                       'sync_id': None,
@@ -141,6 +142,7 @@ def serialized_data(museum,
         item_table['vip'] = item['vip']
         item_table['language_style'] = item['language_style']
         item_table['avatar'] = item['avatar']
+        item_table['cropped_avatar'] = item['cropped_avatar']
         item_table['onboarding'] = item['onboarding']
         item_table['object_map'] = item['object_map']
         item_table['sync_id'] = item['sync_id']
