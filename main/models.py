@@ -293,6 +293,8 @@ class MusemsTensor(models.Model):
     museum = models.ForeignKey(Museums, models.PROTECT, related_name='museumtensor')
     tensor_flow_model = models.FileField(upload_to='tensor_model/', blank=True, null=True, max_length=110)
     tensor_flow_lables = models.FileField(upload_to='tensor_label/', blank=True, null=True, max_length=110)
+    mobile_tensor_flow_model = models.FileField(upload_to='tensor_model/', blank=True, null=True, max_length=110)
+    mobile_tensor_flow_lables = models.FileField(upload_to='tensor_label/', blank=True, null=True, max_length=110)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)

@@ -94,8 +94,8 @@ def serialized_data(museum,
     serialized_museumtensor = serialized_museum['museumtensor']
     for tensor in serialized_museumtensor:
         tensor_dict = {}
-        tensor_dict['tensor_flow_model'] = tensor['tensor_flow_model']
-        tensor_dict['tensor_flow_lables'] = tensor['tensor_flow_lables']
+        tensor_dict['tensor_flow_model'] = tensor['mobile_tensor_flow_model']
+        tensor_dict['tensor_flow_lables'] = tensor['mobile_tensor_flow_lables']
         tensor_dict['sync_id'] = tensor['sync_id']
         tensor_dict['created_at'] = tensor['created_at']
         tensor_dict['updated_at'] = tensor['updated_at']
