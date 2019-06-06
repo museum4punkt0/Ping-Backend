@@ -188,7 +188,8 @@ def serialized_data(museum,
 
         category_table['id'] = serialized_category['id']
 
-        objects = category.objectscategories_set.filter(objects_item__museum=museum)
+        # objects = category.objectscategories_set.filter(objects_item__museum=museum)
+        objects = category.objectscategories_set.all()
         category_table['sync_object_ids'] = [str(i.objects_item.sync_id) for i in objects]
 
         localizations = serialized_category['localizations']
