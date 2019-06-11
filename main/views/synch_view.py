@@ -436,7 +436,12 @@ class Synchronization(APIView):
         logging.info(f'GET objects to serialize {objects_sync_ids} ')
 
         if get_values.get('categories'):
-            categories_sync_ids.extend(get_values.get('categories'))
+            if isinstance(get_values.get('categories'), list):
+                categories_sync_ids.extend(get_values.get('categories'))
+            else:
+                return JsonResponse(
+                    {'error': 'Categories must be list'},
+                    safe=True, status=400)
 
         logging.info(f'GET objects: {get_values.get("objects")}, \
                       object_images: {get_values.get("object_images")}, \
@@ -785,7 +790,8 @@ class Synchronization(APIView):
             avatar = data.pop('avatar', None)
             sync_id = data.pop('sync_id', None)
             language_style.save()
-            user.avatar.save(avatar.name, avatar)
+            if avatar:
+                user.avatar.save(avatar.name, avatar)
 
             try:
                 if not Users.objects.filter(sync_id=sync_id, device_id=user_id).update(**data):
@@ -796,4 +802,3 @@ class Synchronization(APIView):
                 return JsonResponse(errors, safe=True)
 
         return JsonResponse(serialized_data(museum, settings=settings, categories=categories), safe=True)
-
