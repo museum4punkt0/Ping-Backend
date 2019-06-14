@@ -87,7 +87,6 @@ class TestSynchronization(APITestCase):
 
         # museum
         self.assertIsInstance(museum['sync_id'], str)
-        self.assertIsInstance(museum['name'], str)
         self.assertIsInstance(museum['floor_amount'], int)
         self.assertIsInstance(tensor['sync_id'], str)
         # self.assertIsInstance(tensor['tensor_flow_model'], str)
@@ -100,7 +99,6 @@ class TestSynchronization(APITestCase):
         img_types = [image['image_type'] for image in museum['images']]
         self.assertEqual(img_types, ['pnt', '1_map', 'logo'])
         self.assertIsInstance(museum['images'][0]['sync_id'], str)
-        self.assertIsInstance(museum['specialization'], str)
         self.assertIsInstance(museum['opennings'], dict)
 
         # museum_object
