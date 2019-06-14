@@ -5,6 +5,7 @@ from django.core.files.temp import NamedTemporaryFile
 from django.utils.html import format_html
 from django.db.models.signals import pre_delete, post_save
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 from model_utils import Choices
 import urllib
 import uuid
@@ -293,8 +294,7 @@ class MuseumLocalization(models.Model):
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES,
                                 default=LOCALIZATIONS_CHOICES.en)
-    title = models.CharField(max_length=45, unique=True,
-                             default=DEFAULT_MUSEUM)
+    title = models.CharField(max_length=45, default=DEFAULT_MUSEUM)
     specialization = models.TextField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -308,6 +308,26 @@ class MuseumLocalization(models.Model):
     def __str__(self):
         return f'{self.language}'
 
+    def clean(self):
+        super().clean()
+
+        id = self.id
+        title = self.title
+        language = self.language
+        museum = self.museum
+
+        validate_title = MuseumLocalization.objects.filter(title=title)\
+            .exclude(museum=museum).exists()
+        validate_language = MuseumLocalization.objects\
+            .filter(language=language, museum=museum)\
+            .exclude(id=id)\
+            .exists()
+
+        if validate_language:
+            raise ValidationError('Language is already exists')
+
+        if validate_title:
+            raise ValidationError('Title is already exists')
 
 
 class OpenningTime(models.Model):
