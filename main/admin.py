@@ -11,7 +11,7 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     ObjectsLocalizations, UsersLanguageStyles, Votings, \
                     PredefinedAvatars, SettingsPredefinedObjectsItems, \
                     ObjectsMap, MusemsTensor, SemanticRelationLocalization, \
-                    SemanticRelation, OpenningTime
+                    SemanticRelation, OpenningTime, MuseumLocalization
 from main.variables import NUMBER_OF_LOCALIZATIONS
 
 admin.site.site_header = "Museums Admin"
@@ -87,8 +87,15 @@ class MusemsOpeningInline(admin.TabularInline):
     extra = 0
 
 
+class MuseumLocalizationInline(admin.TabularInline):
+    readonly_fields = ['updated_at']
+    model = MuseumLocalization
+    extra = 0
+
+
 class MuseumsAdmin(admin.ModelAdmin):
-    inlines = [MusemsOpeningInline, MusemsTensorInline, MuseumsImagesInline]
+    inlines = [MuseumLocalizationInline, MusemsOpeningInline,
+               MusemsTensorInline, MuseumsImagesInline]
     readonly_fields = ['updated_at']
     exclude = ('synced',)
     formfield_overrides = {

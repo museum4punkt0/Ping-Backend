@@ -72,24 +72,22 @@ def serialized_data(museum,
     # museum serialization
     serialized_museum = MuseumsSerializer(museum).data
     museum_table = {'sync_id': None,
-                    'name': None,
                     'floor_amount': None,
                     'opennings': None,
-                    'specialization': None,
                     'tensor': [],
                     'images': [],
                     'objects': [],
                     'categories': [],
                     'museum_site_url': None,
-                    'ratio_pixel_meter': None}
+                    'ratio_pixel_meter': None,
+                    'localizations': []}
 
     museum_table['sync_id'] = serialized_museum['sync_id']
-    museum_table['name'] = serialized_museum['name']
     museum_table['floor_amount'] = serialized_museum['floor_amount']
     museum_table['opennings'] = serialized_museum['opennings']
-    museum_table['specialization'] = serialized_museum['specialization']
     museum_table['museum_site_url'] = serialized_museum['museum_site_url']
     museum_table['ratio_pixel_meter'] = serialized_museum['ratio_pixel_meter']
+    museum_table['localizations'] = serialized_museum['localizations']
 
     serialized_museumtensor = serialized_museum['museumtensor']
     for tensor in serialized_museumtensor:
@@ -201,6 +199,7 @@ def serialized_data(museum,
             local_dict['sync_id'] = local['sync_id']
             local_dict['created_at'] = local['created_at']
             local_dict['updated_at'] = local['updated_at']
+            local_dict['description'] = local['description']
             category_table['localizations'].append(local_dict)
 
         category_table['sync_id'] = serialized_category['sync_id']

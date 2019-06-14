@@ -229,13 +229,11 @@ class Museums(models.Model):
     class Meta:
         verbose_name_plural = "Museums"
 
-    name = models.CharField(max_length=45, unique=True, default=DEFAULT_MUSEUM)
     floor_amount = models.IntegerField()
     ratio_pixel_meter = models.FloatField(blank=True, null=True)
     museum_site_url = models.URLField(blank=True, null=True)
     settings = models.ForeignKey(Settings, models.SET_NULL, null=True)
     location = models.PointField(null=True)
-    specialization = models.TextField(blank=True, null=True)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -269,6 +267,10 @@ class Museums(models.Model):
     def opennings(self):
         return self.openningtime_set.first()
 
+    @property
+    def localizatoins(self):
+        return self.localizations_set.all()
+
     def save(self, *args, **kwargs):
         if not self.id:
             self.created_at = timezone.now()
@@ -276,7 +278,36 @@ class Museums(models.Model):
         return super(Museums, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.name}'
+        if self.localizations.filter(language="en").exists():
+            return f'{self.localizations.get(language="en").title}'
+        elif self.localizations.filter(language="de").exists():
+            return f'{self.localizations.get(language="de").title}'
+        else:
+            return f'{self.id}'
+
+
+class MuseumLocalization(models.Model):
+    museum = models.ForeignKey(Museums, on_delete=models.CASCADE,
+                               related_name='localizations',
+                               related_query_name='localizations')
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES,
+                                default=LOCALIZATIONS_CHOICES.en)
+    title = models.CharField(max_length=45, unique=True,
+                             default=DEFAULT_MUSEUM)
+    specialization = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        self.updated_at = timezone.now()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.language}'
+
 
 
 class OpenningTime(models.Model):
@@ -491,6 +522,7 @@ class Categorieslocalizations(models.Model):
     category = models.ForeignKey(Categories, models.CASCADE)
     title = models.CharField(max_length=45)
     language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.en)
+    description = models.TextField(blank=True, null=True)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)

@@ -20,7 +20,8 @@ from main.models import (
                      DeletedItems,
                      SemanticRelation,
                      SemanticRelationLocalization,
-                     OpenningTime
+                     OpenningTime,
+                     MuseumLocalization
                      )
 
 
@@ -322,11 +323,18 @@ class OpenningTimeSerializer(serializers.ModelSerializer):
         fields = ('weekday', 'from_hour', 'to_hour')
 
 
+class MuseumLocalizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MuseumLocalization
+        exclude = ('id', 'museum')
+
+
 class MuseumsSerializer(serializers.ModelSerializer):
     objectsitems = ObjectsItemSerializer(source='objects_query', many=True)
     museumimages = MuseumsImagesSerializer(many=True)
     museumtensor = MusemsTensorSerializer(many=True)
     opennings = OpenningTimeSerializer()
+    localizations = MuseumLocalizationSerializer(many=True)
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -341,11 +349,11 @@ class MuseumsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Museums
-        fields = ('id', 'name', 'floor_amount', 'settings', 'opennings',
-                  'specialization', 'museumtensor',
+        fields = ('floor_amount', 'settings', 'opennings',
+                  'museumtensor',
                   'sync_id', 'synced', 'created_at',
                   'updated_at', 'objectsitems', 'museumimages',
-                  'museum_site_url', 'ratio_pixel_meter')
+                  'museum_site_url', 'ratio_pixel_meter', 'localizations')
 
 
 class ShortMuseumsSerializer(serializers.ModelSerializer):
