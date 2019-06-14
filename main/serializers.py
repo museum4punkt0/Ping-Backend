@@ -357,9 +357,12 @@ class MuseumsSerializer(serializers.ModelSerializer):
 
 
 class ShortMuseumsSerializer(serializers.ModelSerializer):
+    localizations = MuseumLocalizationSerializer(many=True)
+
     class Meta:
         model = Museums
-        fields = ('name', 'sync_id', 'created_at', 'updated_at')
+        fields = ('sync_id', 'created_at', 'updated_at',
+                  'localizations')
 
 
 class CategorieslocalizationsSerializer(serializers.ModelSerializer):

@@ -57,7 +57,7 @@ class MuseumsView(viewsets.ReadOnlyModelViewSet):
         except:
             point = Point()
         if not point.coords:
-            museums = Museums.objects.all().order_by('name')
+            museums = Museums.objects.all().order_by('id')
         else:
             museums = Museums.objects.annotate(distance=Distance('location',
                     point))\
@@ -65,8 +65,8 @@ class MuseumsView(viewsets.ReadOnlyModelViewSet):
             if MINIMAL_DISTANCE:
                 museums = museums.filter(distance__lte=MINIMAL_DISTANCE)
         serialized = MuseumsSerializer(museums,
-            fields=('name', 'opennings', 'specialization','museumimages',
+            fields=('opennings','museumimages',
              'sync_id', 'created_at', 'updated_at', 'museum_site_url',
-             'ratio_pixel_meter'), many=True)
+             'ratio_pixel_meter', 'localizations'), many=True)
         return Response(serialized.data)
 
