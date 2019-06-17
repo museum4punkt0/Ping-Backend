@@ -10,6 +10,7 @@ import logging
 import boto3
 import uuid
 
+
 @api_view(['POST'])
 def recognize(request):
     user_id = request.GET.get('user_id', None)
@@ -28,9 +29,11 @@ def recognize(request):
     if museum_id:
         museum = Museums.objects.get(sync_id=museum_id)
     else:
-        logging.error(f'Museum id must be provided')
-        return JsonResponse({'error': 'Existing museum id must be provided'},
-                            safe=True, status=400)
+        # logging.error(f'Museum id must be provided')
+        # return JsonResponse({'error': 'Existing museum id must be provided'},
+        #                     safe=True, status=400)
+        museum = Museums.objects.get(name=DEFAULT_MUSEUM)
+        settings = getattr(museum, 'settings')
 
     if tensors:
         museum_tensor = tensors[museum.sync_id]

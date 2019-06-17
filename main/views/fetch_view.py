@@ -65,9 +65,12 @@ def fetch(request):
             museum = Museums.objects.get(sync_id=museum_id)
             settings = getattr(museum, 'settings')
         else:
-            logging.error(f'Museum id must be provided')
-            return JsonResponse({'error': 'Existing museum id must be provided'},
-                                safe=True, status=400)
+            # logging.error(f'Museum id must be provided')
+            # return JsonResponse({'error': 'Existing museum id must be provided'},
+            #                     safe=True, status=400)
+            museum = Museums.objects.get(name=DEFAULT_MUSEUM)
+            settings = getattr(museum, 'settings')
+
 
         data = {'museums': None,
                 'users': None,
