@@ -19,7 +19,7 @@ def my_receiver(connection, **kwargs):
                 if tensor:
                     model = getattr(tensor, 'tensor_flow_model', None)
                     labels = getattr(tensor, 'tensor_flow_lables', None)
-                    tensors[museum.name] = {'tensor_flow_model': model.file.read(),
+                    tensors[museum.sync_id] = {'tensor_flow_model': model.file.read(),
                             'tensor_flow_lables': labels.file.read()}
         except:
             pass

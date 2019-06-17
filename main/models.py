@@ -5,6 +5,7 @@ from django.core.files.temp import NamedTemporaryFile
 from django.utils.html import format_html
 from django.db.models.signals import pre_delete, post_save
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 from model_utils import Choices
 import urllib
 import uuid
@@ -56,6 +57,17 @@ IMAGE_TYPES = Choices(
         ('2_map', 'Second floor map'),
         ('3_map', 'Third floor map'),
       )
+
+WEEKDAYS = Choices(
+    ('monday', ("Monday")),
+    ('tuesday', ("Tuesday")),
+    ('wednesday', ("Wednesday")),
+    ('thursday', ("Thursday")),
+    ('friday', ("Friday")),
+    ('suturday', ("Saturday")),
+    ('sunday', ("Sunday")),
+ )
+
 
 def get_image_path(instance, filename):
     syncid = getattr(instance, 'sync_id', None).urn.split(':')[-1]
@@ -156,6 +168,7 @@ class Settings(models.Model):
         verbose_name_plural = "Settings"
 
     position_score = JSONField(default=list)
+    site_url = models.URLField(blank=True, null=True)
     category_score = JSONField(blank=True, null=True)
     exit_position = JSONField()
     likes_score = JSONField()
@@ -217,8 +230,9 @@ class Museums(models.Model):
     class Meta:
         verbose_name_plural = "Museums"
 
-    name = models.CharField(max_length=45, unique=True, default=DEFAULT_MUSEUM)
     floor_amount = models.IntegerField()
+    ratio_pixel_meter = models.FloatField(blank=True, null=True)
+    museum_site_url = models.URLField(blank=True, null=True)
     settings = models.ForeignKey(Settings, models.SET_NULL, null=True)
     location = models.PointField(null=True)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
@@ -250,6 +264,14 @@ class Museums(models.Model):
     def museumimages(self):
         return self.museumsimages_set.all()
 
+    @property
+    def opennings(self):
+        return self.openningtime_set.first()
+
+    @property
+    def localizatoins(self):
+        return self.localizations_set.all()
+
     def save(self, *args, **kwargs):
         if not self.id:
             self.created_at = timezone.now()
@@ -257,7 +279,62 @@ class Museums(models.Model):
         return super(Museums, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.name}'
+        if self.localizations.filter(language="en").exists():
+            return f'{self.localizations.get(language="en").title}'
+        elif self.localizations.filter(language="de").exists():
+            return f'{self.localizations.get(language="de").title}'
+        else:
+            return f'{self.id}'
+
+
+class MuseumLocalization(models.Model):
+    museum = models.ForeignKey(Museums, on_delete=models.CASCADE,
+                               related_name='localizations',
+                               related_query_name='localizations')
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES,
+                                default=LOCALIZATIONS_CHOICES.en)
+    title = models.CharField(max_length=45, default=DEFAULT_MUSEUM)
+    specialization = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        self.updated_at = timezone.now()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.language}'
+
+    def clean(self):
+        super().clean()
+
+        id = self.id
+        title = self.title
+        language = self.language
+        museum = self.museum
+
+        validate_title = MuseumLocalization.objects.filter(title=title)\
+            .exclude(museum=museum).exists()
+        validate_language = MuseumLocalization.objects\
+            .filter(language=language, museum=museum)\
+            .exclude(id=id)\
+            .exists()
+
+        if validate_language:
+            raise ValidationError('Language is already exists')
+
+        if validate_title:
+            raise ValidationError('Title is already exists')
+
+
+class OpenningTime(models.Model):
+    museum = models.ForeignKey(Museums, models.SET_NULL, null=True)
+    weekday = MultiSelectField(choices=WEEKDAYS, max_length=110)
+    from_hour = models.TimeField()
+    to_hour = models.TimeField()
 
 
 class MusemsTensor(models.Model):
@@ -267,6 +344,8 @@ class MusemsTensor(models.Model):
     museum = models.ForeignKey(Museums, models.PROTECT, related_name='museumtensor')
     tensor_flow_model = models.FileField(upload_to='tensor_model/', blank=True, null=True, max_length=110)
     tensor_flow_lables = models.FileField(upload_to='tensor_label/', blank=True, null=True, max_length=110)
+    mobile_tensor_flow_model = models.FileField(upload_to='tensor_model/', blank=True, null=True, max_length=110)
+    mobile_tensor_flow_lables = models.FileField(upload_to='tensor_label/', blank=True, null=True, max_length=110)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -296,7 +375,9 @@ class ObjectsItem(models.Model):
     vip = models.BooleanField(default=False)
     language_style = models.CharField(max_length=45, choices=LANGUEAGE_STYLE_CHOICES, default='easy')
     avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
+    cropped_avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
     onboarding = models.BooleanField(default=False)
+    semantic_relation = models.ManyToManyField('self', through='SemanticRelation', symmetrical=False)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -318,7 +399,57 @@ class ObjectsItem(models.Model):
         return super(ObjectsItem, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.id}'
+        if self.localizations.filter(language="en").exists():
+            return f'{self.localizations.get(language="en").title}'
+        elif self.localizations.filter(language="de").exists():
+            return f'{self.localizations.get(language="de").title}'
+        else:
+            return f'{self.id}'
+
+
+class SemanticRelation(models.Model):
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    from_object_item = models.ForeignKey(ObjectsItem,
+                                         on_delete=models.CASCADE,
+                                         related_name='from_object_item')
+    to_object_item = models.ForeignKey(ObjectsItem,
+                                       on_delete=models.CASCADE,
+                                       related_name='to_object_item')
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        self.updated_at = timezone.now()
+        self.from_object_item.updated_at = timezone.now()
+        self.from_object_item.save()
+        self.to_object_item.updated_at = timezone.now()
+        self.to_object_item.save()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.from_object_item} - {self.to_object_item}'
+
+
+class SemanticRelationLocalization(models.Model):
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    objects_item = models.ForeignKey(SemanticRelation, models.CASCADE,
+                                     related_name='localizations',
+                                     related_query_name='localizations')
+    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES,
+                                default=LOCALIZATIONS_CHOICES.en)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        self.updated_at = timezone.now()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.language}'
+
 
 @receiver(pre_delete, sender=ObjectsItem, dispatch_uid="create_delete_object")
 def create_delete_objects(sender, instance, **kwargs):
@@ -387,7 +518,7 @@ class Collections(models.Model):
     user = models.ForeignKey(Users, models.CASCADE, blank=True, null=True)
     objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
     category = models.ManyToManyField(Categories)
-    image = models.ImageField()
+    image = models.ImageField(max_length=110)
     sync_id = models.UUIDField(default=uuid.uuid4, unique=True)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -411,6 +542,7 @@ class Categorieslocalizations(models.Model):
     category = models.ForeignKey(Categories, models.CASCADE)
     title = models.CharField(max_length=45)
     language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.en)
+    description = models.TextField(blank=True, null=True)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)

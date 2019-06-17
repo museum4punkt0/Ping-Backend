@@ -11,7 +11,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        CreateExtension('postgis'),
         migrations.AddField(
             model_name='museums',
             name='location',

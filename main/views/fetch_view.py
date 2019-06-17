@@ -35,7 +35,8 @@ from main.serializers import (
     ObjectsLocalizationsSerializer,
     ObjectsImagesSerializer,
     UsersSerializer,
-    MusemsTensorSerializer
+    MusemsTensorSerializer,
+    MuseumLocalizationSerializer
     )
 
 from main.variables import DEFAULT_MUSEUM
@@ -118,10 +119,16 @@ def fetch(request):
                         'tensor': [],
                         'images': [],
                         'objects': [],
-                        'categories': []}
+                        'categories': [],
+                        'localizations': []}
 
         museum_table['sync_id'] = s_museum['sync_id']
         museum_table['updated_at'] = s_museum['updated_at']
+
+        museum_localizations = museum.localizations.all()
+        for localizations in museum_localizations:
+            localizations = MuseumLocalizationSerializer(localizations, fields=FETCH_FIELDS).data
+            museum_table['localizations'].append(localizations)
 
         tensors = museum.museumtensor.all()
         for tensor in tensors:

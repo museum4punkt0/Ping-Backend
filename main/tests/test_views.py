@@ -8,7 +8,7 @@ from django.conf import settings
 from main.models import ObjectsItem, Chats, Votings, Users, Museums
 
 MEDIA_ROOT = os.path.join(settings.BASE_DIR, 'main/fixtures/media')
-settings.MEDIA_ROOT += MEDIA_ROOT
+settings.MEDIA_ROOT = MEDIA_ROOT
 
 
 class TestSynchronization(APITestCase):
@@ -87,7 +87,6 @@ class TestSynchronization(APITestCase):
 
         # museum
         self.assertIsInstance(museum['sync_id'], str)
-        self.assertIsInstance(museum['name'], str)
         self.assertIsInstance(museum['floor_amount'], int)
         self.assertIsInstance(tensor['sync_id'], str)
         # self.assertIsInstance(tensor['tensor_flow_model'], str)
@@ -97,7 +96,10 @@ class TestSynchronization(APITestCase):
         self.assertIsInstance(museum['images'][0]['id'], int)
         self.assertIsInstance(museum['images'][0]['image'], str)
         self.assertIsInstance(museum['images'][0]['image_type'], str)
+        img_types = [image['image_type'] for image in museum['images']]
+        self.assertEqual(img_types, ['pnt', '1_map', 'logo'])
         self.assertIsInstance(museum['images'][0]['sync_id'], str)
+        self.assertIsInstance(museum['opennings'], dict)
 
         # museum_object
         self.assertIsInstance(object_item['sync_id'], str)
@@ -129,6 +131,13 @@ class TestSynchronization(APITestCase):
         self.assertIsInstance(object_item['images'][0]['image'], (str, type(None)))
         self.assertIsInstance(object_item['images'][0]['number'], int)
 
+        # museum_object_semantic_relations
+        semantic_relations = object_item['semantic_relations'][0]
+        self.assertIsInstance(semantic_relations['object_item_id'], str)
+        self.assertIsInstance(semantic_relations['localizations'], list)
+        self.assertIsInstance(semantic_relations['localizations'][0]['language'], str)
+        self.assertIsInstance(semantic_relations['localizations'][0]['description'], str)
+
         # museum_category
         self.assertIsInstance(category['id'], int)
         self.assertIsInstance(category['sync_id'], str)
@@ -149,7 +158,6 @@ class TestSynchronization(APITestCase):
         self.assertEqual(response.status_code, 200)
         _settings = response.json()['settings']
 
-        self.assertIsInstance(_settings['id'], int)
         self.assertIsInstance(_settings['sync_id'], str)
         self.assertIsInstance(_settings['position_scores'][0]['score'], int)
         self.assertIsInstance(_settings['position_scores'][0]['position'], int)

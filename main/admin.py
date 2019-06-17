@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django import forms
 from django.contrib.gis.admin import OSMGeoAdmin
 from django.contrib.gis.db import models
 from mapwidgets.widgets import GooglePointFieldWidget
@@ -9,7 +10,8 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     ObjectsImages, Chats, ObjectsImages, MuseumsImages,\
                     ObjectsLocalizations, UsersLanguageStyles, Votings, \
                     PredefinedAvatars, SettingsPredefinedObjectsItems, \
-                    ObjectsMap, MusemsTensor
+                    ObjectsMap, MusemsTensor, SemanticRelationLocalization, \
+                    SemanticRelation, OpenningTime, MuseumLocalization
 from main.variables import NUMBER_OF_LOCALIZATIONS
 
 admin.site.site_header = "Museums Admin"
@@ -52,10 +54,14 @@ class MusImagesFormSet(BaseInlineFormSet):
         mus_image_types = [i.instance.image_type for i in self.forms]
         map_types = [True for i in mus_image_types if 'map' in i]
         pointer_types = [True for i in mus_image_types if 'pnt' in i]
+        logo_types = [True for i in mus_image_types if 'logo' in i]
+
         if not any(map_types):
             raise ValidationError('There must be at least one map image with type "<floor_number>_map"!')
         if len(pointer_types) != 1:
             raise ValidationError('There must be exatly one pointer image with type "pnt"!')
+        if len(logo_types) != 1:
+            raise ValidationError('There must be one image with type "logo"!')
 
 
 class MuseumsImagesInline(admin.TabularInline):
@@ -75,8 +81,21 @@ class MusemsTensorInline(admin.TabularInline):
     exclude = ('synced',)
 
 
+class MusemsOpeningInline(admin.TabularInline):
+    model = OpenningTime
+    min_number = 1
+    extra = 0
+
+
+class MuseumLocalizationInline(admin.TabularInline):
+    readonly_fields = ['updated_at']
+    model = MuseumLocalization
+    extra = 0
+
+
 class MuseumsAdmin(admin.ModelAdmin):
-    inlines = [MusemsTensorInline, MuseumsImagesInline,]
+    inlines = [MuseumLocalizationInline, MusemsOpeningInline,
+               MusemsTensorInline, MuseumsImagesInline]
     readonly_fields = ['updated_at']
     exclude = ('synced',)
     formfield_overrides = {
@@ -119,9 +138,50 @@ class ObjectsMapInline(admin.TabularInline):
     exclude = ('synced',)
 
 
+class SemanticRelatedLocalizationInline(admin.TabularInline):
+    readonly_fields = ['updated_at']
+    model = SemanticRelationLocalization
+    extra = 0
+
+
+class SemanticRelationForm(forms.ModelForm):
+    def clean(self):
+        cleaned_data = super().clean()
+
+        to_object_item = cleaned_data.get('to_object_item')
+        from_object_item = self.cleaned_data.get('from_object_item')
+
+        if to_object_item and from_object_item:
+
+            if to_object_item == from_object_item:
+                raise forms.ValidationError(
+                    'Semantic relation to self impossible')
+
+            if not self.instance.id:
+                relations1 = SemanticRelation.objects.filter(
+                    to_object_item=to_object_item,
+                    from_object_item=from_object_item).exists()
+                relations2 = SemanticRelation.objects.filter(
+                    to_object_item=from_object_item,
+                    from_object_item=to_object_item).exists()
+
+                if relations1 or relations2:
+                    raise forms.ValidationError(
+                        'This semantic relation already exists')
+
+        return cleaned_data
+
+
+class SemanticRelationAdmin(admin.ModelAdmin):
+    readonly_fields = ['updated_at']
+    model = SemanticRelation
+    inlines = [SemanticRelatedLocalizationInline]
+    form = SemanticRelationForm
+
+
 class ObjectsItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'avatar_id', 'chat_id', 'museum',
-                    'onboarding', 'vip',
+                    'onboarding', 'vip', 'cropped_avatar',
                     'updated_at', 'categories', 'localizations',
                     'images_number', 'sync_id')
     inlines = [ObjectsLocalizationsInline, ObjectsImagesInline,
@@ -237,3 +297,4 @@ admin.site.register(Settings, SettingsAdmin)
 admin.site.register(Museums, MuseumsAdmin)
 admin.site.register(ObjectsItem, ObjectsItemAdmin)
 admin.site.register(Categories, CategoriesAdmin)
+admin.site.register(SemanticRelation, SemanticRelationAdmin)

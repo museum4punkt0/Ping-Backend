@@ -1,3 +1,4 @@
+from django.db.models import F
 from rest_framework import serializers
 from main.models import (
                      Collections,
@@ -16,7 +17,12 @@ from main.models import (
                      Votings,
                      ObjectsMap,
                      MusemsTensor,
-                     DeletedItems)
+                     DeletedItems,
+                     SemanticRelation,
+                     SemanticRelationLocalization,
+                     OpenningTime,
+                     MuseumLocalization
+                     )
 
 
 class SyncObjectField(serializers.RelatedField):
@@ -34,6 +40,7 @@ class CollectionsSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     objects_item = SyncObjectField(read_only=True)
     category = SyncCollectionField(read_only=True)
+    museum_id = serializers.SerializerMethodField()
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -49,6 +56,9 @@ class CollectionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collections
         fields = ('__all__')
+
+    def get_museum_id(self, obj):
+        return obj.objects_item.museum.sync_id
 
 
 class ChatsSerializer(serializers.ModelSerializer):
@@ -115,8 +125,9 @@ class UsersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
-        fields = ('id', 'name', 'device_id', 'category', 'positionx', 'positiony', 
-            'floor', 'language', 'avatar', 'sync_id', 'synced', 'created_at', 'updated_at', 'chats', 'collections', 'votings')
+        fields = ('id', 'name', 'device_id', 'category', 'positionx',
+            'positiony', 'floor', 'language', 'avatar', 'sync_id', 'synced',
+            'created_at', 'updated_at', 'chats', 'collections', 'votings')
 
 
 class PredefinedAvatarsSerializer(serializers.ModelSerializer):
@@ -138,7 +149,6 @@ class PredefinedAvatarsSerializer(serializers.ModelSerializer):
 
 
 class SettingsSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
     predefined_avatars = PredefinedAvatarsSerializer(many=True)
 
     def __init__(self, *args, **kwargs):
@@ -154,10 +164,11 @@ class SettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Settings
-        fields = ('id', 'position_score', 'category_score', 'exit_position', 
+        fields = ('position_score', 'category_score', 'exit_position', 
             'likes_score', 'chat_score', 'priority_score',
             'distance_score', 'predifined_collections', 'languages', 'language_styles', 
-            'sync_id', 'synced', 'created_at', 'updated_at', 'predefined_avatars')
+            'sync_id', 'synced', 'created_at', 'updated_at', 'predefined_avatars',
+            'site_url')
 
 
 class ObjectsLocalizationsSerializer(serializers.ModelSerializer):
@@ -206,10 +217,26 @@ class ObjectsMapField(serializers.RelatedField):
             return '{}'.format(value.image.url)
 
 
+class SemanticRelationLocalizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SemanticRelationLocalization
+        fields = ('language', 'description', 'created_at', 'updated_at', 'sync_id')
+
+
+class SemanticRelationSerializer(serializers.Serializer):
+    sync_id = serializers.UUIDField()
+    object_item_id = serializers.UUIDField()
+    localizations = SemanticRelationLocalizationSerializer(many=True)
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+
+
 class ObjectsItemSerializer(serializers.ModelSerializer):
     images = ObjectsImagesSerializer(many=True)
     localizations = ObjectsLocalizationsSerializer(many=True)
     object_map = ObjectsMapField(read_only=True)
+    semantic_relation = serializers.SerializerMethodField()
+    museum = serializers.SlugRelatedField(read_only=True, slug_field='sync_id')
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -224,10 +251,24 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ObjectsItem
-        fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony', 
+        fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony',
             'vip', 'language_style', 'avatar', 'onboarding', 'object_map',
             'sync_id', 'synced', 'created_at', 'updated_at', 'images',
-            'localizations')
+            'localizations', 'semantic_relation', 'cropped_avatar')
+
+    @staticmethod
+    def get_semantic_relation(obj):
+        relations_from = SemanticRelation.objects.filter(from_object_item=obj.id)\
+            .annotate(object_item_id=F('to_object_item__sync_id'))
+        relations_to = SemanticRelation.objects.filter(to_object_item=obj.id)\
+            .annotate(object_item_id=F('from_object_item__sync_id'))
+
+        relations_from = SemanticRelationSerializer(relations_from, many=True).data
+        relations_to = SemanticRelationSerializer(relations_to, many=True).data
+
+        relations = relations_from + relations_to
+
+        return relations
 
 
 class MuseumsImagesSerializer(serializers.ModelSerializer):
@@ -261,13 +302,51 @@ class MusemsTensorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MusemsTensor
-        fields = ('__all__')
+        fields = ('mobile_tensor_flow_model', 'mobile_tensor_flow_lables',
+                  'sync_id', 'created_at', 'updated_at')
+
+
+class OpenningTimeSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(OpenningTimeSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+    class Meta:
+        model = OpenningTime
+        fields = ('weekday', 'from_hour', 'to_hour')
+
+
+class MuseumLocalizationSerializer(serializers.ModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super().__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+    class Meta:
+        model = MuseumLocalization
+        exclude = ('id', 'museum')
 
 
 class MuseumsSerializer(serializers.ModelSerializer):
     objectsitems = ObjectsItemSerializer(source='objects_query', many=True)
     museumimages = MuseumsImagesSerializer(many=True)
     museumtensor = MusemsTensorSerializer(many=True)
+    opennings = OpenningTimeSerializer()
+    localizations = MuseumLocalizationSerializer(many=True)
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -282,15 +361,20 @@ class MuseumsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Museums
-        fields = ('id', 'name', 'floor_amount', 'settings', 'museumtensor',
+        fields = ('floor_amount', 'settings', 'opennings',
+                  'museumtensor',
                   'sync_id', 'synced', 'created_at',
-                  'updated_at', 'objectsitems', 'museumimages')
+                  'updated_at', 'objectsitems', 'museumimages',
+                  'museum_site_url', 'ratio_pixel_meter', 'localizations')
 
 
 class ShortMuseumsSerializer(serializers.ModelSerializer):
+    localizations = MuseumLocalizationSerializer(many=True)
+
     class Meta:
         model = Museums
-        fields = ('name', 'sync_id', 'created_at', 'updated_at')
+        fields = ('sync_id', 'created_at', 'updated_at',
+                  'localizations')
 
 
 class CategorieslocalizationsSerializer(serializers.ModelSerializer):
