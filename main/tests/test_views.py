@@ -1,4 +1,5 @@
 import os
+import json
 from uuid import uuid4
 from django.urls import reverse
 from rest_framework.test import APITestCase
@@ -176,12 +177,6 @@ class TestSynchronization(APITestCase):
         self.assertIsInstance(_settings['languages'], list)
         self.assertIsInstance(_settings['language_styles'], list)
 
-    def test_post_synch_without_data(self):
-        self.client.get(self.url, {'user_id': self.t_user,
-                                   'museum_id': self.museum_id})
-        response = self.client.post(self.url_for_post)
-        self.assertEqual(response.status_code, 400)
-
     def test_add_chats(self):
         self.client.get(self.url, {'user_id': self.t_user,
                                    'museum_id': self.museum_id})
@@ -194,7 +189,7 @@ class TestSynchronization(APITestCase):
 
         chats_count = Chats.objects.count()
         self.assertEqual(chats_count, 1)
-        response = self.client.post(self.url_for_post, data, format='json')
+        response = self.client.post(self.url_for_post, {'data': json.dumps(data)}, format='multipart')
         self.assertEqual(response.status_code, 200)
         chats_count = Chats.objects.count()
         self.assertEqual(chats_count, 2)
@@ -211,7 +206,7 @@ class TestSynchronization(APITestCase):
 
         voting_count = Votings.objects.count()
         self.assertEqual(voting_count, 1)
-        response = self.client.post(self.url_for_post, data, format='json')
+        response = self.client.post(self.url_for_post, {'data': json.dumps(data)}, format='multipart')
         self.assertEqual(response.status_code, 200)
         voting_count = Votings.objects.count()
         self.assertEqual(voting_count, 2)
@@ -226,7 +221,7 @@ class TestSynchronization(APITestCase):
             "update": {}
         }
 
-        self.client.post(self.url_for_post, data, format='json')
+        self.client.post(self.url_for_post, {'data': json.dumps(data)}, format='multipart')
 
         chat_finished = Chats.objects.all()[1].finished
         self.assertFalse(chat_finished)
@@ -241,7 +236,7 @@ class TestSynchronization(APITestCase):
             "update": {"chats": [chat]}
         }
 
-        response = self.client.post(self.url_for_post, data, format='json')
+        response = self.client.post(self.url_for_post, {'data': json.dumps(data)}, format='multipart')
         self.assertEqual(response.status_code, 200)
         chat_finished = Chats.objects.all()[0].finished
         self.assertTrue(chat_finished)

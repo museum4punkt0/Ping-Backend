@@ -1,3 +1,4 @@
+import json
 import distutils.util
 import datetime
 import uuid
@@ -408,7 +409,13 @@ class Synchronization(APIView):
             return JsonResponse({'error': 'Existing user id must be provided'},
                                 safe=True, status=400)
 
-        post_data = request.data
+        try:
+            post_data = json.loads(request.data.get('data'))
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'json data with schema {"add": {}, \
+                                    "update": {},"delete": {}, "get": {} } must be transfered'},
+                                safe=True, status=400)
+
         if post_data:
             get_values = post_data.get('get')
             add_values = post_data.get('add')
@@ -567,7 +574,8 @@ class Synchronization(APIView):
                 created_at = collection.get('created_at')
                 updated_at = collection.get('updated_at')
                 ob_sync_id = collection.get('object_sync_id')
-                image = collection.get('image')
+                image_key = collection.get('image')
+                image = request.data.get(image_key)
                 ctgrs = collection.get('categories')
                 logging.info(f'POST COLLECTION \
                      ch_sync_id: {cl_sync_id, type(cl_sync_id)}, \
@@ -693,7 +701,8 @@ class Synchronization(APIView):
                 created_at = collection.get('created_at')
                 updated_at = collection.get('updated_at')
                 ob_sync_id = collection.get('object_sync_id')
-                image = collection.get('image')
+                image_key = collection.get('image')
+                image = request.data.get(image_key)
                 ctgrs = collection.get('categories')
 
                 validated_data, errors = validate_collections('update',
@@ -747,7 +756,8 @@ class Synchronization(APIView):
             created_at = up_user_data.get('created_at')
             updated_at = up_user_data.get('updated_at')
             name = up_user_data.get('name')
-            avatar = up_user_data.get('avatar')
+            avatar_key = up_user_data.get('avatar')
+            avatar = request.data.get(avatar_key)
             category = up_user_data.get('category')
             positionx = up_user_data.get('positionX')
             positiony = up_user_data.get('positionY')
