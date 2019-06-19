@@ -7,6 +7,7 @@ import json
 from io import BytesIO
 from PIL import Image
 from django.core.files.temp import NamedTemporaryFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import JsonResponse
 from django.conf import settings
 
@@ -202,18 +203,11 @@ def validate_collections(action,
         return None, errors
 
     if image:
-        try:
-            img_data = base64.b64decode(image)
-            image_buffer = BytesIO(img_data)
-            pil_image = Image.open(image_buffer)
-            image_buffer = BytesIO()
-            pil_image.save(image_buffer, "PNG")
-            img_temp = NamedTemporaryFile(delete=True)
-            img_temp.write(image_buffer.getvalue())
-            img_temp.name = f'{settings.MEDIA_ROOT}/{str(cl_sync_id)}/image.jpg'
-            data['image'] = img_temp
-        except:
-            errors[f'{action}_errors'].append({'collection': f'Inappropriate "image" encoding for collection {cl_sync_id} sync_id'})
+        if isinstance(image, InMemoryUploadedFile):
+            image.name = f'{settings.MEDIA_ROOT}/{str(cl_sync_id)}/image.jpg'
+            data['image'] = image
+        else:
+            errors[f'{action}_errors'].append({'collection': f'Image must be jpg or png format'})
     else:
         errors[f'{action}_errors'].append({'collection': f'Value "image" for collection {cl_sync_id} is required'})
 
@@ -282,18 +276,11 @@ def validate_user(action,
         data['name'] = str(name)
 
     if avatar:
-        try:
-            img_data = base64.b64decode(avatar)
-            image_buffer = BytesIO(img_data)
-            pil_image = Image.open(image_buffer)
-            image_buffer = BytesIO()
-            pil_image.save(image_buffer, "PNG")
-            img_temp = NamedTemporaryFile(delete=True)
-            img_temp.write(image_buffer.getvalue())
-            img_temp.name = f'/Users/{str(us_sync_id)}/image_{us_sync_id}.jpg'
-            data['avatar'] = img_temp
-        except:
-            errors[f'{action}_errors'].append({'user': f'Inappropriate "avatar" encoding for user {us_sync_id} sync_id'})
+        if isinstance(avatar, InMemoryUploadedFile):
+            avatar.name = f'{settings.MEDIA_ROOT}/{str(us_sync_id)}/image.jpg'
+            data['image'] = avatar
+        else:
+            errors[f'{action}_errors'].append({'user': f'Image must be jpg or png format'})
 
     if category:
         try:
