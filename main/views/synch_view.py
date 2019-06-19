@@ -6,6 +6,7 @@ import base64
 from PIL import Image
 from io import BytesIO
 from collections import defaultdict
+from django.core.exceptions import ValidationError
 from django.core.files.temp import NamedTemporaryFile
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -362,13 +363,16 @@ class Synchronization(APIView):
             return JsonResponse({'error': 'Existing user id must be provided'},
                                 safe=True, status=400)
         if museum_id:
-            museum = Museums.objects.get(sync_id=museum_id)
-            settings = getattr(museum, 'settings')
-            serialized_museum = MuseumsSerializer(museum).data
+            try:
+                museum = Museums.objects.get(sync_id=museum_id)
+                settings = getattr(museum, 'settings')
+            except (Museums.DoesNotExist, ValidationError):
+                return JsonResponse({'error': 'Museum not found'}, status=404)
         else:
             logging.error(f'Museum id must be provided')
             return JsonResponse({'error': 'Existing museum id must be provided'},
                                 safe=True, status=400)
+
         foreign_colns = user.collections_set.exclude(objects_item__in=museum.objectsitem_set.all())
         foreign_chats = user.chats_set.exclude(objects_item__in=museum.objectsitem_set.all())
         foreign_objects = [i.objects_item for i in foreign_colns]
@@ -428,12 +432,15 @@ class Synchronization(APIView):
         categories_sync_ids = []
 
         if museum_id:
-            museum = Museums.objects.get(sync_id=museum_id)
+            try:
+                museum = Museums.objects.get(sync_id=museum_id)
+            except (Museums.DoesNotExist, ValidationError):
+                return JsonResponse({'error': 'Museum not found'}, status=404)
         else:
-            # logging.error(f'Museum id must be provided')
-            # return JsonResponse({'error': 'Existing museum id must be provided'},
-            #                     safe=True, status=400)
-            museum = Museums.objects.get(name=DEFAULT_MUSEUM)
+            logging.error(f'Museum id must be provided')
+            return JsonResponse(
+                {'error': 'Existing museum id must be provided'},
+                safe=True, status=400)
 
         if get_values.get('objects'):
             objects_sync_ids.extend(get_values.get('objects'))
