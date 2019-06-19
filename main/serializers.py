@@ -258,17 +258,10 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_semantic_relation(obj):
-        relations_from = SemanticRelation.objects.filter(from_object_item=obj.id)\
+        relations = SemanticRelation.objects.filter(from_object_item=obj.id)\
             .annotate(object_item_id=F('to_object_item__sync_id'))
-        relations_to = SemanticRelation.objects.filter(to_object_item=obj.id)\
-            .annotate(object_item_id=F('from_object_item__sync_id'))
 
-        relations_from = SemanticRelationSerializer(relations_from, many=True).data
-        relations_to = SemanticRelationSerializer(relations_to, many=True).data
-
-        relations = relations_from + relations_to
-
-        return relations
+        return SemanticRelationSerializer(relations, many=True).data
 
 
 class MuseumsImagesSerializer(serializers.ModelSerializer):
