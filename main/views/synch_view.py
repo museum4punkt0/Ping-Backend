@@ -430,9 +430,10 @@ class Synchronization(APIView):
         if museum_id:
             museum = Museums.objects.get(sync_id=museum_id)
         else:
-            logging.error(f'Museum id must be provided')
-            return JsonResponse({'error': 'Existing museum id must be provided'},
-                                safe=True, status=400)
+            # logging.error(f'Museum id must be provided')
+            # return JsonResponse({'error': 'Existing museum id must be provided'},
+            #                     safe=True, status=400)
+            museum = Museums.objects.get(name=DEFAULT_MUSEUM)
 
         if get_values.get('objects'):
             objects_sync_ids.extend(get_values.get('objects'))

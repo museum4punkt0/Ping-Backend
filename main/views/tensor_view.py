@@ -14,6 +14,7 @@ import uuid
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 
 
+
 @api_view(['POST'])
 def recognize(request):
     user_id = request.GET.get('user_id', None)
@@ -53,6 +54,7 @@ def recognize(request):
         logging.error(f'Museum id must be provided')
         return JsonResponse({'error': 'Existing museum id must be provided'},
                             safe=True, status=400)
+  
     if tensors:
         museum_tensor = tensors.get(museum.sync_id)
         if museum_tensor:
