@@ -415,12 +415,12 @@ class Synchronization(APIView):
 
         try:
             post_data = json.loads(request.data.get('data'))
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, TypeError):
             return JsonResponse({'error': 'json data with schema {"add": {}, \
                                     "update": {},"delete": {}, "get": {} } must be transfered'},
                                 safe=True, status=400)
 
-        if post_data:
+        if post_data and isinstance(post_data, dict):
             get_values = post_data.get('get')
             add_values = post_data.get('add')
             update_values = post_data.get('update')
