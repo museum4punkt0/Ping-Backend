@@ -598,6 +598,7 @@ class Chats(models.Model):
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
     history = models.TextField(blank=True, null=True)
+    planned = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''

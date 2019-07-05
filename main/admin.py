@@ -273,8 +273,8 @@ class CollectionsInline(admin.TabularInline):
 class ChatsInline(admin.TabularInline):
     model = Chats
     extra = 0
-    readonly_fields = ['objects_item', 'last_step', 'history', 'finished', 'updated_at', 'sync_id']
-    fields = ('objects_item', 'last_step', 'history', 'finished', 'updated_at', 'sync_id')
+    readonly_fields = ['objects_item', 'last_step', 'history', 'finished', 'planned', 'updated_at', 'sync_id']
+    fields = ('objects_item', 'last_step', 'history', 'finished', 'planned', 'updated_at', 'sync_id')
     exclude = ('synced',)
 
 

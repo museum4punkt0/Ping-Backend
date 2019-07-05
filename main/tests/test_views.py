@@ -31,7 +31,8 @@ class TestSynchronization(APITestCase):
             "object_sync_id": str(cls.object_sync_id),
             "finished": False,
             "last_step": False,
-            "history": False
+            "history": False,
+            "planned": True
         }
 
         cls.voting = {

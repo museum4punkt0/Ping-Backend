@@ -83,6 +83,7 @@ class TestValidateChats(APITestCase):
             'updated_at': '2019-04-18T16:08:41.439Z',
             'ob_sync_id': str(obj.objects_item.sync_id),
             'finished': 'false',
+            'planned': False,
             'last_step': 0,
             'history': False,
         }
