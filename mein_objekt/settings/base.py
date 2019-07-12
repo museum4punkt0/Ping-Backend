@@ -31,7 +31,8 @@ INSTALLED_APPS = [
     'storages',
     'django_nose',
     'django.contrib.gis',
-    'mapwidgets'
+    'mapwidgets',
+    'nested_admin',
     # 'debug_toolbar'
 ]
 

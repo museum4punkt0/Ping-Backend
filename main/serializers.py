@@ -21,7 +21,10 @@ from main.models import (
                      SemanticRelation,
                      SemanticRelationLocalization,
                      OpenningTime,
-                     MuseumLocalization
+                     MuseumLocalization,
+                     MuseumTour,
+                     MuseumTourLocalization,
+                     TourObjectsItems
                      )
 
 
@@ -341,12 +344,58 @@ class MuseumLocalizationSerializer(serializers.ModelSerializer):
         exclude = ('id', 'museum')
 
 
+
+class TourObjectField(serializers.RelatedField):
+    def to_representation(self, value):
+        if value.first():
+            return [str(i.tour_object.sync_id) for i in  value.all()]
+
+
+class MuseumTourLocalizationSerializer(serializers.ModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super().__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+    class Meta:
+        model = MuseumTourLocalization
+        exclude = ('id', 'tour')
+
+
+class MuseumTourSerializer(serializers.ModelSerializer):
+    localizations = MuseumTourLocalizationSerializer(many=True)
+    tourobjects = TourObjectField(read_only=True)
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super().__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+    class Meta:
+        model = MuseumTour
+        exclude = ('id', 'museum')
+
+
 class MuseumsSerializer(serializers.ModelSerializer):
     objectsitems = ObjectsItemSerializer(source='objects_query', many=True)
     museumimages = MuseumsImagesSerializer(many=True)
     museumtensor = MusemsTensorSerializer(many=True)
     opennings = OpenningTimeSerializer()
     localizations = MuseumLocalizationSerializer(many=True)
+    tours = MuseumTourSerializer(many=True)
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -365,7 +414,8 @@ class MuseumsSerializer(serializers.ModelSerializer):
                   'museumtensor',
                   'sync_id', 'synced', 'created_at',
                   'updated_at', 'objectsitems', 'museumimages',
-                  'museum_site_url', 'ratio_pixel_meter', 'localizations')
+                  'museum_site_url', 'ratio_pixel_meter', 'localizations',
+                  'tours')
 
 
 class ShortMuseumsSerializer(serializers.ModelSerializer):
@@ -466,16 +516,18 @@ def serialize_synch_data(museum,
 
     # museum serialization
     serialized_museum = MuseumsSerializer(museum).data
+
     museum_table = {'sync_id': None,
                     'floor_amount': None,
                     'opennings': None,
+                    'museum_site_url': None,
+                    'ratio_pixel_meter': None,
                     'tensor': [],
                     'images': [],
                     'objects': [],
                     'categories': [],
-                    'museum_site_url': None,
-                    'ratio_pixel_meter': None,
-                    'localizations': []}
+                    'localizations': [],
+                    'tours': []}
 
     museum_table['sync_id'] = serialized_museum['sync_id']
     museum_table['floor_amount'] = serialized_museum['floor_amount']
@@ -507,6 +559,32 @@ def serialize_synch_data(museum,
         image_dict['updated_at'] = image['updated_at']
         museum_table['images'].append(image_dict)
 
+    serialized_tours = serialized_museum['tours']
+    for tour in serialized_tours:
+        tour_table = {'tourobjects': [],
+                      'localizations': [],
+                      'sync_id': None,
+                      'created_at': None,
+                      'updated_at': None}
+
+        localizations = tour['localizations']
+        for local in localizations:
+            local_dict = {}
+            local_dict['language'] = local['language']
+            local_dict['title'] = local['title']
+            local_dict['description'] = local['description']
+            local_dict['sync_id'] = local['sync_id']
+            local_dict['created_at'] = local['created_at']
+            local_dict['updated_at'] = local['updated_at']
+            tour_table['localizations'].append(local_dict)
+
+        tour_table['tourobjects'] = tour['tourobjects']
+        tour_table['sync_id'] = tour['sync_id']
+        tour_table['created_at'] = tour['created_at']
+        tour_table['updated_at'] = tour['updated_at']
+        museum_table['tours'].append(tour_table)
+
+    # objectsitems serialilzation
     serialized_objects_items = serialized_museum['objectsitems']
     for item in serialized_objects_items:
         item_table = {'id': None,
@@ -570,6 +648,7 @@ def serialize_synch_data(museum,
             item_table['images'].append(image_dict)
         museum_table['objects'].append(item_table)
 
+    # categories serialization
     for category in categories:
         serialized_category = CategoriesSerializer(category).data
         category_table = {'id': None,

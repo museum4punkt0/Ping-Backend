@@ -102,6 +102,20 @@ class TestSynchronization(APITestCase):
         self.assertIsInstance(museum['images'][0]['sync_id'], str)
         self.assertIsInstance(museum['opennings'], dict)
 
+        # museum tour
+        self.assertEqual(len(museum['tours']), 2)
+        self.assertIsInstance(museum['tours'][0]['sync_id'], str)
+        self.assertIsInstance(museum['tours'][0]['created_at'], str)
+        self.assertIsInstance(museum['tours'][0]['updated_at'], str)
+        for tour in museum['tours']:
+            for tour_object in tour['tourobjects']:
+                self.assertIn(tour_object, [i['sync_id'] for i in museum['objects']])
+        self.assertIsInstance(museum['tours'][0]['localizations'][0], dict)
+        self.assertIsInstance(museum['tours'][0]['localizations'][0]['sync_id'], str)
+        self.assertIsInstance(museum['tours'][0]['localizations'][0]['language'], str)
+        self.assertIsInstance(museum['tours'][0]['localizations'][0]['description'], str)
+        self.assertIsInstance(museum['tours'][0]['localizations'][0]['title'], str)
+
         # museum_object
         self.assertIsInstance(object_item['sync_id'], str)
         self.assertIsInstance(object_item['id'], int)
@@ -287,6 +301,10 @@ class TestFetch(APITestCase):
         # museum_image
         self.assertIsInstance(museum['images'][0]['updated_at'], str)
         self.assertIsInstance(museum['images'][0]['sync_id'], str)
+
+        # museum_tour
+        self.assertIsInstance(museum['tours'][0]['updated_at'], str)
+        self.assertIsInstance(museum['tours'][0]['sync_id'], str)
 
         # museum_object
         self.assertIsInstance(object_item['sync_id'], str)
