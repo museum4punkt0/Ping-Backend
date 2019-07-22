@@ -1,7 +1,8 @@
-from environ import Env
+import environ
 
-
-env = Env()
+env = environ.Env()
+base_env = environ.Path(__file__) - 3
+env.read_env(env_file=base_env('.env'))
 environment = env('ENVIRONMENT')
 
 if environment == 'local':
