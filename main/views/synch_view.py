@@ -1,3 +1,4 @@
+import json
 import distutils.util
 import datetime
 import uuid
@@ -5,6 +6,7 @@ import base64
 from PIL import Image
 from io import BytesIO
 from collections import defaultdict
+from django.core.exceptions import ValidationError
 from django.core.files.temp import NamedTemporaryFile
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -76,13 +78,16 @@ class Synchronization(APIView):
             return JsonResponse({'error': 'Existing user id must be provided'},
                                 safe=True, status=400)
         if museum_id:
-            museum = Museums.objects.get(sync_id=museum_id)
-            settings = getattr(museum, 'settings')
-            serialized_museum = MuseumsSerializer(museum).data
+            try:
+                museum = Museums.objects.get(sync_id=museum_id)
+                settings = getattr(museum, 'settings')
+            except (Museums.DoesNotExist, ValidationError):
+                return JsonResponse({'error': 'Museum not found'}, status=404)
         else:
             logging.error(f'Museum id must be provided')
             return JsonResponse({'error': 'Existing museum id must be provided'},
                                 safe=True, status=400)
+
         foreign_colns = user.collections_set.exclude(objects_item__in=museum.objectsitem_set.all())
         foreign_chats = user.chats_set.exclude(objects_item__in=museum.objectsitem_set.all())
         foreign_objects = [i.objects_item for i in foreign_colns]
@@ -123,8 +128,14 @@ class Synchronization(APIView):
             return JsonResponse({'error': 'Existing user id must be provided'},
                                 safe=True, status=400)
 
-        post_data = request.data
-        if post_data:
+        try:
+            post_data = json.loads(request.data.get('data'))
+        except (json.JSONDecodeError, TypeError):
+            return JsonResponse({'error': 'json data with schema {"add": {}, \
+                                    "update": {},"delete": {}, "get": {} } must be transfered'},
+                                safe=True, status=400)
+
+        if post_data and isinstance(post_data, dict):
             get_values = post_data.get('get')
             add_values = post_data.get('add')
             update_values = post_data.get('update')
@@ -136,12 +147,15 @@ class Synchronization(APIView):
         categories_sync_ids = []
 
         if museum_id:
-            museum = Museums.objects.get(sync_id=museum_id)
+            try:
+                museum = Museums.objects.get(sync_id=museum_id)
+            except (Museums.DoesNotExist, ValidationError):
+                return JsonResponse({'error': 'Museum not found'}, status=404)
         else:
-            # logging.error(f'Museum id must be provided')
-            # return JsonResponse({'error': 'Existing museum id must be provided'},
-            #                     safe=True, status=400)
-            museum = Museums.objects.get(name=DEFAULT_MUSEUM)
+            logging.error(f'Museum id must be provided')
+            return JsonResponse(
+                {'error': 'Existing museum id must be provided'},
+                safe=True, status=400)
 
         if get_values.get('objects'):
             objects_sync_ids.extend(get_values.get('objects'))
@@ -285,7 +299,8 @@ class Synchronization(APIView):
                 created_at = collection.get('created_at')
                 updated_at = collection.get('updated_at')
                 ob_sync_id = collection.get('object_sync_id')
-                image = collection.get('image')
+                image_key = collection.get('image')
+                image = request.data.get(image_key)
                 ctgrs = collection.get('categories')
                 logging.info(f'POST COLLECTION \
                      ch_sync_id: {cl_sync_id, type(cl_sync_id)}, \
@@ -415,7 +430,8 @@ class Synchronization(APIView):
                 created_at = collection.get('created_at')
                 updated_at = collection.get('updated_at')
                 ob_sync_id = collection.get('object_sync_id')
-                image = collection.get('image')
+                image_key = collection.get('image')
+                image = request.data.get(image_key)
                 ctgrs = collection.get('categories')
 
                 validated_data, errors = validate_collections('update',
@@ -469,7 +485,8 @@ class Synchronization(APIView):
             created_at = up_user_data.get('created_at')
             updated_at = up_user_data.get('updated_at')
             name = up_user_data.get('name')
-            avatar = up_user_data.get('avatar')
+            avatar_key = up_user_data.get('avatar')
+            avatar = request.data.get(avatar_key)
             category = up_user_data.get('category')
             positionx = up_user_data.get('positionX')
             positiony = up_user_data.get('positionY')

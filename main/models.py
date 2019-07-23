@@ -94,6 +94,12 @@ def get_image_path(instance, filename):
     return os.path.join('images', dir_name, filename)
 
 
+def validate_percent(value):
+    if value < 0 or value > 100:
+        raise ValidationError('Value must be between 0-100',
+                              params={'value': value})
+
+
 class Categories(models.Model):
     class Meta:
         verbose_name_plural = "Categories"
@@ -187,6 +193,8 @@ class Settings(models.Model):
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
     # collections = models.ForeignKey(Collection, models.DO_NOTHING)
+    recognition_threshold = models.SmallIntegerField(default=50,
+                                                     validators=[validate_percent])
 
     @property
     def predefined_avatars(self):
