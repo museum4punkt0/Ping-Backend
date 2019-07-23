@@ -6,6 +6,7 @@ from django.utils.html import format_html
 from django.db.models.signals import pre_delete, post_save
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from model_utils import Choices
 import urllib
 import uuid
@@ -14,8 +15,6 @@ from PIL import Image
 from io import BytesIO
 from main.variables import DEFAULT_MUSEUM
 from multiselectfield import MultiSelectField
-from django.db import transaction
-
 
 LANGUEAGE_STYLE_CHOICES = Choices(
         ('easy', 'Easy'),
@@ -415,6 +414,64 @@ class ObjectsItem(models.Model):
             return f'{self.id}'
 
 
+class MuseumTour(models.Model):
+    museum = models.ForeignKey(Museums, models.CASCADE,
+                               related_name='tours',
+                               related_query_name='tours')
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(MuseumTour, self).save(*args, **kwargs)
+
+
+class MuseumTourLocalization(models.Model):
+    tour = models.ForeignKey(MuseumTour, on_delete=models.CASCADE,
+                               related_name='localizations',
+                               related_query_name='localizations')
+    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES,
+                                default=LOCALIZATIONS_CHOICES.en)
+    title = models.CharField(max_length=45, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(MuseumTourLocalization, self).save(*args, **kwargs)
+
+
+class TourObjectsItems(models.Model):
+    tour = models.ForeignKey(MuseumTour, on_delete=models.CASCADE,
+                               related_name='tourobjects',
+                               related_query_name='tourobjects')
+    tour_object = models.ForeignKey(ObjectsItem, models.CASCADE, default=1,
+                               related_name='tourobjects',
+                               related_query_name='tourobjects')
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(TourObjectsItems, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.id}'
+
+
 class SemanticRelation(models.Model):
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     from_object_item = models.ForeignKey(ObjectsItem,
@@ -606,6 +663,7 @@ class Chats(models.Model):
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
     history = models.TextField(blank=True, null=True)
+    planned = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''

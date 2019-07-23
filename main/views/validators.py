@@ -83,6 +83,7 @@ def validate_chats(action,
                    updated_at,
                    ob_sync_id,
                    finished,
+                   planned,
                    history,
                    last_step):
 
@@ -119,6 +120,19 @@ def validate_chats(action,
         data['history'] = history
     else:
         errors[f'{action}_errors'].append({'chat': f'Value "history" for chat {ch_sync_id} is required'})
+
+    if planned is not None:
+        if isinstance(planned, str):
+            try:
+                bl = bool(distutils.util.strtobool(planned))
+                data['planned'] = bl
+            except Exception as ex:
+                logging.error(f'Inappropriate "planned":{ex} bool value for chat {ch_sync_id} sync_id')
+                errors[f'{action}_errors'].append({'chat': f'Inappropriate "planned" bool value for chat {ch_sync_id} sync_id'})
+        elif isinstance(planned, bool):
+            data['planned'] = planned
+    else:
+        errors[f'{action}_errors'].append({'chat': f'Value "planned" for chat {ch_sync_id} is required'})
 
     if last_step is not None:
         try:

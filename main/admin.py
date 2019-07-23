@@ -4,6 +4,8 @@ from django.core.exceptions import ValidationError
 from django import forms
 from django.contrib.gis.admin import OSMGeoAdmin
 from django.contrib.gis.db import models
+import nested_admin
+
 from mapwidgets.widgets import GooglePointFieldWidget
 from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     Categories, Categorieslocalizations, ObjectsCategories,\
@@ -11,7 +13,8 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     ObjectsLocalizations, UsersLanguageStyles, Votings, \
                     PredefinedAvatars, SettingsPredefinedObjectsItems, \
                     ObjectsMap, MusemsTensor, SemanticRelationLocalization, \
-                    SemanticRelation, OpenningTime, MuseumLocalization
+                    SemanticRelation, OpenningTime, MuseumLocalization, \
+                    MuseumTour, MuseumTourLocalization, TourObjectsItems
 from main.variables import NUMBER_OF_LOCALIZATIONS
 
 admin.site.site_header = "Museums Admin"
@@ -64,7 +67,28 @@ class MusImagesFormSet(BaseInlineFormSet):
             raise ValidationError('There must be one image with type "logo"!')
 
 
-class MuseumsImagesInline(admin.TabularInline):
+class MuseumTourLocalizationInline(nested_admin.NestedTabularInline):
+    model = MuseumTourLocalization
+    min_number = 1
+    extra = 0
+    readonly_fields = ['updated_at']
+
+
+class TourObjectsItemsInline(nested_admin.NestedTabularInline):
+    model = TourObjectsItems
+    min_number = 1
+    extra = 0
+    readonly_fields = ['updated_at']
+
+
+class MuseumTourInline(nested_admin.NestedTabularInline):
+    inlines = [MuseumTourLocalizationInline, TourObjectsItemsInline] 
+    model = MuseumTour
+    extra = 0
+    readonly_fields = ['updated_at']
+
+
+class MuseumsImagesInline(nested_admin.NestedTabularInline):
     model = MuseumsImages
     min_number = 2
     extra = 0
@@ -73,7 +97,7 @@ class MuseumsImagesInline(admin.TabularInline):
     formset = MusImagesFormSet
 
 
-class MusemsTensorInline(admin.TabularInline):
+class MusemsTensorInline(nested_admin.NestedTabularInline):
     model = MusemsTensor
     min_number = 2
     extra = 0
@@ -81,21 +105,23 @@ class MusemsTensorInline(admin.TabularInline):
     exclude = ('synced',)
 
 
-class MusemsOpeningInline(admin.TabularInline):
+class MusemsOpeningInline(nested_admin.NestedTabularInline):
     model = OpenningTime
+    sortable_field_name = "weekday"
     min_number = 1
     extra = 0
 
 
-class MuseumLocalizationInline(admin.TabularInline):
+class MuseumLocalizationInline(nested_admin.NestedTabularInline):
     readonly_fields = ['updated_at']
+    sortable_field_name = "title"
     model = MuseumLocalization
     extra = 0
 
 
-class MuseumsAdmin(admin.ModelAdmin):
+class MuseumsAdmin(nested_admin.NestedModelAdmin):
     inlines = [MuseumLocalizationInline, MusemsOpeningInline,
-               MusemsTensorInline, MuseumsImagesInline]
+               MusemsTensorInline, MuseumsImagesInline, MuseumTourInline]
     readonly_fields = ['updated_at']
     exclude = ('synced',)
     formfield_overrides = {
@@ -273,8 +299,8 @@ class CollectionsInline(admin.TabularInline):
 class ChatsInline(admin.TabularInline):
     model = Chats
     extra = 0
-    readonly_fields = ['objects_item', 'last_step', 'history', 'finished', 'updated_at', 'sync_id']
-    fields = ('objects_item', 'last_step', 'history', 'finished', 'updated_at', 'sync_id')
+    readonly_fields = ['objects_item', 'last_step', 'history', 'finished', 'planned', 'updated_at', 'sync_id']
+    fields = ('objects_item', 'last_step', 'history', 'finished', 'planned', 'updated_at', 'sync_id')
     exclude = ('synced',)
 
 

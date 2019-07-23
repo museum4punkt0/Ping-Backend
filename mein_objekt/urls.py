@@ -19,6 +19,7 @@ from mein_objekt import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('nested_admin/', include('nested_admin.urls')),
     path('', include('main.urls'))
 ]
 

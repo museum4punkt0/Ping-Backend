@@ -67,6 +67,6 @@ class MuseumsView(viewsets.ReadOnlyModelViewSet):
         serialized = MuseumsSerializer(museums,
             fields=('opennings','museumimages',
              'sync_id', 'created_at', 'updated_at', 'museum_site_url',
-             'ratio_pixel_meter', 'localizations'), many=True)
+             'ratio_pixel_meter', 'localizations', 'tours'), many=True)
         return Response(serialized.data)
 

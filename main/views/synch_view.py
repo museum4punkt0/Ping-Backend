@@ -32,6 +32,7 @@ from main.models import (
 import logging
 
 from main.serializers import (
+    serialize_synch_data,
     CollectionsSerializer,
     UsersSerializer,
     SettingsSerializer,
@@ -58,292 +59,6 @@ from main.views.validators import (validate_chats,
 from main.variables import DEFAULT_MUSEUM
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.ERROR)
-
-def serialized_data(museum,
-                    user=None,
-                    settings=None,
-                    categories=None,
-                    foreign_museums=None):
-
-    data = {'museums': None,
-            'users': None,
-            'settings': None,
-            'deleted': None,
-            'foreign_objects': None}
-
-    # museum serialization
-    serialized_museum = MuseumsSerializer(museum).data
-    museum_table = {'sync_id': None,
-                    'floor_amount': None,
-                    'opennings': None,
-                    'tensor': [],
-                    'images': [],
-                    'objects': [],
-                    'categories': [],
-                    'museum_site_url': None,
-                    'ratio_pixel_meter': None,
-                    'localizations': []}
-
-    museum_table['sync_id'] = serialized_museum['sync_id']
-    museum_table['floor_amount'] = serialized_museum['floor_amount']
-    museum_table['opennings'] = serialized_museum['opennings']
-    museum_table['museum_site_url'] = serialized_museum['museum_site_url']
-    museum_table['ratio_pixel_meter'] = serialized_museum['ratio_pixel_meter']
-    museum_table['localizations'] = serialized_museum['localizations']
-
-    serialized_museumtensor = serialized_museum['museumtensor']
-    for tensor in serialized_museumtensor:
-        tensor_dict = {}
-        tensor_dict['tensor_flow_model'] = tensor['mobile_tensor_flow_model']
-        tensor_dict['tensor_flow_lables'] = tensor['mobile_tensor_flow_lables']
-        tensor_dict['sync_id'] = tensor['sync_id']
-        tensor_dict['created_at'] = tensor['created_at']
-        tensor_dict['updated_at'] = tensor['updated_at']
-
-        museum_table['tensor'].append(tensor_dict)
-
-
-    serialized_museumsimages = serialized_museum['museumimages']
-    for image in serialized_museumsimages:
-        image_dict = {}
-        image_dict['id'] = image['id']
-        image_dict['image_type'] = image['image_type']
-        image_dict['image'] = image['image']
-        image_dict['sync_id'] = image['sync_id']
-        image_dict['created_at'] = image['created_at']
-        image_dict['updated_at'] = image['updated_at']
-        museum_table['images'].append(image_dict)
-
-    serialized_objects_items = serialized_museum['objectsitems']
-    for item in serialized_objects_items:
-        item_table = {'id': None,
-                      'priority': None,
-                      'floor': None,
-                      'positionX': None,
-                      'positionY': None,
-                      'vip': None,
-                      'language_style': None,
-                      'avatar': None,
-                      'cropped_avatar': None,
-                      'onboarding': None,
-                      'object_map': None,
-                      'sync_id': None,
-                      'created_at': None,
-                      'updated_at': None,
-                      'localizations': [],
-                      'images': [],
-                      'semantic_relations': []}
-
-        item_table['id'] = item['id']
-        item_table['priority'] = item['priority']
-        item_table['floor'] = item['floor']
-        item_table['positionX'] = item['positionx']
-        item_table['positionY'] = item['positiony']
-        item_table['vip'] = item['vip']
-        item_table['language_style'] = item['language_style']
-        item_table['avatar'] = item['avatar']
-        item_table['cropped_avatar'] = item['cropped_avatar']
-        item_table['onboarding'] = item['onboarding']
-        item_table['object_map'] = item['object_map']
-        item_table['sync_id'] = item['sync_id']
-        item_table['created_at'] = item['created_at']
-        item_table['updated_at'] = item['updated_at']
-        item_table['semantic_relations'] = item['semantic_relation']
-
-        localizations = item['localizations']
-        for local in localizations:
-            local_dict = {}
-            local_dict['id'] = local['id']
-            local_dict['language'] = local['language']
-            local_dict['conversation'] = local['conversation']
-            local_dict['phrase'] = local['phrase']
-            local_dict['description'] = local['description']
-            local_dict['title'] = local['title']
-            local_dict['object_kind'] = local['object_kind']
-            local_dict['sync_id'] = local['sync_id']
-            local_dict['created_at'] = local['created_at']
-            local_dict['updated_at'] = local['updated_at']
-            item_table['localizations'].append(local_dict)
-
-        serialized_images = item['images']
-        for image in serialized_images:
-            image_dict = {}
-            image_dict['id'] = image['id']
-            image_dict['number'] = image['number']
-            image_dict['image'] = image['image']
-            image_dict['sync_id'] = image['sync_id']
-            image_dict['created_at'] = image['created_at']
-            image_dict['updated_at'] = image['updated_at']
-            item_table['images'].append(image_dict)
-        museum_table['objects'].append(item_table)
-
-    for category in categories:
-        serialized_category = CategoriesSerializer(category).data
-        category_table = {'id': None,
-                          'sync_object_ids': [],
-                          'localizations': [],
-                          'sync_id': None,
-                          'created_at': None,
-                          'updated_at': None}
-
-        category_table['id'] = serialized_category['id']
-
-        # objects = category.objectscategories_set.filter(objects_item__museum=museum)
-        objects = category.objectscategories_set.all()
-        category_table['sync_object_ids'] = [str(i.objects_item.sync_id) for i in objects]
-
-        localizations = serialized_category['localizations']
-        for local in localizations:
-            local_dict = {}
-            local_dict['id'] = local['id']
-            local_dict['language'] = local['language']
-            local_dict['title'] = local['title']
-            local_dict['sync_id'] = local['sync_id']
-            local_dict['created_at'] = local['created_at']
-            local_dict['updated_at'] = local['updated_at']
-            local_dict['description'] = local['description']
-            category_table['localizations'].append(local_dict)
-
-        category_table['sync_id'] = serialized_category['sync_id']
-        category_table['created_at'] = serialized_category['created_at']
-        category_table['updated_at'] = serialized_category['updated_at']
-        museum_table['categories'].append(category_table)
-
-    data['museums'] = museum_table
-
-    # user serialization
-    if user:
-        serialized_user = UsersSerializer(user).data
-        user_table = {'id': None,
-                      'name': None,
-                      'avatar': None,
-                      'category': None,
-                      'positionX': None,
-                      'positionY': None,
-                      'floor': None,
-                      'language': None,
-                      'language_style': None,
-                      'score': None,
-                      'sync_id': None,
-                      'created_at': None,
-                      'updated_at': None,
-                      'chats': [],
-                      'votings': [],
-                      'collections': []
-                      }
-
-        user_table['id'] = serialized_user['id']
-        user_table['name'] = serialized_user['name']
-        user_table['avatar'] = serialized_user['avatar']
-        user_table['category'] = serialized_user['category']
-        user_table['positionX'] = serialized_user['positionx']
-        user_table['positionY'] = serialized_user['positiony']
-        user_table['floor'] = serialized_user['floor']
-        user_table['language'] = serialized_user['language']
-        uls = getattr(user, 'userslanguagestyles', None)
-        language_style = getattr(uls, 'language_style', None)
-        score = getattr(uls, 'score', None)
-        user_table['language_style'] = language_style
-        user_table['score'] = score
-        user_table['sync_id'] = serialized_user['sync_id']
-        user_table['created_at'] = serialized_user['created_at']
-        user_table['updated_at'] = serialized_user['updated_at']
-
-        serialized_chats = serialized_user['chats']
-        for chat in serialized_chats:
-            chat_dict = {}
-            chat_dict['id'] = chat['id']
-            chat_dict['object_id'] = chat['objects_item']
-            chat_dict['last_step'] = chat['last_step']
-            chat_dict['finished'] = chat['finished']
-            chat_dict['history'] = chat['history']
-            chat_dict['sync_id'] = chat['sync_id']
-            chat_dict['created_at'] = chat['created_at']
-            chat_dict['updated_at'] = chat['updated_at']
-            user_table['chats'].append(chat_dict)
-
-        serialized_votings = serialized_user['votings']
-        for vote in serialized_votings:
-            vote_dict = {}
-            vote_dict['id'] = vote['id']
-            vote_dict['object_id'] = vote['objects_item']
-            vote_dict['vote'] = vote['vote']
-            vote_dict['sync_id'] = vote['sync_id']
-            vote_dict['created_at'] = vote['created_at']
-            vote_dict['updated_at'] = vote['updated_at']
-            user_table['votings'].append(vote_dict)
-
-        serialized_collections = serialized_user['collections']
-        for collection in serialized_collections:
-            collection_dict = {}
-            collection_dict['object_id'] = collection['objects_item']
-            collection_dict['image'] = collection['image']
-            collection_dict['category_id'] = collection['category']
-            collection_dict['sync_id'] = collection['sync_id']
-            collection_dict['created_at'] = collection['created_at']
-            collection_dict['updated_at'] = collection['updated_at']
-            collection_dict['museum_id'] = collection['museum_id']
-            user_table['collections'].append(collection_dict)
-        data['users'] = user_table
-    else:
-        data['users'] = None
-
-    # settings serialization
-    if settings:
-        serialized_settings = SettingsSerializer(settings).data
-        settings_table = {'id': None,
-                          'position_scores': None,
-                          'category_score': None,
-                          'exit_position': None,
-                          'likes_scores': None,
-                          'chat_scores': None,
-                          'predifined_objects': [],
-                          'priority_scores': None,
-                          'distance_scores': None,
-                          'predefined_categories': None,
-                          'predefined_avatars': None,
-                          'languages': [],
-                          'language_styles': [],
-                          'sync_id': None,
-                          'created_at': None,
-                          'updated_at': None,
-                          'site_url': None}
-
-        settings_table['position_scores'] = serialized_settings['position_score']
-        settings_table['category_score'] = serialized_settings['category_score']
-        settings_table['exit_position'] = serialized_settings['exit_position']
-        settings_table['likes_scores'] = serialized_settings['likes_score']
-        settings_table['chat_scores'] = serialized_settings['chat_score']
-        settings_table['predifined_objects'] = [str(i.predefined_object.sync_id) for i in settings.settingspredefinedobjectsitems_set.all()]
-        settings_table['priority_scores'] = serialized_settings['priority_score']
-        settings_table['distance_scores'] = serialized_settings['distance_score']
-        settings_table['predefined_avatars'] = [i['image'] for i in serialized_settings['predefined_avatars']]
-        settings_table['languages'] = serialized_settings['languages']
-        settings_table['language_styles'] = serialized_settings['language_styles']
-        settings_table['sync_id'] = serialized_settings['sync_id']
-        settings_table['created_at'] = serialized_settings['created_at']
-        settings_table['updated_at'] = serialized_settings['updated_at']
-        settings_table['site_url'] = serialized_settings['site_url']
-        data['settings'] = settings_table
-    else:
-        data['settings'] = None
-
-    f_objects = []
-    if foreign_museums:
-        for f_mus in foreign_museums:
-            serialized_museum = MuseumsSerializer(f_mus).data
-            f_objects.append(serialized_museum['objectsitems'])
-
-    data['foreign_objects'] = f_objects
-
-    deleted_table = {}
-    del_obj = DeletedItems.objects.all().order_by('-created_at')
-    if del_obj:
-        deleted_table['updated_at'] = del_obj[0].created_at
-
-    data['deleted'] = deleted_table
-
-    return data
 
 
 class Synchronization(APIView):
@@ -395,7 +110,7 @@ class Synchronization(APIView):
           return JsonResponse({'error': 'museums settings must be defined'},
                               safe=True, status=400)
 
-        return JsonResponse(serialized_data(museum, user, settings,
+        return JsonResponse(serialize_synch_data(museum, user, settings,
                                 categories, f_musems_to_serialize), safe=True)
 
     def post(self, request, format=None):
@@ -495,6 +210,7 @@ class Synchronization(APIView):
                         'objects_item': None,
                         'finished': None,
                         'history': None,
+                        'planned': None,
                         'last_step': None,
                         'sync_id': None,
                         'created_at': None,
@@ -506,6 +222,7 @@ class Synchronization(APIView):
                 ob_sync_id = chat.get('object_sync_id')
                 finished = chat.get('finished')
                 history = chat.get('history')
+                planned = chat.get('planned')
                 last_step = chat.get('last_step')
                 logging.info(f'POST CHAT \
                     ch_sync_id: {ch_sync_id, type(ch_sync_id)}, \
@@ -523,6 +240,7 @@ class Synchronization(APIView):
                                                          updated_at,
                                                          ob_sync_id,
                                                          finished,
+                                                         planned,
                                                          history,
                                                          last_step)
 
@@ -635,6 +353,7 @@ class Synchronization(APIView):
                         'objects_item': None,
                         'finished': None,
                         'history': None,
+                        'planned': None,
                         'last_step': None,
                         'sync_id': None,
                         'created_at': None,
@@ -645,7 +364,9 @@ class Synchronization(APIView):
                 ob_sync_id = chat.get('object_sync_id')
                 finished = chat.get('finished')
                 history = chat.get('history')
+                planned = chat.get('planned')
                 last_step = chat.get('last_step')
+
 
                 validated_data, errors = validate_chats('update',
                                                          data,
@@ -656,6 +377,7 @@ class Synchronization(APIView):
                                                          updated_at,
                                                          ob_sync_id,
                                                          finished,
+                                                         planned,
                                                          history,
                                                          last_step)
 
@@ -818,4 +540,4 @@ class Synchronization(APIView):
                 errors['update_errors'].append({'user': e.args})
                 return JsonResponse(errors, safe=True)
 
-        return JsonResponse(serialized_data(museum, settings=settings, categories=categories), safe=True)
+        return JsonResponse(serialize_synch_data(museum, settings=settings, categories=categories), safe=True)

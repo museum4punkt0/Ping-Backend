@@ -124,7 +124,8 @@ def fetch(request):
                         'images': [],
                         'objects': [],
                         'categories': [],
-                        'localizations': []}
+                        'localizations': [],
+                        'tours': []}
 
         museum_table['sync_id'] = s_museum['sync_id']
         museum_table['updated_at'] = s_museum['updated_at']
@@ -133,6 +134,11 @@ def fetch(request):
         for localizations in museum_localizations:
             localizations = MuseumLocalizationSerializer(localizations, fields=FETCH_FIELDS).data
             museum_table['localizations'].append(localizations)
+
+        museum_tours = museum.tours.all()
+        for tours in museum_tours:
+            tours = MuseumLocalizationSerializer(tours, fields=FETCH_FIELDS).data
+            museum_table['tours'].append(tours)
 
         tensors = museum.museumtensor.all()
         for tensor in tensors:
