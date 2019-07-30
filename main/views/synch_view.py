@@ -203,6 +203,13 @@ class Synchronization(APIView):
         up_collections = update_values.get('collections')
         up_user_data = update_values.get('user')
 
+        logging.info(f'POST chats: {chats}, \
+                       POST votings: {votings}, \
+                       POST collections: {collections}, \
+                       POST up_chats: {up_chats}, \
+                       POST up_votings: {up_votings}, \
+                       POST up_collections: {up_collections}, \
+                       POST up_user_data: {up_user_data}')
 
         if chats:
             for chat in chats:
