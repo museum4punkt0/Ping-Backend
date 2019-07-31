@@ -50,6 +50,7 @@ class MuseumsView(viewsets.ReadOnlyModelViewSet):
     serializer_class = ShortMuseumsSerializer
 
     def list(self, request):
+        located_museum = None
         try:
             latitude = float(request.GET.get('lat'))
             longitude = float(request.GET.get('lon'))
@@ -63,10 +64,15 @@ class MuseumsView(viewsets.ReadOnlyModelViewSet):
                     point))\
                     .order_by('distance')
             if MINIMAL_DISTANCE:
-                museums = museums.filter(distance__lte=MINIMAL_DISTANCE)
+                located_museum = museums.filter(distance__lte=MINIMAL_DISTANCE)
         serialized = MuseumsSerializer(museums,
             fields=('opennings','museumimages',
              'sync_id', 'created_at', 'updated_at', 'museum_site_url',
-             'ratio_pixel_meter', 'localizations', 'tours'), many=True)
-        return Response(serialized.data)
+             'ratio_pixel_meter', 'localizations', 'tours'), many=True).data
+        located_data = []
+
+        for i in serialized:
+            i['located'] = True if located_museum and i['sync_id'] == str(located_museum[0].sync_id) else False
+            located_data.append(i)
+        return Response(located_data)
 
