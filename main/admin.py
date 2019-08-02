@@ -107,14 +107,12 @@ class MusemsTensorInline(nested_admin.NestedTabularInline):
 
 class MusemsOpeningInline(nested_admin.NestedTabularInline):
     model = OpenningTime
-    sortable_field_name = "weekday"
     min_number = 1
     extra = 0
 
 
 class MuseumLocalizationInline(nested_admin.NestedTabularInline):
     readonly_fields = ['updated_at']
-    sortable_field_name = "title"
     model = MuseumLocalization
     extra = 0
 
