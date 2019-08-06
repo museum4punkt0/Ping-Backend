@@ -82,7 +82,7 @@ def get_image_path(instance, filename):
         if museum_name is None:
             item = getattr(instance, 'objects_item', None)
             if item:
-                museum_name = getattr(item, 'museum', None).name
+                museum_name = str(getattr(item, 'museum', None).sync_id)
                 object_syncid = getattr(item, 'sync_id', None)
         dir_name = f'Museum/{museum_name}'
         if instance.__class__.__name__ == 'MuseumsImages':
