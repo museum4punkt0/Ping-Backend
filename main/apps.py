@@ -9,7 +9,7 @@ class MainConfig(AppConfig):
 tensors = {}
 
 @receiver(connection_created)
-def my_receiver(connection, **kwargs):    
+def my_receiver(connection, **kwargs):
     if WSGI:
         from main.models import Museums
         museums = Museums.objects.all()
