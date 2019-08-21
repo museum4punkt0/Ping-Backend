@@ -24,7 +24,8 @@ from main.models import (
                      MuseumLocalization,
                      MuseumTour,
                      MuseumTourLocalization,
-                     TourObjectsItems
+                     TourObjectsItems,
+                     UserTour
                      )
 
 
@@ -104,6 +105,25 @@ class VotingsSerializer(serializers.ModelSerializer):
         fields = ('__all__')
 
 
+class UserTourSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField()
+
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop('fields', None)
+
+        super(UserTourSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            allowed = set(fields)
+            existing = set(self.fields)
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+    class Meta:
+        model = UserTour
+        fields = ('__all__')
+
+
 class UserCategoryField(serializers.RelatedField):
     def to_representation(self, value):
         return '{}'.format(value.sync_id)
@@ -114,6 +134,7 @@ class UsersSerializer(serializers.ModelSerializer):
     collections = CollectionsSerializer(many=True)
     votings = VotingsSerializer(many=True)
     category = UserCategoryField(read_only=True)
+    user_tours = UserTourSerializer(many=True)
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -130,7 +151,8 @@ class UsersSerializer(serializers.ModelSerializer):
         model = Users
         fields = ('id', 'name', 'device_id', 'category', 'positionx',
             'positiony', 'floor', 'language', 'avatar', 'sync_id', 'synced',
-            'created_at', 'updated_at', 'chats', 'collections', 'votings')
+            'created_at', 'updated_at', 'chats', 'collections', 'votings',
+            'user_tours')
 
 
 class PredefinedAvatarsSerializer(serializers.ModelSerializer):
@@ -694,7 +716,8 @@ def serialize_synch_data(museum,
                       'updated_at': None,
                       'chats': [],
                       'votings': [],
-                      'collections': []
+                      'collections': [],
+                      'tours': []
                       }
 
         user_table['id'] = serialized_user['id']
@@ -750,6 +773,15 @@ def serialize_synch_data(museum,
             collection_dict['updated_at'] = collection['updated_at']
             collection_dict['museum_id'] = collection['museum_id']
             user_table['collections'].append(collection_dict)
+
+        serialized_tours = serialized_user['user_tours']
+        for tour in serialized_tours:
+            tour_dict = {}
+            tour_dict['museumtour_sync_id'] = tour['museum_tour']
+            tour_dict['sync_id'] = tour['sync_id']
+            tour_dict['created_at'] = tour['created_at']
+            tour_dict['updated_at'] = tour['updated_at']
+            user_table['tours'].append(tour_dict)
         data['users'] = user_table
     else:
         data['users'] = None

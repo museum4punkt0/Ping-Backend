@@ -6,7 +6,7 @@ from rest_framework.test import APITestCase
 from django.test import TransactionTestCase
 
 from django.conf import settings
-from main.models import ObjectsItem, Chats, Votings, Users, Museums
+from main.models import ObjectsItem, Chats, Votings, Users, Museums, UserTour
 
 MEDIA_ROOT = os.path.join(settings.BASE_DIR, 'main/fixtures/media')
 settings.MEDIA_ROOT = MEDIA_ROOT
@@ -20,11 +20,12 @@ class TestSynchronization(APITestCase):
     def setUpTestData(cls):
         cls.url = reverse('synchronise')
         cls.t_user = 'test_user_id'
-        cls.museum_id = str(Museums.objects.first().sync_id)
+        cls.museum = Museums.objects.first()
+        cls.museum_id = str(cls.museum.sync_id)
         cls.url_for_post = cls.url + f'?user_id={cls.t_user}&museum_id={cls.museum_id}'
         cls.object_sync_id = ObjectsItem.objects.all().first().sync_id
         cls.date = '2019-04-18T16:08:41.439Z'
-
+        cls.museumtour_sync_id = cls.museum.tours.first().sync_id
         cls.chat = {
             "sync_id": str(uuid4()),
             "created_at": cls.date,
@@ -44,6 +45,12 @@ class TestSynchronization(APITestCase):
             "vote": False
         }
 
+        cls.tour = {
+            "sync_id": str(uuid4()),
+            "created_at": cls.date,
+            "updated_at": cls.date,
+            "museumtour_sync_id": str(cls.museumtour_sync_id),
+        }
     def test_synch_without_user_id(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 400)
@@ -104,7 +111,7 @@ class TestSynchronization(APITestCase):
         self.assertIsInstance(museum['opennings'], dict)
 
         # museum tour
-        self.assertEqual(len(museum['tours']), 2)
+        self.assertEqual(len(museum['tours']), 3)
         self.assertIsInstance(museum['tours'][0]['sync_id'], str)
         self.assertIsInstance(museum['tours'][0]['created_at'], str)
         self.assertIsInstance(museum['tours'][0]['updated_at'], str)
@@ -218,6 +225,23 @@ class TestSynchronization(APITestCase):
         self.assertEqual(response.status_code, 200)
         voting_count = Votings.objects.count()
         self.assertEqual(voting_count, 2)
+
+    def test_add_tours(self):
+        self.client.get(self.url, {'user_id': self.t_user,
+                                   'museum_id': self.museum_id})
+        data = {
+            "add": {"tours": [self.tour]},
+            "delete": {},
+            "get": {},
+            "update": {}
+        }
+
+        tour_count = UserTour.objects.count()
+        self.assertEqual(tour_count, 0)
+        response = self.client.post(self.url_for_post, {'data': json.dumps(data)}, format='multipart')
+        self.assertEqual(response.status_code, 200)
+        tour_count = UserTour.objects.count()
+        self.assertEqual(tour_count, 1)
 
     def test_update_chats(self):
         self.client.get(self.url, {'user_id': self.t_user,
