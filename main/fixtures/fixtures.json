@@ -1045,5 +1045,174 @@
         "created_at": "2019-07-11T14:25:42.531Z",
         "updated_at": "2019-07-11T14:25:42.531Z"
     }
+},
+{
+    "model": "main.museumtour",
+    "pk": 5,
+    "fields": {
+        "museum": 2,
+        "sync_id": "227e9c3e-9c3d-4b73-840f-17f2c1729da6",
+        "created_at": "2019-07-11T14:22:57.589Z",
+        "updated_at": "2019-07-11T14:22:57.589Z"
+    }
+},
+{
+    "model": "main.museumtour",
+    "pk": 6,
+    "fields": {
+        "museum": 2,
+        "sync_id": "b2e47ec6-af8a-4402-ad9c-3e6fe45131d8",
+        "created_at": "2019-07-11T14:23:31.578Z",
+        "updated_at": "2019-07-11T14:23:31.578Z"
+    }
+},
+{
+    "model": "main.museumtour",
+    "pk": 7,
+    "fields": {
+        "museum": 2,
+        "sync_id": "f4dc3ec5-c421-4f6a-90a2-274102817bd7",
+        "created_at": "2019-07-12T13:23:12.962Z",
+        "updated_at": "2019-07-12T13:23:12.962Z"
+    }
+},
+{
+    "model": "main.museumtour",
+    "pk": 8,
+    "fields": {
+        "museum": 3,
+        "sync_id": "3938d4b7-a560-4cb0-a632-5facc917204f",
+        "created_at": "2019-08-13T12:04:47.532Z",
+        "updated_at": "2019-08-13T12:04:47.532Z"
+    }
+},
+{
+    "model": "main.museumtourlocalization",
+    "pk": 3,
+    "fields": {
+        "tour": 5,
+        "language": "en",
+        "title": "English tour",
+        "description": "qwqef",
+        "sync_id": "3831b156-36bd-4f9c-aec3-ac1f134d4da3",
+        "created_at": "2019-07-11T14:22:57.590Z",
+        "updated_at": "2019-07-11T14:22:57.590Z"
+    }
+},
+{
+    "model": "main.museumtourlocalization",
+    "pk": 4,
+    "fields": {
+        "tour": 6,
+        "language": "en",
+        "title": "Test title",
+        "description": "Test descr",
+        "sync_id": "9e382d51-5c93-455d-aeab-e1911c61e3f9",
+        "created_at": "2019-07-11T14:23:31.584Z",
+        "updated_at": "2019-07-11T14:23:31.584Z"
+    }
+},
+{
+    "model": "main.museumtourlocalization",
+    "pk": 5,
+    "fields": {
+        "tour": 7,
+        "language": "en",
+        "title": "Test local 3",
+        "description": "Test description",
+        "sync_id": "63c3b494-7d88-4290-84da-db7f93109eb1",
+        "created_at": "2019-07-12T13:23:12.977Z",
+        "updated_at": "2019-07-12T13:23:12.977Z"
+    }
+},
+{
+    "model": "main.museumtourlocalization",
+    "pk": 6,
+    "fields": {
+        "tour": 8,
+        "language": "en",
+        "title": "English tour",
+        "description": "SeDEscr",
+        "sync_id": "36480840-3bdf-4810-b485-a51b95a9f7f5",
+        "created_at": "2019-08-13T12:04:47.535Z",
+        "updated_at": "2019-08-13T12:04:47.535Z"
+    }
+},
+{
+    "model": "main.tourobjectsitems",
+    "pk": 5,
+    "fields": {
+        "tour": 5,
+        "tour_object": 15,
+        "sync_id": "52185840-0b48-4277-835c-39ffcc2524d7",
+        "created_at": "2019-07-11T14:22:57.592Z",
+        "updated_at": "2019-07-11T14:22:57.592Z"
+    }
+},
+{
+    "model": "main.tourobjectsitems",
+    "pk": 6,
+    "fields": {
+        "tour": 5,
+        "tour_object": 15,
+        "sync_id": "4317a147-92ec-4446-9129-43690b5ed274",
+        "created_at": "2019-07-11T14:22:57.593Z",
+        "updated_at": "2019-07-11T14:22:57.593Z"
+    }
+},
+{
+    "model": "main.tourobjectsitems",
+    "pk": 7,
+    "fields": {
+        "tour": 6,
+        "tour_object": 15,
+        "sync_id": "9286268f-32b3-49be-afe3-cb4147980e30",
+        "created_at": "2019-07-11T14:23:31.591Z",
+        "updated_at": "2019-07-11T14:23:31.591Z"
+    }
+},
+{
+    "model": "main.tourobjectsitems",
+    "pk": 9,
+    "fields": {
+        "tour": 6,
+        "tour_object": 38,
+        "sync_id": "2fa4b223-5b9f-4183-b424-1f547b418dcb",
+        "created_at": "2019-07-11T14:25:42.531Z",
+        "updated_at": "2019-07-11T14:25:42.531Z"
+    }
+},
+{
+    "model": "main.tourobjectsitems",
+    "pk": 10,
+    "fields": {
+        "tour": 7,
+        "tour_object": 32,
+        "sync_id": "58b0062d-53fe-4a8a-b80b-088cce394f9e",
+        "created_at": "2019-07-12T13:23:12.996Z",
+        "updated_at": "2019-07-12T13:23:12.996Z"
+    }
+},
+{
+    "model": "main.tourobjectsitems",
+    "pk": 11,
+    "fields": {
+        "tour": 7,
+        "tour_object": 31,
+        "sync_id": "bd4cbe8d-c569-4491-9c70-8328f9cabe29",
+        "created_at": "2019-07-12T13:23:12.997Z",
+        "updated_at": "2019-07-12T13:23:12.997Z"
+    }
+},
+{
+    "model": "main.tourobjectsitems",
+    "pk": 12,
+    "fields": {
+        "tour": 8,
+        "tour_object": 17,
+        "sync_id": "630524bf-3171-445a-a2c6-2b3779ae42ea",
+        "created_at": "2019-08-13T12:04:47.537Z",
+        "updated_at": "2019-08-13T12:04:47.537Z"
+    }
 }
 ]

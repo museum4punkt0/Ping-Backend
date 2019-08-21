@@ -19,7 +19,7 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     ObjectsMap, MusemsTensor, SemanticRelationLocalization, \
                     SemanticRelation, OpenningTime, MuseumLocalization, \
                     MuseumTour, MuseumTourLocalization, TourObjectsItems, \
-                    ObjectsTensorImage
+                    ObjectsTensorImage, UserTour
 
 import nested_admin
 import boto3
@@ -133,7 +133,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
     change_form_template = "admin/main/objectsitem/create_model.html"
     inlines = [MuseumLocalizationInline, MusemsOpeningInline,
                MuseumsImagesInline, MuseumTourInline, MusemsTensorInline]
-    readonly_fields = ['updated_at']
+    readonly_fields = ['updated_at', 'sync_id']
     exclude = ('synced',)
     formfield_overrides = {
         models.PointField: {"widget": GooglePointFieldWidget}
@@ -409,10 +409,16 @@ class ChatsInline(admin.TabularInline):
     fields = ('objects_item', 'last_step', 'history', 'finished', 'planned', 'updated_at', 'sync_id')
     exclude = ('synced',)
 
+class UserTourInline(admin.TabularInline):
+    model = UserTour
+    extra = 0
+    readonly_fields = ['museum_tour', 'updated_at', 'sync_id']
+    fields = ('museum_tour', 'updated_at', 'sync_id', )
+    exclude = ('synced',)
 
 class UsersAdmin(admin.ModelAdmin):
     inlines = [UsersLanguageStylesInline, VotingsInline, CollectionsInline,
-               ChatsInline]
+               ChatsInline, UserTourInline]
     list_display = ['name', 'device_id']
     readonly_fields = ['name', 'avatar', 'device_id', 'category', 'positionx', 'positiony', 'floor', 'language', 'updated_at']
     exclude = ('synced',)

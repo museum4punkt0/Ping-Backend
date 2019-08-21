@@ -487,6 +487,25 @@ class TourObjectsItems(models.Model):
         return f'{self.id}'
 
 
+class UserTour(models.Model):
+    user = models.ForeignKey(Users, models.CASCADE, blank=True, null=True,
+                               related_name='user_tours',
+                               related_query_name='user_tours')
+    museum_tour = models.ForeignKey(MuseumTour, models.CASCADE,
+                               related_name='user_tour',
+                               related_query_name='user_tour')
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(UserTour, self).save(*args, **kwargs)
+
+
 class SemanticRelation(models.Model):
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     from_object_item = models.ForeignKey(ObjectsItem,

@@ -86,7 +86,8 @@ def fetch(request):
                       'updated_at': None,
                       'chats': [],
                       'votings': [],
-                      'collections': []}
+                      'collections': [],
+                      'tours': []}
 
         user_table['sync_id'] = s_user['sync_id']
         user_table['updated_at'] = s_user['updated_at']
@@ -115,6 +116,13 @@ def fetch(request):
             collection_dict['updated_at'] = s_collection['updated_at']
             user_table['collections'].append(collection_dict)
 
+        tours = user.user_tours.all()
+        for tour in tours:
+            s_tour = ObjectsItemSerializer(tour, fields=FETCH_FIELDS).data
+            tour_dict = {}
+            tour_dict['sync_id'] = s_tour['sync_id']
+            tour_dict['updated_at'] = s_tour['updated_at']
+            user_table['tours'].append(tour_dict)
         data['users'] = user_table
 
         s_museum = MuseumsSerializer(museum, fields=FETCH_FIELDS).data

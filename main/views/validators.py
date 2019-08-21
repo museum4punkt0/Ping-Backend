@@ -11,7 +11,8 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import JsonResponse
 from django.conf import settings
 
-from main.models import ObjectsItem, Chats, Votings, Collections, Categories, UsersLanguageStyles, LOCALIZATIONS_CHOICES, LANGUEAGE_STYLE_CHOICES
+from main.models import ObjectsItem, Chats, Votings, Collections, Categories, \
+             UsersLanguageStyles, UserTour, MuseumTour, LOCALIZATIONS_CHOICES, LANGUEAGE_STYLE_CHOICES
 
 POSITION_RANGE = {'x': (0, 500), 'y': (0, 999)}
 
@@ -45,7 +46,16 @@ def validate_common_fields(entity_name, data, action, sync_ids=None, o_model=Non
     else:
         errors.append({f'{entity_name}': f'Value "updated_at" for {entity_name} {entity_sync_id} is required'})
 
-    if entity_name == 'user':
+    if action == 'add':
+        if o_model.objects.filter(sync_id=entity_sync_id):
+            errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist'})
+
+        if data['sync_id'] in sync_ids:
+            errors.append({f'{entity_name}': f'Sync id {data["sync_id"]} in {entity_name} data sets must be unique'})
+        else:
+            sync_ids.append(data['sync_id'])
+
+    if entity_name in ['user', 'tour']:
         return errors
     else:
         if ob_sync_id:
@@ -63,14 +73,6 @@ def validate_common_fields(entity_name, data, action, sync_ids=None, o_model=Non
         else:
             errors.append({f'{entity_name}': f'Inappropriate or absent objects sync_id: {uuid_obj}'})
 
-        if action == 'add':
-            if o_model.objects.filter(sync_id=entity_sync_id):
-                errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist'})
-
-            if data['sync_id'] in sync_ids:
-                errors.append({f'{entity_name}': f'Sync id {data["sync_id"]} in {entity_name} data sets must be unique'})
-            else:
-                sync_ids.append(data['sync_id'])
 
     return errors
 
@@ -312,8 +314,9 @@ def validate_user(action,
         try:
             px = int(positionx)
             data['positionx'] = px
-            if not POSITION_RANGE['x'][0] <= px <= POSITION_RANGE['x'][1]:
-                errors[f'{action}_errors'].append({'user': f'"positionx"  value for user {us_sync_id} sync_id must be in range {POSITION_RANGE["x"]}'})
+            # TODO improve position validation
+            # if not POSITION_RANGE['x'][0] <= px <= POSITION_RANGE['x'][1]:
+            #     errors[f'{action}_errors'].append({'user': f'"positionx"  value for user {us_sync_id} sync_id must be in range {POSITION_RANGE["x"]}'})
         except:
             errors[f'{action}_errors'].append({'user': f'Inappropriate "positionx" integer value for user {us_sync_id} sync_id'})
     else:
@@ -323,8 +326,9 @@ def validate_user(action,
         try:
             py = int(positiony)
             data['positiony'] = py
-            if not POSITION_RANGE['y'][0] <= py <= POSITION_RANGE['y'][1]:
-                errors[f'{action}_errors'].append({'user': f'"positiony"  value for user {us_sync_id} sync_id must be in range {POSITION_RANGE["y"]}'})
+            # TODO improve position validation
+            # if not POSITION_RANGE['y'][0] <= py <= POSITION_RANGE['y'][1]:
+            #     errors[f'{action}_errors'].append({'user': f'"positiony"  value for user {us_sync_id} sync_id must be in range {POSITION_RANGE["y"]}'})
         except:
             errors[f'{action}_errors'].append({'user': f'Inappropriate "positiony" integer value for user {us_sync_id} sync_id'})
     else:
@@ -363,3 +367,46 @@ def validate_user(action,
 
     return data, errors
 
+
+def validate_tours(action,
+                   data,
+                   user,
+                   errors,
+                   tr_sync_id,
+                   created_at,
+                   updated_at,
+                   museumtour_sync_id):
+
+    trsync_ids = []
+    c_errors = validate_common_fields('tour',
+                                       data,
+                                       action,
+                                       o_model=UserTour,
+                                       sync_ids=trsync_ids,
+                                       entity_sync_id=tr_sync_id,
+                                       created_at=created_at,
+                                       updated_at=updated_at)
+
+    errors[f'{action}_errors'].extend(c_errors)
+
+    if len(errors[f'{action}_errors']) > 0:
+        return None, errors
+
+    if museumtour_sync_id:
+        try:
+            uuid_obj = uuid.UUID(museumtour_sync_id, version=4)
+        except ValueError as e:
+            errors.append({f'{entity_name}': f'Inappropriate "museum_tour sync id": {museumtour_sync_id} uuid for {entity_name} sync_id, {e.args}'})
+            return errors
+    else:
+        errors.append({f'{entity_name}': 'Sync id for museum tour is required'})
+
+    museum_tour = MuseumTour.objects.filter(sync_id=uuid_obj).first()
+    if museum_tour:
+        data['museum_tour'] = museum_tour
+    else:
+        errors.append({f'{entity_name}': f'Inappropriate or absent museum tour sync_id: {uuid_obj}'})
+
+    data['user'] = user
+
+    return data, errors

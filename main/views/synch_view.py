@@ -27,7 +27,8 @@ from main.models import (
     MuseumsImages,
     ObjectsLocalizations,
     ObjectsImages,
-    DeletedItems
+    DeletedItems,
+    UserTour
 )
 import logging
 
@@ -54,7 +55,8 @@ from main.serializers import (
 from main.views.validators import (validate_chats,
                                    validate_votings,
                                    validate_collections,
-                                   validate_user
+                                   validate_user,
+                                   validate_tours
                                    )
 from main.variables import DEFAULT_MUSEUM
 
@@ -190,25 +192,31 @@ class Synchronization(APIView):
         chats = add_values.get('chats')
         votings = add_values.get('votings')
         collections = add_values.get('collections')
+        tours = add_values.get('tours')
 
         chats_objects = []
         votings_objects = []
         collections_objects = []
+        tours_objects = []
 
         chats_data = []
         votings_data = []
+        tours_data = []
 
         up_chats = update_values.get('chats')
         up_votings = update_values.get('votings')
         up_collections = update_values.get('collections')
+        up_tours = update_values.get('tours')
         up_user_data = update_values.get('user')
 
         logging.info(f'POST chats: {chats}, \
                        POST votings: {votings}, \
                        POST collections: {collections}, \
+                       POST collections: {tours}, \
                        POST up_chats: {up_chats}, \
                        POST up_votings: {up_votings}, \
                        POST up_collections: {up_collections}, \
+                       POST up_collections: {up_tours}, \
                        POST up_user_data: {up_user_data}')
 
         if chats:
@@ -343,8 +351,39 @@ class Synchronization(APIView):
                 if len(errors['add_errors']) > 0:
                     return JsonResponse(errors, safe=True, status=400)
 
-        table = {'chats': chats_objects, 'votings': votings_objects,
-                 'collections': collections_objects}
+
+        if tours:
+            for tour in tours:
+                data = {'user': None,
+                        'museum_tour': None,
+                        'sync_id': None,
+                        'created_at': None,
+                        'updated_at': None}
+
+                tr_sync_id = tour.get('sync_id')
+                created_at = tour.get('created_at')
+                updated_at = tour.get('updated_at')
+                mus_tr_sync_id = tour.get('museumtour_sync_id')
+
+                validated_data, errors = validate_tours('add',
+                                                         data,
+                                                         user,
+                                                         errors,
+                                                         tr_sync_id,
+                                                         created_at,
+                                                         updated_at,
+                                                         mus_tr_sync_id)
+                if len(errors['add_errors']) > 0:
+                    return JsonResponse(errors, safe=True, status=400)
+                try:
+                    tours_objects.append(UserTour(**validated_data))
+                except Exception as e:
+                    errors['add_errors'].append({'vote': e.args})
+
+        table = {'chats': chats_objects,
+                 'votings': votings_objects,
+                 'collections': collections_objects,
+                 'tours': tours_objects}
 
         for name, lst in table.items():
             for item in lst:
@@ -467,8 +506,39 @@ class Synchronization(APIView):
                         errors['update_errors'].append({'collection': e.args})
                         return JsonResponse(errors, safe=True)
 
+
+
+        if up_tours:
+            for tour in up_tours:
+                data = {'user': None,
+                        'museum_tour': None,
+                        'sync_id': None,
+                        'created_at': None,
+                        'updated_at': None}
+
+                tr_sync_id = tour.get('sync_id')
+                created_at = tour.get('created_at')
+                updated_at = tour.get('updated_at')
+                mus_tr_sync_id = tour.get('museumtour_sync_id')
+
+                validated_data, errors = validate_tours('update',
+                                                         data,
+                                                         user,
+                                                         errors,
+                                                         tr_sync_id,
+                                                         created_at,
+                                                         updated_at,
+                                                         mus_tr_sync_id)
+                if len(errors['add_errors']) > 0:
+                    return JsonResponse(errors, safe=True, status=400)
+                try:
+                    tours_objects.append(UserTour(**validated_data))
+                except Exception as e:
+                    errors['add_errors'].append({'vote': e.args})
+
         table = {'chats': [Chats, chats_data],
-                 'votings': [Votings, votings_data]}
+                 'votings': [Votings, votings_data],
+                 'tours': [UserTour, tours_data]}
 
         for name, lst in table.items():
             for data in lst[1]:
