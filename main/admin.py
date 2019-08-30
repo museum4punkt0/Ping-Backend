@@ -182,9 +182,9 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                         logging.info('Mobile Instance stopped')
                         s3_client = boto3.client('s3')
                         model_name = 'museum_mobile_v1_224_graph.pb'
-                        label_name = 'example_backend_mobile_v2_224_labels.txt'
+                        label_name = 'museum_mobile_1_224_labels_2.txt'
                         model_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'trained_model/{model_name}')
-                        label_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'trained_label/{label_name}')
+                        label_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'labels/{label_name}')
                         model_contents = model_data['Body'].read()
                         label_contents = label_data['Body'].read()
                         mobile_tensor = ContentFile(model_contents)
@@ -213,7 +213,19 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                     except WaiterError:
                         #TODO add same as mobile tesor model instance save
                         logging.info('Backend Instance stopped')
+                        s3_client = boto3.client('s3')
+                        model_name = 'example_backend_mobile_v2_224_graph.pb'
+                        label_name = 'example_backend_mobile_v2_224_labels.txt'
+                        model_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'trained_graph/{model_name}')
+                        label_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'trained_label/{label_name}')
+                        model_contents = model_data['Body'].read()
+                        label_contents = label_data['Body'].read()
+                        backend_tensor = ContentFile(model_contents)
+                        backend_label = ContentFile(label_contents)
+
                         mus_tensor.tensor_status = TENSOR_STATUSES['ready']
+                        mus_tensor.tensor_flow_model.save(model_name, backend_tensor)
+                        mus_tensor.tensor_flow_lables.save(label_name, backend_label)
                         mus_tensor.save()
                         if mus_tensor.mobile_tensor_status == TENSOR_STATUSES['ready']:
                             try:
