@@ -1,16 +1,15 @@
 import os
 import sys
+from environ import Env
+
+env = Env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', default=None)
+SECRET_KEY = env('DJANGO_SECRET_KEY', default=None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -18,7 +17,6 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -31,7 +29,9 @@ INSTALLED_APPS = [
     'storages',
     'django_nose',
     'django.contrib.gis',
-    'mapwidgets'
+    'mapwidgets',
+    'nested_admin',
+    'admin_tools',
     # 'debug_toolbar'
 ]
 
@@ -53,8 +53,8 @@ ROOT_URLCONF = 'mein_objekt.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'APP_DIRS': False,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -62,10 +62,17 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'loaders': [
+                'admin_tools.template_loaders.Loader',
+                ('django.template.loaders.cached.Loader', [
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+                ]),
+            ],
+
         },
     },
 ]
-
 WSGI_APPLICATION = 'mein_objekt.wsgi.application'
 
 WSGI = 'django.core.wsgi' in sys.modules
@@ -73,11 +80,11 @@ WSGI = 'django.core.wsgi' in sys.modules
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.environ.get('POSTGRES_NAME', default=None),
-        'USER' : os.environ.get('POSTGRES_USER', default=None),
-        'PASSWORD' : os.environ.get('POSTGRES_PASSWORD', default=None),
-        'HOST' : os.environ.get('POSTGRES_HOST', default=None),
-        'PORT' : os.environ.get('POSTGRES_PORT', default=5432),
+        'NAME': env('POSTGRES_NAME', default=None),
+        'USER' : env('POSTGRES_USER', default=None),
+        'PASSWORD' : env('POSTGRES_PASSWORD', default=None),
+        'HOST' : env('POSTGRES_HOST', default=None),
+        'PORT' : env('POSTGRES_PORT', default=5432),
         'TEST': {'NAME': 'mytestdatabase'}
     }
 }

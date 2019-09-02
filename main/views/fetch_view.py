@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.core.exceptions import ValidationError
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -61,13 +62,19 @@ def fetch(request):
             logging.error(f'Existing user id must be provided, device id: {user_id}')
             return JsonResponse({'error': 'Existing user id must be provided'},
                                 safe=True, status=400)
+
         if museum_id:
-            museum = Museums.objects.get(sync_id=museum_id)
-            settings = getattr(museum, 'settings')
+            try:
+                museum = Museums.objects.get(sync_id=museum_id)
+                settings = getattr(museum, 'settings')
+            except (Museums.DoesNotExist, ValidationError):
+                return JsonResponse({'error': 'Museum not found'}, status=404)
         else:
             logging.error(f'Museum id must be provided')
-            return JsonResponse({'error': 'Existing museum id must be provided'},
-                                safe=True, status=400)
+            return JsonResponse(
+                {'error': 'Existing museum id must be provided'},
+                safe=True, status=400)
+
 
         data = {'museums': None,
                 'users': None,
@@ -79,7 +86,8 @@ def fetch(request):
                       'updated_at': None,
                       'chats': [],
                       'votings': [],
-                      'collections': []}
+                      'collections': [],
+                      'tours': []}
 
         user_table['sync_id'] = s_user['sync_id']
         user_table['updated_at'] = s_user['updated_at']
@@ -108,6 +116,13 @@ def fetch(request):
             collection_dict['updated_at'] = s_collection['updated_at']
             user_table['collections'].append(collection_dict)
 
+        tours = user.user_tours.all()
+        for tour in tours:
+            s_tour = ObjectsItemSerializer(tour, fields=FETCH_FIELDS).data
+            tour_dict = {}
+            tour_dict['sync_id'] = s_tour['sync_id']
+            tour_dict['updated_at'] = s_tour['updated_at']
+            user_table['tours'].append(tour_dict)
         data['users'] = user_table
 
         s_museum = MuseumsSerializer(museum, fields=FETCH_FIELDS).data
@@ -117,7 +132,8 @@ def fetch(request):
                         'images': [],
                         'objects': [],
                         'categories': [],
-                        'localizations': []}
+                        'localizations': [],
+                        'tours': []}
 
         museum_table['sync_id'] = s_museum['sync_id']
         museum_table['updated_at'] = s_museum['updated_at']
@@ -126,6 +142,11 @@ def fetch(request):
         for localizations in museum_localizations:
             localizations = MuseumLocalizationSerializer(localizations, fields=FETCH_FIELDS).data
             museum_table['localizations'].append(localizations)
+
+        museum_tours = museum.tours.all()
+        for tours in museum_tours:
+            tours = MuseumLocalizationSerializer(tours, fields=FETCH_FIELDS).data
+            museum_table['tours'].append(tours)
 
         tensors = museum.museumtensor.all()
         for tensor in tensors:

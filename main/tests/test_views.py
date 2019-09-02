@@ -1,11 +1,12 @@
 import os
+import json
 from uuid import uuid4
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from django.test import TransactionTestCase
 
 from django.conf import settings
-from main.models import ObjectsItem, Chats, Votings, Users, Museums
+from main.models import ObjectsItem, Chats, Votings, Users, Museums, UserTour
 
 MEDIA_ROOT = os.path.join(settings.BASE_DIR, 'main/fixtures/media')
 settings.MEDIA_ROOT = MEDIA_ROOT
@@ -19,11 +20,12 @@ class TestSynchronization(APITestCase):
     def setUpTestData(cls):
         cls.url = reverse('synchronise')
         cls.t_user = 'test_user_id'
-        cls.museum_id = str(Museums.objects.first().sync_id)
+        cls.museum = Museums.objects.first()
+        cls.museum_id = str(cls.museum.sync_id)
         cls.url_for_post = cls.url + f'?user_id={cls.t_user}&museum_id={cls.museum_id}'
         cls.object_sync_id = ObjectsItem.objects.all().first().sync_id
         cls.date = '2019-04-18T16:08:41.439Z'
-
+        cls.museumtour_sync_id = cls.museum.tours.first().sync_id
         cls.chat = {
             "sync_id": str(uuid4()),
             "created_at": cls.date,
@@ -31,7 +33,8 @@ class TestSynchronization(APITestCase):
             "object_sync_id": str(cls.object_sync_id),
             "finished": False,
             "last_step": False,
-            "history": False
+            "history": False,
+            "planned": True
         }
 
         cls.voting = {
@@ -42,6 +45,12 @@ class TestSynchronization(APITestCase):
             "vote": False
         }
 
+        cls.tour = {
+            "sync_id": str(uuid4()),
+            "created_at": cls.date,
+            "updated_at": cls.date,
+            "museumtour_sync_id": str(cls.museumtour_sync_id),
+        }
     def test_synch_without_user_id(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 400)
@@ -101,6 +110,20 @@ class TestSynchronization(APITestCase):
         self.assertIsInstance(museum['images'][0]['sync_id'], str)
         self.assertIsInstance(museum['opennings'], dict)
 
+        # museum tour
+        self.assertEqual(len(museum['tours']), 3)
+        self.assertIsInstance(museum['tours'][0]['sync_id'], str)
+        self.assertIsInstance(museum['tours'][0]['created_at'], str)
+        self.assertIsInstance(museum['tours'][0]['updated_at'], str)
+        for tour in museum['tours']:
+            for tour_object in tour['tourobjects']:
+                self.assertIn(tour_object, [i['sync_id'] for i in museum['objects']])
+        self.assertIsInstance(museum['tours'][0]['localizations'][0], dict)
+        self.assertIsInstance(museum['tours'][0]['localizations'][0]['sync_id'], str)
+        self.assertIsInstance(museum['tours'][0]['localizations'][0]['language'], str)
+        self.assertIsInstance(museum['tours'][0]['localizations'][0]['description'], str)
+        self.assertIsInstance(museum['tours'][0]['localizations'][0]['title'], str)
+
         # museum_object
         self.assertIsInstance(object_item['sync_id'], str)
         self.assertIsInstance(object_item['id'], int)
@@ -130,13 +153,6 @@ class TestSynchronization(APITestCase):
         self.assertIsInstance(object_item['images'][0]['sync_id'], str)
         self.assertIsInstance(object_item['images'][0]['image'], (str, type(None)))
         self.assertIsInstance(object_item['images'][0]['number'], int)
-
-        # museum_object_semantic_relations
-        semantic_relations = object_item['semantic_relations'][0]
-        self.assertIsInstance(semantic_relations['object_item_id'], str)
-        self.assertIsInstance(semantic_relations['localizations'], list)
-        self.assertIsInstance(semantic_relations['localizations'][0]['language'], str)
-        self.assertIsInstance(semantic_relations['localizations'][0]['description'], str)
 
         # museum_category
         self.assertIsInstance(category['id'], int)
@@ -176,12 +192,6 @@ class TestSynchronization(APITestCase):
         self.assertIsInstance(_settings['languages'], list)
         self.assertIsInstance(_settings['language_styles'], list)
 
-    def test_post_synch_without_data(self):
-        self.client.get(self.url, {'user_id': self.t_user,
-                                   'museum_id': self.museum_id})
-        response = self.client.post(self.url_for_post)
-        self.assertEqual(response.status_code, 400)
-
     def test_add_chats(self):
         self.client.get(self.url, {'user_id': self.t_user,
                                    'museum_id': self.museum_id})
@@ -194,7 +204,7 @@ class TestSynchronization(APITestCase):
 
         chats_count = Chats.objects.count()
         self.assertEqual(chats_count, 1)
-        response = self.client.post(self.url_for_post, data, format='json')
+        response = self.client.post(self.url_for_post, {'data': json.dumps(data)}, format='multipart')
         self.assertEqual(response.status_code, 200)
         chats_count = Chats.objects.count()
         self.assertEqual(chats_count, 2)
@@ -211,10 +221,27 @@ class TestSynchronization(APITestCase):
 
         voting_count = Votings.objects.count()
         self.assertEqual(voting_count, 1)
-        response = self.client.post(self.url_for_post, data, format='json')
+        response = self.client.post(self.url_for_post, {'data': json.dumps(data)}, format='multipart')
         self.assertEqual(response.status_code, 200)
         voting_count = Votings.objects.count()
         self.assertEqual(voting_count, 2)
+
+    def test_add_tours(self):
+        self.client.get(self.url, {'user_id': self.t_user,
+                                   'museum_id': self.museum_id})
+        data = {
+            "add": {"tours": [self.tour]},
+            "delete": {},
+            "get": {},
+            "update": {}
+        }
+
+        tour_count = UserTour.objects.count()
+        self.assertEqual(tour_count, 0)
+        response = self.client.post(self.url_for_post, {'data': json.dumps(data)}, format='multipart')
+        self.assertEqual(response.status_code, 200)
+        tour_count = UserTour.objects.count()
+        self.assertEqual(tour_count, 1)
 
     def test_update_chats(self):
         self.client.get(self.url, {'user_id': self.t_user,
@@ -226,7 +253,7 @@ class TestSynchronization(APITestCase):
             "update": {}
         }
 
-        self.client.post(self.url_for_post, data, format='json')
+        self.client.post(self.url_for_post, {'data': json.dumps(data)}, format='multipart')
 
         chat_finished = Chats.objects.all()[1].finished
         self.assertFalse(chat_finished)
@@ -241,7 +268,7 @@ class TestSynchronization(APITestCase):
             "update": {"chats": [chat]}
         }
 
-        response = self.client.post(self.url_for_post, data, format='json')
+        response = self.client.post(self.url_for_post, {'data': json.dumps(data)}, format='multipart')
         self.assertEqual(response.status_code, 200)
         chat_finished = Chats.objects.all()[0].finished
         self.assertTrue(chat_finished)
@@ -286,6 +313,10 @@ class TestFetch(APITestCase):
         # museum_image
         self.assertIsInstance(museum['images'][0]['updated_at'], str)
         self.assertIsInstance(museum['images'][0]['sync_id'], str)
+
+        # museum_tour
+        self.assertIsInstance(museum['tours'][0]['updated_at'], str)
+        self.assertIsInstance(museum['tours'][0]['sync_id'], str)
 
         # museum_object
         self.assertIsInstance(object_item['sync_id'], str)

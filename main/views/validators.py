@@ -7,10 +7,12 @@ import json
 from io import BytesIO
 from PIL import Image
 from django.core.files.temp import NamedTemporaryFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.http import JsonResponse
 from django.conf import settings
 
-from main.models import ObjectsItem, Chats, Votings, Collections, Categories, UsersLanguageStyles, LOCALIZATIONS_CHOICES, LANGUEAGE_STYLE_CHOICES
+from main.models import ObjectsItem, Chats, Votings, Collections, Categories, \
+             UsersLanguageStyles, UserTour, MuseumTour, LOCALIZATIONS_CHOICES, LANGUEAGE_STYLE_CHOICES
 
 POSITION_RANGE = {'x': (0, 500), 'y': (0, 999)}
 
@@ -44,7 +46,16 @@ def validate_common_fields(entity_name, data, action, sync_ids=None, o_model=Non
     else:
         errors.append({f'{entity_name}': f'Value "updated_at" for {entity_name} {entity_sync_id} is required'})
 
-    if entity_name == 'user':
+    if action == 'add':
+        if o_model.objects.filter(sync_id=entity_sync_id):
+            errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist'})
+
+        if data['sync_id'] in sync_ids:
+            errors.append({f'{entity_name}': f'Sync id {data["sync_id"]} in {entity_name} data sets must be unique'})
+        else:
+            sync_ids.append(data['sync_id'])
+
+    if entity_name in ['user', 'tour']:
         return errors
     else:
         if ob_sync_id:
@@ -62,14 +73,6 @@ def validate_common_fields(entity_name, data, action, sync_ids=None, o_model=Non
         else:
             errors.append({f'{entity_name}': f'Inappropriate or absent objects sync_id: {uuid_obj}'})
 
-        if action == 'add':
-            if o_model.objects.filter(sync_id=entity_sync_id):
-                errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist'})
-
-            if data['sync_id'] in sync_ids:
-                errors.append({f'{entity_name}': f'Sync id {data["sync_id"]} in {entity_name} data sets must be unique'})
-            else:
-                sync_ids.append(data['sync_id'])
 
     return errors
 
@@ -82,6 +85,7 @@ def validate_chats(action,
                    updated_at,
                    ob_sync_id,
                    finished,
+                   planned,
                    history,
                    last_step):
 
@@ -118,6 +122,19 @@ def validate_chats(action,
         data['history'] = history
     else:
         errors[f'{action}_errors'].append({'chat': f'Value "history" for chat {ch_sync_id} is required'})
+
+    if planned is not None:
+        if isinstance(planned, str):
+            try:
+                bl = bool(distutils.util.strtobool(planned))
+                data['planned'] = bl
+            except Exception as ex:
+                logging.error(f'Inappropriate "planned":{ex} bool value for chat {ch_sync_id} sync_id')
+                errors[f'{action}_errors'].append({'chat': f'Inappropriate "planned" bool value for chat {ch_sync_id} sync_id'})
+        elif isinstance(planned, bool):
+            data['planned'] = planned
+    else:
+        errors[f'{action}_errors'].append({'chat': f'Value "planned" for chat {ch_sync_id} is required'})
 
     if last_step is not None:
         try:
@@ -202,18 +219,11 @@ def validate_collections(action,
         return None, errors
 
     if image:
-        try:
-            img_data = base64.b64decode(image)
-            image_buffer = BytesIO(img_data)
-            pil_image = Image.open(image_buffer)
-            image_buffer = BytesIO()
-            pil_image.save(image_buffer, "PNG")
-            img_temp = NamedTemporaryFile(delete=True)
-            img_temp.write(image_buffer.getvalue())
-            img_temp.name = f'{settings.MEDIA_ROOT}/{str(cl_sync_id)}/image.jpg'
-            data['image'] = img_temp
-        except:
-            errors[f'{action}_errors'].append({'collection': f'Inappropriate "image" encoding for collection {cl_sync_id} sync_id'})
+        if isinstance(image, InMemoryUploadedFile):
+            image.name = f'{settings.MEDIA_ROOT}/{str(cl_sync_id)}/image.jpg'
+            data['image'] = image
+        else:
+            errors[f'{action}_errors'].append({'collection': f'Image must be jpg or png format'})
     else:
         errors[f'{action}_errors'].append({'collection': f'Value "image" for collection {cl_sync_id} is required'})
 
@@ -282,18 +292,11 @@ def validate_user(action,
         data['name'] = str(name)
 
     if avatar:
-        try:
-            img_data = base64.b64decode(avatar)
-            image_buffer = BytesIO(img_data)
-            pil_image = Image.open(image_buffer)
-            image_buffer = BytesIO()
-            pil_image.save(image_buffer, "PNG")
-            img_temp = NamedTemporaryFile(delete=True)
-            img_temp.write(image_buffer.getvalue())
-            img_temp.name = f'/Users/{str(us_sync_id)}/image_{us_sync_id}.jpg'
-            data['avatar'] = img_temp
-        except:
-            errors[f'{action}_errors'].append({'user': f'Inappropriate "avatar" encoding for user {us_sync_id} sync_id'})
+        if isinstance(avatar, InMemoryUploadedFile):
+            avatar.name = f'{settings.MEDIA_ROOT}/{str(us_sync_id)}/image.jpg'
+            data['avatar'] = avatar
+        else:
+            errors[f'{action}_errors'].append({'user': f'Image must be jpg or png format'})
 
     if category:
         try:
@@ -311,8 +314,9 @@ def validate_user(action,
         try:
             px = int(positionx)
             data['positionx'] = px
-            if not POSITION_RANGE['x'][0] <= px <= POSITION_RANGE['x'][1]:
-                errors[f'{action}_errors'].append({'user': f'"positionx"  value for user {us_sync_id} sync_id must be in range {POSITION_RANGE["x"]}'})
+            # TODO improve position validation
+            # if not POSITION_RANGE['x'][0] <= px <= POSITION_RANGE['x'][1]:
+            #     errors[f'{action}_errors'].append({'user': f'"positionx"  value for user {us_sync_id} sync_id must be in range {POSITION_RANGE["x"]}'})
         except:
             errors[f'{action}_errors'].append({'user': f'Inappropriate "positionx" integer value for user {us_sync_id} sync_id'})
     else:
@@ -322,8 +326,9 @@ def validate_user(action,
         try:
             py = int(positiony)
             data['positiony'] = py
-            if not POSITION_RANGE['y'][0] <= py <= POSITION_RANGE['y'][1]:
-                errors[f'{action}_errors'].append({'user': f'"positiony"  value for user {us_sync_id} sync_id must be in range {POSITION_RANGE["y"]}'})
+            # TODO improve position validation
+            # if not POSITION_RANGE['y'][0] <= py <= POSITION_RANGE['y'][1]:
+            #     errors[f'{action}_errors'].append({'user': f'"positiony"  value for user {us_sync_id} sync_id must be in range {POSITION_RANGE["y"]}'})
         except:
             errors[f'{action}_errors'].append({'user': f'Inappropriate "positiony" integer value for user {us_sync_id} sync_id'})
     else:
@@ -362,3 +367,46 @@ def validate_user(action,
 
     return data, errors
 
+
+def validate_tours(action,
+                   data,
+                   user,
+                   errors,
+                   tr_sync_id,
+                   created_at,
+                   updated_at,
+                   museumtour_sync_id):
+
+    trsync_ids = []
+    c_errors = validate_common_fields('tour',
+                                       data,
+                                       action,
+                                       o_model=UserTour,
+                                       sync_ids=trsync_ids,
+                                       entity_sync_id=tr_sync_id,
+                                       created_at=created_at,
+                                       updated_at=updated_at)
+
+    errors[f'{action}_errors'].extend(c_errors)
+
+    if len(errors[f'{action}_errors']) > 0:
+        return None, errors
+
+    if museumtour_sync_id:
+        try:
+            uuid_obj = uuid.UUID(museumtour_sync_id, version=4)
+        except ValueError as e:
+            errors.append({f'{entity_name}': f'Inappropriate "museum_tour sync id": {museumtour_sync_id} uuid for {entity_name} sync_id, {e.args}'})
+            return errors
+    else:
+        errors.append({f'{entity_name}': 'Sync id for museum tour is required'})
+
+    museum_tour = MuseumTour.objects.filter(sync_id=uuid_obj).first()
+    if museum_tour:
+        data['museum_tour'] = museum_tour
+    else:
+        errors.append({f'{entity_name}': f'Inappropriate or absent museum tour sync_id: {uuid_obj}'})
+
+    data['user'] = user
+
+    return data, errors
