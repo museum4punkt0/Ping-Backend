@@ -20,6 +20,6 @@ RUN pip3 install -r ${APP_PATH}/requirements.txt \
   && mkdir -p /var/log/uwsgi \
   && touch access.log \
   && touch error.log
-RUN python manage.py collectstatic --noinput
 WORKDIR ${APP_PATH}
+RUN python manage.py collectstatic --noinput
 EXPOSE 8000
