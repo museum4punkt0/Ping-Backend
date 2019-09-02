@@ -3,8 +3,6 @@ from .base import *
 
 DEBUG = True
 
-DEBUG_PROPAGATE_EXCEPTIONS = True
-
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID', default=None)
