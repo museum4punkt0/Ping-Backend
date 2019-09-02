@@ -42,7 +42,7 @@ function build_push_image() {
   envsubst < deploy/docker/filebeat/filebeat > deploy/docker/filebeat/filebeat.yml
   docker build -t 081960884429.dkr.ecr.eu-central-1.amazonaws.com/"${ENVIRONMENT}"_images:filebeat_"${CIRCLE_WORKFLOW_ID}" deploy/docker/filebeat/.
   docker build -t 081960884429.dkr.ecr.eu-central-1.amazonaws.com/"${ENVIRONMENT}"_images:nginx_"${CIRCLE_WORKFLOW_ID}" deploy/docker/nginx/.
-  docker build -t 081960884429.dkr.ecr.eu-central-1.amazonaws.com/"${ENVIRONMENT}"_images:python_"${CIRCLE_WORKFLOW_ID}" .
+  docker build -t 081960884429.dkr.ecr.eu-central-1.amazonaws.com/"${ENVIRONMENT}"_images:python_"${CIRCLE_WORKFLOW_ID}" --build-arg ENVIRONMENT="${ENVIRONMENT}" .
   docker push 081960884429.dkr.ecr.eu-central-1.amazonaws.com/"${ENVIRONMENT}"_images:filebeat_"${CIRCLE_WORKFLOW_ID}"
   docker push 081960884429.dkr.ecr.eu-central-1.amazonaws.com/"${ENVIRONMENT}"_images:python_"${CIRCLE_WORKFLOW_ID}"
   docker push 081960884429.dkr.ecr.eu-central-1.amazonaws.com/"${ENVIRONMENT}"_images:nginx_"${CIRCLE_WORKFLOW_ID}"
