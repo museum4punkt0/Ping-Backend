@@ -22,5 +22,6 @@ RUN pip3 install -r ${APP_PATH}/requirements.txt \
   && touch access.log \
   && touch error.log
 WORKDIR ${APP_PATH}
+RUN echo "$ENVIRONMENT"
 RUN python ${APP_PATH}/manage.py collectstatic --noinput
 EXPOSE 8000
