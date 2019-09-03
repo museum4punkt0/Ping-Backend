@@ -13,6 +13,7 @@ ARG AWS_S3_REGION_NAME
 ARG AWS_S3_SIGNATURE_VERSION
 ARG AWS_SECRET_ACCESS_KEY
 ARG AWS_STORAGE_BUCKET_NAME
+ARG ENVIRONMENT
 
 RUN mkdir -p ${APP_PATH}
 COPY . ${APP_PATH}
@@ -21,4 +22,5 @@ RUN pip3 install -r ${APP_PATH}/requirements.txt \
   && touch access.log \
   && touch error.log
 WORKDIR ${APP_PATH}
+RUN python ${APP_PATH}/manage.py collectstatic --noinput
 EXPOSE 8000
