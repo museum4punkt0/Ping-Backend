@@ -20,7 +20,7 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     SemanticRelation, OpenningTime, MuseumLocalization, \
                     MuseumTour, MuseumTourLocalization, TourObjectsItems, \
                     ObjectsTensorImage, UserTour
-
+import json
 import nested_admin
 import boto3
 import time
@@ -28,6 +28,7 @@ from timeloop import Timeloop
 from datetime import timedelta
 import logging
 from botocore.exceptions import WaiterError
+from collections import defaultdict
 
 admin.site.site_header = "Museums Admin"
 admin.site.site_title = "Museums Admin"
@@ -77,14 +78,14 @@ class MusImagesFormSet(BaseInlineFormSet):
             raise ValidationError('There must be one image with type "logo"!')
 
 
-class MuseumTourLocalizationInline(nested_admin.NestedTabularInline):
+class MuseumTourLocalizationInline(MinValidatedInlineMixIn, nested_admin.NestedTabularInline):
     model = MuseumTourLocalization
     min_number = 1
     extra = 0
     readonly_fields = ['updated_at']
 
 
-class TourObjectsItemsInline(nested_admin.NestedTabularInline):
+class TourObjectsItemsInline(MinValidatedInlineMixIn, nested_admin.NestedTabularInline):
     model = TourObjectsItems
     min_number = 1
     extra = 0
@@ -100,7 +101,6 @@ class MuseumTourInline(nested_admin.NestedTabularInline):
 
 class MuseumsImagesInline(nested_admin.NestedTabularInline):
     model = MuseumsImages
-    min_number = 2
     extra = 0
     readonly_fields = ['updated_at']
     exclude = ('synced',)
@@ -109,7 +109,6 @@ class MuseumsImagesInline(nested_admin.NestedTabularInline):
 
 class MusemsTensorInline(nested_admin.NestedTabularInline):
     model = MusemsTensor
-    min_number = 2
     extra = 0
     exclude = ('synced', 'mobile_tensor_status', 'tensor_status')
 
@@ -117,16 +116,17 @@ class MusemsTensorInline(nested_admin.NestedTabularInline):
         return False
 
 
-class MusemsOpeningInline(nested_admin.NestedTabularInline):
+class MusemsOpeningInline(MinValidatedInlineMixIn, nested_admin.NestedTabularInline):
     model = OpenningTime
-    min_number = 1
-    extra = 0
+    min_number = 0
+    extra = 1
 
 
-class MuseumLocalizationInline(nested_admin.NestedTabularInline):
+class MuseumLocalizationInline(MinValidatedInlineMixIn, nested_admin.NestedTabularInline):
     readonly_fields = ['updated_at']
     model = MuseumLocalization
     extra = 0
+    min_number = 1
 
 
 class MuseumsAdmin(nested_admin.NestedModelAdmin):
@@ -138,6 +138,23 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
     formfield_overrides = {
         models.PointField: {"widget": GooglePointFieldWidget}
     }
+
+    def _fetch_model(self, model_name, label_name, museum, mus_tensor, request):
+        s3_resource = boto3.resource('s3')
+        s3_client = boto3.client('s3')
+        try:
+            model_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'{museum.sync_id}/model/graph/{model_name}')
+            label_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'{museum.sync_id}/model/label/{label_name}')
+        except s3_client.exceptions.NoSuchKey:
+            logging.error("Failed to generate a model")
+            data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'stopped'})
+            s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
+            mus_tensor.tensor_status = TENSOR_STATUSES['error']
+            mus_tensor.mobile_tensor_status = TENSOR_STATUSES['error']
+            mus_tensor.save()
+            model_data, label_data = None, None
+        return model_data, label_data, 
+
     def response_change(self, request, obj):
         if "_create_model" in request.POST:
             client = boto3.client('ec2')
@@ -148,92 +165,160 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
             mus_tensor = museum.museumtensor.first()
             if not mus_tensor:
                 mus_tensor = MusemsTensor.objects.create(museum=museum)
+
+            s3_resource = boto3.resource('s3')
+            s3_client = boto3.client('s3')
+
+            # check dataset and validate it
             try:
-                response = client.start_instances(
-                    InstanceIds=[
-                        mobile_instance_id,
-                        backend_instance_id
-                    ],
-                    DryRun=False
-                )
-                pass
+                response = s3_client.list_objects(Bucket='mein-objekt-tensorflow', Prefix=f'{museum.sync_id}/dataset')
             except:
-                logging.error('Failed to start tensor instance')
-                messages.info(request, "Failed to start images processing into the new Tensorflow model")
+                logging('Unsuccess images number validation')
             else:
-                mus_tensor.tensor_status = TENSOR_STATUSES['processing']
-                mus_tensor.mobile_tensor_status = TENSOR_STATUSES['processing']
-                mus_tensor.save()
-                logging.info('Tensor flow processing started')
-                self.message_user(request, "The objects tensor images are processing into new Tensorflow model")
+                if not response.get('Contents', []):
+                    messages.add_message(request, messages.INFO, 'No images found for museum TensorFlow model generation\
+                                                                  Add at least 20 images for each object that you \
+                                                                  want to be discoverable')
+                    return HttpResponseRedirect(".")
+                items_images = defaultdict(int)
+                for i in response.get('Contents', []):
+                    item = list(filter(lambda x: x != '', i['Key'].split('/')))
+                    filtered_o_item = ObjectsItem.objects.filter(museum=museum).filter(sync_id=item[2])
+                    if len(item) > 3 and filtered_o_item:
+                        if item[3].split('.')[-1] not in ['jpg', 'jpeg', 'JPEG']:
+                            messages.add_message(request, messages.INFO, 'All objects items images must be in jpeg format')
+                            return HttpResponseRedirect(".")
+                        items_images[item[2]] += 1
+                less_then_20 = {i:k for i,k in items_images.items() if k < 20}
+                if less_then_20:
+                    messages.add_message(request, messages.INFO, f'At least 20 images must be uploaded for these \
+                                                                   objects: {list(less_then_20.keys())}. Check if \
+                                                                   some images may have same name or be added twice \
+                                                                   (There must be 20 images with unique names)')
+                    return HttpResponseRedirect(".")
+            # check instance info if is not used by other museum
+            instance_info = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key='instance_info.json')
+            instance_dict = json.loads(instance_info['Body'].read().decode('utf-8'))            
+            if instance_dict['status'] == 'stopped':
+                try:
+                    # create dummy file because necessary directories for tensor instance
+                    data = 'dummy_data'
+                    s3_resource.Object('mein-objekt-tensorflow', f'{museum.sync_id}/model/graph/dummy.txt').put(Body=data)
+                    s3_resource.Object('mein-objekt-tensorflow', f'{museum.sync_id}/model/label/dummy.txt').put(Body=data)
+                    logging.info('S3 directories created')
 
-                tl = Timeloop()
-                @tl.job(interval=timedelta(seconds=150))
-                def mobile_waiter_job():
-                    try:
-                        waiter = client.get_waiter('instance_status_ok')
-                        waiter.wait(InstanceIds=[mobile_instance_id],
-                                    WaiterConfig={
-                                        'Delay': 25,
-                                        'MaxAttempts': 3
-                                    })
-                        logging.info("Mobile Instance working")
-                    except WaiterError:
-                        logging.info('Mobile Instance stopped')
-                        s3_client = boto3.client('s3')
-                        model_name = 'museum_mobile_v1_224_graph.pb'
-                        label_name = 'museum_mobile_1_224_labels_2.txt'
-                        model_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'trained_model/{model_name}')
-                        label_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'labels/{label_name}')
-                        model_contents = model_data['Body'].read()
-                        label_contents = label_data['Body'].read()
-                        mobile_tensor = ContentFile(model_contents)
-                        mobile_label = ContentFile(label_contents)
+                    # switch instance state to running
+                    data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'running'})
+                    s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
 
-                        mus_tensor.mobile_tensor_status = TENSOR_STATUSES['ready']
-                        mus_tensor.mobile_tensor_flow_model.save(model_name, mobile_tensor)
-                        mus_tensor.mobile_tensor_flow_lables.save(label_name, mobile_label)
-                        mus_tensor.save()
-                        if mus_tensor.tensor_status == TENSOR_STATUSES['ready']:
-                            try:
-                                tl.stop()
-                            except:
-                                logging.info('Checking workers stopped')
+                    # run instances
+                    response = client.start_instances(  
+                        InstanceIds=[
+                            mobile_instance_id,
+                            backend_instance_id
+                        ],
+                        DryRun=False
+                    )
+                except:
+                    logging.error('Failed to start tensor instance')
+                    messages.info(request, "Failed to start images processing, \
+                                            please try later")
+                else:
+                    mus_tensor.tensor_status = TENSOR_STATUSES['processing']
+                    mus_tensor.mobile_tensor_status = TENSOR_STATUSES['processing']
+                    mus_tensor.save()
+                    logging.info('Tensor flow processing started')
+                    self.message_user(request, "Museum objects images are now processing into new Tensorflow model")
 
-                @tl.job(interval=timedelta(seconds=150))
-                def backend_waiter_job():
-                    try:
-                        waiter = client.get_waiter('instance_status_ok')
-                        waiter.wait(InstanceIds=[backend_instance_id],
-                                    WaiterConfig={
-                                        'Delay': 25,
-                                        'MaxAttempts': 3
-                                    })
-                        logging.info("Backend Instance working")
-                    except WaiterError:
-                        #TODO add same as mobile tesor model instance save
-                        logging.info('Backend Instance stopped')
-                        s3_client = boto3.client('s3')
-                        model_name = 'example_backend_mobile_v2_224_graph.pb'
-                        label_name = 'example_backend_mobile_v2_224_labels.txt'
-                        model_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'trained_graph/{model_name}')
-                        label_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'trained_label/{label_name}')
-                        model_contents = model_data['Body'].read()
-                        label_contents = label_data['Body'].read()
-                        backend_tensor = ContentFile(model_contents)
-                        backend_label = ContentFile(label_contents)
+                    tl = Timeloop()
+                    @tl.job(interval=timedelta(seconds=150))
+                    def mobile_waiter_job():
+                        try:
+                            # check if model generate completed
+                            waiter = client.get_waiter('instance_status_ok')
+                            waiter.wait(InstanceIds=[mobile_instance_id],
+                                        WaiterConfig={
+                                            'Delay': 25,
+                                            'MaxAttempts': 3
+                                        })
+                            logging.info("Mobile Instance working")
+                        except:
+                            logging.info('Mobile Instance stopped')
+                            model_name = 'mobile_graph.pb'
+                            label_name = 'mobile_label.txt'
 
-                        mus_tensor.tensor_status = TENSOR_STATUSES['ready']
-                        mus_tensor.tensor_flow_model.save(model_name, backend_tensor)
-                        mus_tensor.tensor_flow_lables.save(label_name, backend_label)
-                        mus_tensor.save()
-                        if mus_tensor.mobile_tensor_status == TENSOR_STATUSES['ready']:
-                            try:
-                                tl.stop()
-                            except:
-                                logging.info('Checking workers stopped')
+                            # check if models created
+                            model_data, label_data = self._fetch_model(model_name, label_name, museum, mus_tensor, request)
+                            if not model_data and not label_data:
+                                try:
+                                    tl.stop()
+                                except:
+                                    return
+                            # save models to django models
+                            model_contents = model_data['Body'].read()
+                            label_contents = label_data['Body'].read()
+                            mobile_tensor = ContentFile(model_contents)
+                            mobile_label = ContentFile(label_contents)
+
+                            mus_tensor.mobile_tensor_status = TENSOR_STATUSES['ready']
+                            mus_tensor.mobile_tensor_flow_model.save(model_name, mobile_tensor)
+                            mus_tensor.mobile_tensor_flow_lables.save(label_name, mobile_label)
+                            mus_tensor.save()
+
+                            # stop workers if both models created 
+                            if mus_tensor.tensor_status == TENSOR_STATUSES['ready']:
+                                try:
+                                    tl.stop()
+                                except:
+                                    data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'stopped'})
+                                    s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
+                                    logging.info('Checking workers stopped')
+
+                    @tl.job(interval=timedelta(seconds=150))
+                    def backend_waiter_job():
+                        try:
+                            # check if model generate completed
+                            waiter = client.get_waiter('instance_status_ok')
+                            waiter.wait(InstanceIds=[backend_instance_id],
+                                        WaiterConfig={
+                                            'Delay': 25,
+                                            'MaxAttempts': 35  
+                                        })
+                            logging.info("Backend Instance working")
+                        except:
+                            logging.info('Backend Instance stopped')
+                            s3_client = boto3.client('s3')
+                            model_name = 'backend_graph.pb'
+                            label_name = 'backend_label.txt'
+                            # check if models created
+                            model_data, label_data = self._fetch_model(model_name, label_name, museum, mus_tensor, request)
+                            if not model_data and not label_data:
+                                try:
+                                    tl.stop()
+                                except:
+                                    return
+                            # save models to django models                            
+                            model_contents = model_data['Body'].read()
+                            label_contents = label_data['Body'].read()
+                            backend_tensor = ContentFile(model_contents)
+                            backend_label = ContentFile(label_contents)
+
+                            mus_tensor.tensor_status = TENSOR_STATUSES['ready']
+                            mus_tensor.tensor_flow_model.save(model_name, backend_tensor)
+                            mus_tensor.tensor_flow_lables.save(label_name, backend_label)
+                            mus_tensor.save()
+                            if mus_tensor.mobile_tensor_status == TENSOR_STATUSES['ready']:
+                                try:
+                                    tl.stop()
+                                except:
+                                    data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'stopped'})
+                                    s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
+                                    logging.info('Checking workers stopped')
                 tl.start()
-
+            else:
+                messages.add_message(request, messages.INFO, 'Other museum images are being processing now \
+                                                              please repeat in 20 minutes')
+                return HttpResponseRedirect(".")
             return HttpResponseRedirect(".")
         return super().response_change(request, obj)
 
