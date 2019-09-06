@@ -22,6 +22,9 @@ from storages.backends.s3boto3 import S3Boto3Storage
 import boto3
 import logging
 
+
+storing = boto3.setup_default_session(region_name='eu-central-1')
+
 LANGUEAGE_STYLE_CHOICES = Choices(
         ('easy', 'Easy'),
         ('fun', 'Fun'),
