@@ -210,10 +210,6 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                     s3_resource.Object('mein-objekt-tensorflow', f'{museum.sync_id}/model/label/dummy.txt').put(Body=data)
                     logger.info('S3 directories created')
 
-                    # switch instance state to running
-                    data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'running'})
-                    s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
-
                     # run instances
                     response = client.start_instances(  
                         InstanceIds=[
@@ -226,7 +222,11 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                     logger.error('Failed to start tensor instance')
                     messages.info(request, "Failed to start images processing, \
                                             please try later")
+                    return HttpResponseRedirect(".")
                 else:
+                    # switch instance state to running
+                    data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'running'})
+                    s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
                     mus_tensor.tensor_status = TENSOR_STATUSES['processing']
                     mus_tensor.mobile_tensor_status = TENSOR_STATUSES['processing']
                     mus_tensor.save()
@@ -317,7 +317,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                                     data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'stopped'})
                                     s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
                                     logger.info('Checking workers stopped')
-                tl.start()
+                    tl.start()
             else:
                 messages.add_message(request, messages.WARNING, 'Other museum images are being processing now \
                                                               please repeat in 20 minutes')

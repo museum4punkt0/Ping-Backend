@@ -61,15 +61,15 @@ from main.views.validators import (validate_chats,
 from main.variables import DEFAULT_MUSEUM
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
-
 logger = logging.getLogger('django')
+
+
 class Synchronization(APIView):
 
     def get(self, request, format=None):
         user_id = request.GET.get('user_id', None)
         museum_id = request.GET.get('museum_id', None)
         user = None
-
         if user_id:
             try:
                 user = Users.objects.get(device_id=user_id)
