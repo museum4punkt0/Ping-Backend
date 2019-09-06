@@ -33,6 +33,9 @@ from collections import defaultdict
 admin.site.site_header = "Museums Admin"
 admin.site.site_title = "Museums Admin"
 
+logger = logging.getLogger('django')
+
+
 class MinValidatedInlineMixIn:
     validate_min = True
     def get_formset(self, *args, **kwargs):
@@ -146,7 +149,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
             model_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'{museum.sync_id}/model/graph/{model_name}')
             label_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'{museum.sync_id}/model/label/{label_name}')
         except s3_client.exceptions.NoSuchKey:
-            logging.error("Failed to generate a model")
+            logger.error("Failed to generate a model")
             data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'stopped'})
             s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
             mus_tensor.tensor_status = TENSOR_STATUSES['error']
@@ -173,10 +176,10 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
             try:
                 response = s3_client.list_objects(Bucket='mein-objekt-tensorflow', Prefix=f'{museum.sync_id}/dataset')
             except:
-                logging('Unsuccess images number validation')
+                logger('Unsuccess images number validation')
             else:
                 if not response.get('Contents', []):
-                    messages.add_message(request, messages.INFO, 'No images found for museum TensorFlow model generation\
+                    messages.add_message(request, messages.WARNING, 'No images found for museum TensorFlow model generation\
                                                                   Add at least 20 images for each object that you \
                                                                   want to be discoverable')
                     return HttpResponseRedirect(".")
@@ -186,12 +189,12 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                     filtered_o_item = ObjectsItem.objects.filter(museum=museum).filter(sync_id=item[2])
                     if len(item) > 3 and filtered_o_item:
                         if item[3].split('.')[-1] not in ['jpg', 'jpeg', 'JPEG']:
-                            messages.add_message(request, messages.INFO, 'All objects items images must be in jpeg format')
+                            messages.add_message(request, messages.WARNING, 'All objects items images must be in jpeg format')
                             return HttpResponseRedirect(".")
                         items_images[item[2]] += 1
                 less_then_20 = {i:k for i,k in items_images.items() if k < 20}
                 if less_then_20:
-                    messages.add_message(request, messages.INFO, f'At least 20 images must be uploaded for these \
+                    messages.add_message(request, messages.WARNING, f'At least 20 images must be uploaded for these \
                                                                    objects: {list(less_then_20.keys())}. Check if \
                                                                    some images may have same name or be added twice \
                                                                    (There must be 20 images with unique names)')
@@ -205,7 +208,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                     data = 'dummy_data'
                     s3_resource.Object('mein-objekt-tensorflow', f'{museum.sync_id}/model/graph/dummy.txt').put(Body=data)
                     s3_resource.Object('mein-objekt-tensorflow', f'{museum.sync_id}/model/label/dummy.txt').put(Body=data)
-                    logging.info('S3 directories created')
+                    logger.info('S3 directories created')
 
                     # switch instance state to running
                     data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'running'})
@@ -220,14 +223,14 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                         DryRun=False
                     )
                 except:
-                    logging.error('Failed to start tensor instance')
+                    logger.error('Failed to start tensor instance')
                     messages.info(request, "Failed to start images processing, \
                                             please try later")
                 else:
                     mus_tensor.tensor_status = TENSOR_STATUSES['processing']
                     mus_tensor.mobile_tensor_status = TENSOR_STATUSES['processing']
                     mus_tensor.save()
-                    logging.info('Tensor flow processing started')
+                    logger.info('Tensor flow processing started')
                     self.message_user(request, "Museum objects images are now processing into new Tensorflow model")
 
                     tl = Timeloop()
@@ -241,9 +244,9 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                                             'Delay': 25,
                                             'MaxAttempts': 3
                                         })
-                            logging.info("Mobile Instance working")
+                            logger.info("Mobile Instance working")
                         except:
-                            logging.info('Mobile Instance stopped')
+                            logger.info('Mobile Instance stopped')
                             model_name = 'mobile_graph.pb'
                             label_name = 'mobile_label.txt'
 
@@ -272,7 +275,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                                 except:
                                     data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'stopped'})
                                     s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
-                                    logging.info('Checking workers stopped')
+                                    logger.info('Checking workers stopped')
 
                     @tl.job(interval=timedelta(seconds=150))
                     def backend_waiter_job():
@@ -284,9 +287,9 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                                             'Delay': 25,
                                             'MaxAttempts': 35  
                                         })
-                            logging.info("Backend Instance working")
+                            logger.info("Backend Instance working")
                         except:
-                            logging.info('Backend Instance stopped')
+                            logger.info('Backend Instance stopped')
                             s3_client = boto3.client('s3')
                             model_name = 'backend_graph.pb'
                             label_name = 'backend_label.txt'
@@ -313,10 +316,10 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                                 except:
                                     data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'stopped'})
                                     s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
-                                    logging.info('Checking workers stopped')
+                                    logger.info('Checking workers stopped')
                 tl.start()
             else:
-                messages.add_message(request, messages.INFO, 'Other museum images are being processing now \
+                messages.add_message(request, messages.WARNING, 'Other museum images are being processing now \
                                                               please repeat in 20 minutes')
                 return HttpResponseRedirect(".")
             return HttpResponseRedirect(".")

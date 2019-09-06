@@ -60,9 +60,9 @@ from main.views.validators import (validate_chats,
                                    )
 from main.variables import DEFAULT_MUSEUM
 
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.ERROR)
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
-
+logger = logging.getLogger('django')
 class Synchronization(APIView):
 
     def get(self, request, format=None):
@@ -76,7 +76,7 @@ class Synchronization(APIView):
             except:
                 user = Users.objects.create(device_id=user_id)
         else:
-            logging.error(f'User id must be provided')
+            logger.error(f'User id must be provided')
             return JsonResponse({'error': 'Existing user id must be provided'},
                                 safe=True, status=400)
         if museum_id:
@@ -86,7 +86,7 @@ class Synchronization(APIView):
             except (Museums.DoesNotExist, ValidationError):
                 return JsonResponse({'error': 'Museum not found'}, status=404)
         else:
-            logging.error(f'Museum id must be provided')
+            logger.error(f'Museum id must be provided')
             return JsonResponse({'error': 'Existing museum id must be provided'},
                                 safe=True, status=400)
 
@@ -122,11 +122,11 @@ class Synchronization(APIView):
             try:
                 user = Users.objects.get(device_id=user_id)
             except Exception as e:
-                logging.error(f'User id {user_id} does not exist {e.args}')
+                logger.error(f'User id {user_id} does not exist {e.args}')
                 return JsonResponse({'error': f'User id {user_id} does not exist {e.args}'},
                                     safe=True, status=400)
         else:
-            logging.error(f'Existing user id must be provided, device id: {user_id}')
+            logger.error(f'Existing user id must be provided, device id: {user_id}')
             return JsonResponse({'error': 'Existing user id must be provided'},
                                 safe=True, status=400)
 
@@ -154,7 +154,7 @@ class Synchronization(APIView):
             except (Museums.DoesNotExist, ValidationError):
                 return JsonResponse({'error': 'Museum not found'}, status=404)
         else:
-            logging.error(f'Museum id must be provided')
+            logger.error(f'Museum id must be provided')
             return JsonResponse(
                 {'error': 'Existing museum id must be provided'},
                 safe=True, status=400)
@@ -164,7 +164,7 @@ class Synchronization(APIView):
 
         # traverse 'get' table
         museum.objects_to_serialize = list(set(objects_sync_ids))
-        logging.info(f'GET objects to serialize {objects_sync_ids} ')
+        logger.info(f'GET objects to serialize {objects_sync_ids} ')
 
         if get_values.get('categories'):
             if isinstance(get_values.get('categories'), list):
@@ -174,7 +174,7 @@ class Synchronization(APIView):
                     {'error': 'Categories must be list'},
                     safe=True, status=400)
 
-        logging.info(f'GET objects: {get_values.get("objects")}, \
+        logger.info(f'GET objects: {get_values.get("objects")}, \
                       object_images: {get_values.get("object_images")}, \
                       object_localizations: {get_values.get("object_localizations")}, \
                       categories{get_values.get("categories")}, \
@@ -209,7 +209,7 @@ class Synchronization(APIView):
         up_tours = update_values.get('tours')
         up_user_data = update_values.get('user')
 
-        logging.info(f'POST chats: {chats}, \
+        logger.info(f'POST chats: {chats}, \
                        POST votings: {votings}, \
                        POST collections: {collections}, \
                        POST collections: {tours}, \
@@ -239,7 +239,7 @@ class Synchronization(APIView):
                 history = chat.get('history')
                 planned = chat.get('planned')
                 last_step = chat.get('last_step')
-                logging.info(f'POST CHAT \
+                logger.info(f'POST CHAT \
                     ch_sync_id: {ch_sync_id, type(ch_sync_id)}, \
                     created_at: {created_at, type(created_at)}, \
                     updated_at: {updated_at, type(updated_at)}, \
@@ -317,7 +317,7 @@ class Synchronization(APIView):
                 image_key = collection.get('image')
                 image = request.data.get(image_key)
                 ctgrs = collection.get('categories')
-                logging.info(f'POST COLLECTION \
+                logger.info(f'POST COLLECTION \
                      ch_sync_id: {cl_sync_id, type(cl_sync_id)}, \
                      created_at: {created_at, type(created_at)}, \
                      updated_at: {updated_at, type(updated_at)}, \
@@ -573,7 +573,7 @@ class Synchronization(APIView):
             score = up_user_data.get('score')
             device_id = up_user_data.get('device_id')
 
-            logging.error(f'!!!!POST USER \
+            logger.error(f'!!!!POST USER \
                 us_sync_id: {us_sync_id, type(us_sync_id)}, \
                 created_at: {created_at, type(created_at)}, updated_at: {updated_at, type(updated_at)}, \
                 us_sync_id{us_sync_id, type(us_sync_id)}, floor: {floor, type(floor)}, \
