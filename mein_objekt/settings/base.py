@@ -164,14 +164,14 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
         },
         'logfile': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'main_formatter',
             'filename': BASE_DIR + '/server.log',
             'maxBytes': 1024*1024*10, # 10 MB
         },
         'console': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'main_formatter',
             'filters': ['require_debug_true'],
@@ -182,7 +182,9 @@ LOGGING = {
         'django': {
             'level': 'INFO',
             'handlers': ['console', 'logfile'],
+            'propagate': False,
         },
+
     },
 }
 
