@@ -15,6 +15,7 @@ ARG AWS_SECRET_ACCESS_KEY
 ARG AWS_STORAGE_BUCKET_NAME
 ARG ENVIRONMENT
 
+
 RUN mkdir -p ${APP_PATH}
 COPY . ${APP_PATH}
 RUN pip3 install -r ${APP_PATH}/requirements.txt \
