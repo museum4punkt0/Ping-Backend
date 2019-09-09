@@ -62,7 +62,15 @@
         {
           "name": "ENVIRONMENT",
           "value": "${ENVIRONMENT}"
-        }
+        },
+        {
+          "name": "WEB_APP_USER_KEY",
+          "value": "${WEB_APP_USER_KEY}"
+        },
+        {
+          "name": "WEB_APP_USER_SECRET",
+          "value": "${WEB_APP_USER_SECRET}"
+        }  
       ],
       "mountPoints": [
         {
