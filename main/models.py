@@ -8,15 +8,23 @@ from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.core.files.base import ContentFile
+from django.core.validators import FileExtensionValidator
+from django.conf import settings
+from main.variables import DEFAULT_MUSEUM
 from model_utils import Choices
+
 import urllib
 import uuid
 import os
 from PIL import Image
 from io import BytesIO
-from main.variables import DEFAULT_MUSEUM
 from multiselectfield import MultiSelectField
 from storages.backends.s3boto3 import S3Boto3Storage
+import boto3
+import logging
+
+
+storing = boto3.setup_default_session(region_name='eu-central-1')
 
 LANGUEAGE_STYLE_CHOICES = Choices(
         ('easy', 'Easy'),
@@ -73,7 +81,8 @@ TENSOR_STATUSES = Choices(
         ('none', 'None'),
         ('ready', 'Ready!'),
         ('processing', 'processing...'),
-        ('validating', 'validating...')
+        ('validating', 'validating...'),
+        ('error', 'Model creation error, please add more objects with tensor images')
       )
 
 def get_image_path(instance, filename):
@@ -103,8 +112,11 @@ def get_image_path(instance, filename):
 
 def  get_tensor_image_path(instance, filename):
     ob_item = instance.objects_item
-    sync_id = getattr(ob_item, 'sync_id', None).urn.split(':')[-1]
-    return os.path.join('dataset', sync_id, filename)
+    museum = ob_item.museum
+    data_dir = 'dataset'
+    if ObjectsTensorImage.objects.filter(objects_item=ob_item).count() <= 20:
+        data_dir ='temp_dataset'
+    return os.path.join(str(museum.sync_id), data_dir, str(ob_item.sync_id), filename)
 
 
 def validate_percent(value):
@@ -366,8 +378,8 @@ class MusemsTensor(models.Model):
     tensor_flow_lables = models.FileField(upload_to='tensor_label/', blank=True, null=True, max_length=110)
     mobile_tensor_flow_model = models.FileField(upload_to='tensor_model/', blank=True, null=True, max_length=110)
     mobile_tensor_flow_lables = models.FileField(upload_to='tensor_label/', blank=True, null=True, max_length=110)
-    tensor_status = models.CharField(max_length=45, choices=TENSOR_STATUSES, default='none')
-    mobile_tensor_status = models.CharField(max_length=45, choices=TENSOR_STATUSES, default='none')
+    tensor_status = models.CharField(max_length=145, choices=TENSOR_STATUSES, default='none')
+    mobile_tensor_status = models.CharField(max_length=145, choices=TENSOR_STATUSES, default='none')
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -778,7 +790,8 @@ class ObjectsTensorImage(models.Model):
 
     objects_item = models.ForeignKey(ObjectsItem, related_name='object_tensor_image', on_delete=models.CASCADE)
     image = models.ImageField(storage=S3Boto3Storage(bucket='mein-objekt-tensorflow'),
-                              upload_to=get_tensor_image_path, max_length=110)
+                              upload_to=get_tensor_image_path, max_length=110,
+                              validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'JPEG'])])
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -802,6 +815,29 @@ class ObjectsTensorImage(models.Model):
 
     def __str__(self):
         return f'{self.id}'
+
+@receiver(post_save, sender=ObjectsTensorImage, dispatch_uid="check_20")
+def create_objecttensorimage_objects(sender, instance, **kwargs):
+    ob_item = instance.objects_item
+    museum = ob_item.museum
+    bucket = 'mein-objekt-tensorflow'
+
+    if ObjectsTensorImage.objects.filter(objects_item=ob_item).count() == 20:
+        s3_client = boto3.client('s3')
+        try:
+            response = s3_client.list_objects(Bucket=bucket, Prefix=f'{museum.sync_id}/temp_dataset')
+        except:
+            logging('Unsuccess images number validation')
+        else:
+            for i in response.get('Contents', []):
+                item = list(filter(lambda x: x != '', i['Key'].split('/')))
+                source_key = os.path.join(*item)
+                item[1] = 'dataset'
+                dest_key = os.path.join(*item)
+                copy_source = {'Bucket': bucket, 'Key': source_key}
+                s3_client.copy_object(CopySource=copy_source, Bucket=bucket, Key=dest_key)
+                # TODO make just django image model path change to new destination before deletion
+                # s3_client.delete_object(Bucket=bucket, Key=source_key) 
 
 
 class MuseumsImages(models.Model):
@@ -833,7 +869,8 @@ class ObjectsLocalizations(models.Model):
 
     objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
     language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.en)
-    conversation = models.FileField(upload_to=get_image_path, blank=True, null=True, max_length=110)
+    conversation = models.FileField(upload_to=get_image_path, blank=True, null=True, max_length=110,
+                                    validators=[FileExtensionValidator(allowed_extensions=['txt'])])
     description = models.TextField(blank=True, null=True)
     title = models.CharField(max_length=45, blank=True, null=True)
     object_kind = models.CharField(max_length=45, blank=True, null=True)

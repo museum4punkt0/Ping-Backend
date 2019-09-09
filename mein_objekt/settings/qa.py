@@ -10,7 +10,7 @@ AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY', default=None)
 
 AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME', default=None)
 
-AWS_S3_REGION_NAME = env('AWS_S3_REGION_NAME', default=None)
+AWS_S3_REGION_NAME = env('APP_AWS_S3_REGION_NAME', default=None)
 
 AWS_S3_SIGNATURE_VERSION = env('AWS_S3_SIGNATURE_VERSION', default=None)
 
@@ -18,18 +18,6 @@ AWS_DEFAULT_ACL = None
 
 AWS_QUERYSTRING_AUTH = False
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'logfile': {
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR + '/server.log',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['logfile'],
-        },
-    },
-}
+WEB_APP_USER_KEY = env('WEB_APP_USER_KEY', default=None)
+
+WEB_APP_USER_SECRET = env('WEB_APP_USER_SECRET', default=None)

@@ -137,3 +137,54 @@ INTERNAL_IPS = ('127.0.0.1',)
 # TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 # WSGI = True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue'
+        }
+    },
+    'formatters': {
+        'main_formatter': {
+            'format': '%(levelname)s:%(name)s: %(message)s '
+                      '(%(asctime)s; %(filename)s:%(lineno)d)',
+            'datefmt': "%Y-%m-%d %H:%M:%S",
+        },
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'WARNING',
+            'formatter': 'main_formatter',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler',
+        },
+        'logfile': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'main_formatter',
+            'filename': BASE_DIR + '/server.log',
+            'maxBytes': 1024*1024*10, # 10 MB
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'main_formatter',
+            'filters': ['require_debug_true'],
+        },
+
+    },
+    'loggers': {
+        'django': {
+            'level': 'INFO',
+            'handlers': ['console', 'logfile'],
+            'propagate': False,
+        },
+
+    },
+}
+
