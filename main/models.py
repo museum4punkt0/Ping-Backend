@@ -8,22 +8,23 @@ from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.core.files.base import ContentFile
-from model_utils import Choices
-import urllib
 from django.core.validators import FileExtensionValidator
+from django.conf import settings
+from main.variables import DEFAULT_MUSEUM
+from model_utils import Choices
 
+import urllib
 import uuid
 import os
 from PIL import Image
 from io import BytesIO
-from main.variables import DEFAULT_MUSEUM
 from multiselectfield import MultiSelectField
 from storages.backends.s3boto3 import S3Boto3Storage
 import boto3
 import logging
 
 
-storing = boto3.setup_default_session(region_name='eu-central-1')
+storing = boto3.setup_default_session(region_name=settings.AWS_S3_REGION_NAME)
 
 LANGUEAGE_STYLE_CHOICES = Choices(
         ('easy', 'Easy'),

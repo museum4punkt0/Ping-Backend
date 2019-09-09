@@ -5,6 +5,7 @@ from django import forms
 from django.contrib.gis.admin import OSMGeoAdmin
 from django.contrib.gis.db import models
 from django.contrib import messages
+from django.conf import settings
 from django.forms.models import BaseInlineFormSet
 from django.http import HttpResponseRedirect
 from django.core.files.base import ContentFile
@@ -160,7 +161,9 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
 
     def response_change(self, request, obj):
         if "_create_model" in request.POST:
-            client = boto3.client('ec2')
+            ec2_client = boto3.client('ec2',
+                            aws_access_key_id=settings.WEB_APP_USER_KEY,
+                            aws_secret_access_key=settings.WEB_APP_USER_SECRET)
             mobile_instance_id = 'i-008ee6f35a7616259'
             backend_instance_id = 'i-0a7688296bd1c764b'
             mus_pk = request.path.split('/')[-3]
@@ -211,7 +214,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                     logger.info('S3 directories created')
 
                     # run instances
-                    response = client.start_instances(  
+                    response = ec2_client.start_instances(  
                         InstanceIds=[
                             mobile_instance_id,
                             backend_instance_id
@@ -238,7 +241,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                     def mobile_waiter_job():
                         try:
                             # check if model generate completed
-                            waiter = client.get_waiter('instance_status_ok')
+                            waiter = ec2_client.get_waiter('instance_status_ok')
                             waiter.wait(InstanceIds=[mobile_instance_id],
                                         WaiterConfig={
                                             'Delay': 25,
@@ -281,7 +284,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                     def backend_waiter_job():
                         try:
                             # check if model generate completed
-                            waiter = client.get_waiter('instance_status_ok')
+                            waiter = ec2_client.get_waiter('instance_status_ok')
                             waiter.wait(InstanceIds=[backend_instance_id],
                                         WaiterConfig={
                                             'Delay': 25,
@@ -290,7 +293,6 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                             logger.info("Backend Instance working")
                         except:
                             logger.info('Backend Instance stopped')
-                            s3_client = boto3.client('s3')
                             model_name = 'backend_graph.pb'
                             label_name = 'backend_label.txt'
                             # check if models created
