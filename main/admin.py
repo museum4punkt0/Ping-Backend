@@ -218,8 +218,8 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                         ],
                         DryRun=False
                     )
-                except:
-                    logger.error('Failed to start tensor instance')
+                except Exception as e:
+                    logger.error(f'Failed to start tensor instance: {e}')
                     messages.info(request, "Failed to start images processing, \
                                             please try later")
                     return HttpResponseRedirect(".")
