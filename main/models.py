@@ -24,7 +24,7 @@ import boto3
 import logging
 
 
-storing = boto3.setup_default_session(region_name=settings.AWS_S3_REGION_NAME)
+storing = boto3.setup_default_session(region_name='eu-central-1')
 
 LANGUEAGE_STYLE_CHOICES = Choices(
         ('easy', 'Easy'),
