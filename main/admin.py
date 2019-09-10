@@ -134,7 +134,7 @@ class MuseumLocalizationInline(MinValidatedInlineMixIn, nested_admin.NestedTabul
 
 
 class MuseumsAdmin(nested_admin.NestedModelAdmin):
-    change_form_template = "admin/main/objectsitem/create_model.html"
+    change_form_template = "admin/main/museum/create_model.html"
     inlines = [MuseumLocalizationInline, MusemsOpeningInline,
                MuseumsImagesInline, MuseumTourInline, MusemsTensorInline]
     readonly_fields = ['updated_at', 'sync_id']
@@ -413,6 +413,7 @@ class SemanticRelationAdmin(admin.ModelAdmin):
 
 
 class ObjectsItemAdmin(admin.ModelAdmin):
+    change_form_template = "admin/main/objectsitem/bulk_images.html"
     list_display = ('id', 'title', 'avatar_id', 'chat_id', 'museum',
                     'onboarding', 'vip', 'cropped_avatar',
                     'updated_at', 'categories', 'localizations',
@@ -423,6 +424,12 @@ class ObjectsItemAdmin(admin.ModelAdmin):
     readonly_fields = ['updated_at']
     exclude = ('synced',)
     def save_model(self, request, obj, form, change):
+        # bulk images
+
+        obj.save()
+        for afile in request.FILES.getlist('photos_multiple'):
+            obj.object_tensor_image.create(image=afile)
+
         if not getattr(obj, 'object_map', None):
             messages.add_message(request, messages.INFO, 'For objects Map been \
                 autocreated you should add Museum Map for every museum floor \
