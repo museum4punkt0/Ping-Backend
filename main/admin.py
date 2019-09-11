@@ -134,6 +134,7 @@ class MuseumLocalizationInline(MinValidatedInlineMixIn, nested_admin.NestedTabul
 
 
 class MuseumsAdmin(nested_admin.NestedModelAdmin):
+    list_display = ['id', 'localizations', 'number_objects', 'sync_id',]
     change_form_template = "admin/main/museum/create_model.html"
     inlines = [MuseumLocalizationInline, MusemsOpeningInline,
                MuseumsImagesInline, MuseumTourInline, MusemsTensorInline]
@@ -142,6 +143,12 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
     formfield_overrides = {
         models.PointField: {"widget": GooglePointFieldWidget}
     }
+
+    def localizations(self, obj):
+        return getattr(obj.localizations.first(), 'title', 'No title')
+
+    def number_objects(self, obj):        
+        return obj.objectsitem_set.count()
 
     def _fetch_model(self, model_name, label_name, museum, mus_tensor, request):
         s3_resource = boto3.resource('s3')
@@ -414,10 +421,10 @@ class SemanticRelationAdmin(admin.ModelAdmin):
 
 class ObjectsItemAdmin(admin.ModelAdmin):
     change_form_template = "admin/main/objectsitem/bulk_images.html"
-    list_display = ('id', 'title', 'avatar_id', 'chat_id', 'museum',
-                    'onboarding', 'vip', 'cropped_avatar',
-                    'updated_at', 'categories', 'localizations',
-                    'images_number', 'sync_id')
+    list_display = ('id', 'local', 'avatar_id', 'chat_id', 'tensor_images',
+                    'museum', 'onboarding', 'vip',
+                    'categories', 'localizations',
+                    'images_number', 'sync_id', 'updated_at')
     inlines = [ObjectsLocalizationsInline, ObjectsImagesInline,
                ObjectsCategoriesInline, ObjectsMapInline, 
                ObjectsTensorImageInline]
@@ -425,6 +432,15 @@ class ObjectsItemAdmin(admin.ModelAdmin):
     exclude = ('synced',)
     def save_model(self, request, obj, form, change):
         # bulk images
+        if 'museum' in form.changed_data:
+            if obj.object_map:
+                messages.warning(request, "You cannot change museum of object \
+                        when map was autocreated. Create a new object instead")
+                return HttpResponseRedirect(".")
+            if obj.object_tensor_image.all():
+                messages.info(request, "You cannot change museum of object \
+                        when tensor images uploaded. Create a new object instead")
+                return HttpResponseRedirect(".")
 
         obj.save()
         for afile in request.FILES.getlist('photos_multiple'):
@@ -449,11 +465,15 @@ class ObjectsItemAdmin(admin.ModelAdmin):
         if obj_loc:
             return [i.conversation.name.split('/')[-1][:20] for i in obj_loc.all()]
 
-    def title(self, obj):
+    def local(self, obj):
         obj = obj.objectslocalizations_set.first()
-        title = getattr(obj, 'title', None)
-        if title:
-            return title
+        local = getattr(obj, 'local', None)
+        if local:
+            return local
+
+    def tensor_images(self, obj):
+        images_number = obj.object_tensor_image.count()
+        return images_number
 
     def categories(self, obj):
         obj_cat = getattr(obj, 'objectscategories', None)
