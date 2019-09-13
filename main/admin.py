@@ -123,7 +123,7 @@ class MusemsTensorInline(nested_admin.NestedTabularInline):
 class MusemsOpeningInline(MinValidatedInlineMixIn, nested_admin.NestedTabularInline):
     model = OpenningTime
     min_number = 0
-    extra = 1
+    extra = 0
 
 
 class MuseumLocalizationInline(MinValidatedInlineMixIn, nested_admin.NestedTabularInline):
@@ -134,7 +134,7 @@ class MuseumLocalizationInline(MinValidatedInlineMixIn, nested_admin.NestedTabul
 
 
 class MuseumsAdmin(nested_admin.NestedModelAdmin):
-    list_display = ['id', 'localizations', 'number_objects', 'sync_id',]
+    list_display = ['id', 'localizations', 'objects_number', 'sync_id']
     change_form_template = "admin/main/museum/create_model.html"
     inlines = [MuseumLocalizationInline, MusemsOpeningInline,
                MuseumsImagesInline, MuseumTourInline, MusemsTensorInline]
@@ -147,13 +147,15 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
     def localizations(self, obj):
         return getattr(obj.localizations.first(), 'title', 'No title')
 
-    def number_objects(self, obj):        
+    def objects_number(self, obj):        
         return obj.objectsitem_set.count()
 
     def _fetch_model(self, model_name, label_name, museum, mus_tensor, request):
         s3_resource = boto3.resource('s3')
         s3_client = boto3.client('s3')
         try:
+            logger.warning(f'{museum.sync_id}/model/graph/{model_name}')
+            logger.warning(f'{museum.sync_id}/model/label/{label_name}')
             model_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'{museum.sync_id}/model/graph/{model_name}')
             label_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'{museum.sync_id}/model/label/{label_name}')
         except s3_client.exceptions.NoSuchKey:
@@ -219,6 +221,9 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                     s3_resource.Object('mein-objekt-tensorflow', f'{museum.sync_id}/model/graph/dummy.txt').put(Body=data)
                     s3_resource.Object('mein-objekt-tensorflow', f'{museum.sync_id}/model/label/dummy.txt').put(Body=data)
                     logger.info('S3 directories created')
+                    # switch instance state to running
+                    data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'running'})
+                    s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
 
                     # run instances
                     response = ec2_client.start_instances(  
@@ -229,14 +234,14 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                         DryRun=False
                     )
                 except Exception as e:
+                    # switch instance state to running
+                    data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'stopped'})
+                    s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
                     logger.error(f'Failed to start tensor instance: {e}')
                     messages.info(request, "Failed to start images processing, \
                                             please try later")
                     return HttpResponseRedirect(".")
                 else:
-                    # switch instance state to running
-                    data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'running'})
-                    s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
                     mus_tensor.tensor_status = TENSOR_STATUSES['processing']
                     mus_tensor.mobile_tensor_status = TENSOR_STATUSES['processing']
                     mus_tensor.save()
@@ -262,7 +267,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
 
                             # check if models created
                             model_data, label_data = self._fetch_model(model_name, label_name, museum, mus_tensor, request)
-                            if not model_data and not label_data:
+                            if not model_data or not label_data:
                                 try:
                                     tl.stop()
                                 except:
@@ -304,7 +309,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                             label_name = 'backend_label.txt'
                             # check if models created
                             model_data, label_data = self._fetch_model(model_name, label_name, museum, mus_tensor, request)
-                            if not model_data and not label_data:
+                            if not model_data or not label_data:
                                 try:
                                     tl.stop()
                                 except:
