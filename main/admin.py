@@ -154,12 +154,10 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
         s3_resource = boto3.resource('s3')
         s3_client = boto3.client('s3')
         try:
-            logger.warning(f'{museum.sync_id}/model/graph/{model_name}')
-            logger.warning(f'{museum.sync_id}/model/label/{label_name}')
             model_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'{museum.sync_id}/model/graph/{model_name}')
             label_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'{museum.sync_id}/model/label/{label_name}')
         except s3_client.exceptions.NoSuchKey:
-            logger.error("Failed to generate a model")
+            logger.error("Failed to fetch a model or label")
             data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'stopped'})
             s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
             mus_tensor.tensor_status = TENSOR_STATUSES['error']
@@ -279,8 +277,8 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                             mobile_label = ContentFile(label_contents)
 
                             mus_tensor.mobile_tensor_status = TENSOR_STATUSES['ready']
-                            mus_tensor.mobile_tensor_flow_model.save(model_name, mobile_tensor)
-                            mus_tensor.mobile_tensor_flow_lables.save(label_name, mobile_label)
+                            mus_tensor.mobile_tensor_flow_model.save(f'{museum.sync_id}/model/graph/{model_name}', mobile_tensor)
+                            mus_tensor.mobile_tensor_flow_lables.save(f'{museum.sync_id}/model/label/{label_name}', mobile_label)
                             mus_tensor.save()
 
                             # stop workers if both models created 
@@ -300,7 +298,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                             waiter.wait(InstanceIds=[backend_instance_id],
                                         WaiterConfig={
                                             'Delay': 25,
-                                            'MaxAttempts': 35  
+                                            'MaxAttempts': 3
                                         })
                             logger.info("Backend Instance working")
                         except:
@@ -321,8 +319,8 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                             backend_label = ContentFile(label_contents)
 
                             mus_tensor.tensor_status = TENSOR_STATUSES['ready']
-                            mus_tensor.tensor_flow_model.save(model_name, backend_tensor)
-                            mus_tensor.tensor_flow_lables.save(label_name, backend_label)
+                            mus_tensor.tensor_flow_model.save(f'{museum.sync_id}/model/graph/{model_name}', backend_tensor)
+                            mus_tensor.tensor_flow_lables.save(f'{museum.sync_id}/model/label/{label_name}', backend_label)
                             mus_tensor.save()
                             if mus_tensor.mobile_tensor_status == TENSOR_STATUSES['ready']:
                                 try:
