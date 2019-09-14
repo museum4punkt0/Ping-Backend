@@ -11,6 +11,7 @@ from django.http import HttpResponseRedirect
 from django.core.files.base import ContentFile
 from main.variables import NUMBER_OF_LOCALIZATIONS
 from main.models import MusemsTensor, TENSOR_STATUSES
+from main.apps import tensors
 from mapwidgets.widgets import GooglePointFieldWidget
 from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     Categories, Categorieslocalizations, ObjectsCategories,\
@@ -322,6 +323,8 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                             mus_tensor.tensor_flow_model.save(f'{museum.sync_id}/model/graph/{model_name}', backend_tensor)
                             mus_tensor.tensor_flow_lables.save(f'{museum.sync_id}/model/label/{label_name}', backend_label)
                             mus_tensor.save()
+                            tensors[museum.sync_id] = {'tensor_flow_model': model_contents,
+                                                       'tensor_flow_lables': label_contents}
                             if mus_tensor.mobile_tensor_status == TENSOR_STATUSES['ready']:
                                 try:
                                     tl.stop()
