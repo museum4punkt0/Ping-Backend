@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.core.files.temp import NamedTemporaryFile
 from django import forms
 from django.contrib.gis.admin import OSMGeoAdmin
 from django.contrib.gis.db import models
@@ -31,6 +32,8 @@ from datetime import timedelta
 import logging
 from botocore.exceptions import WaiterError
 from collections import defaultdict
+from PIL import Image
+from io import BytesIO
 
 admin.site.site_header = "Museums Admin"
 admin.site.site_title = "Museums Admin"
@@ -427,19 +430,51 @@ class SemanticRelationAdmin(admin.ModelAdmin):
 
 class ObjectsItemAdmin(admin.ModelAdmin):
     change_form_template = "admin/main/objectsitem/bulk_images.html"
-    list_display = ('id', 'local', 'avatar_id', 'chat_id', 'tensor_images',
+    list_display = ('id', 'title',
                     'museum', 'onboarding', 'vip',
-                    'categories', 'localizations',
-                    'images_number', 'sync_id', 'updated_at')
+                    'categories', 'localizations', 'tensor_images_number', 
+                    'images_number', 'sync_id', 'updated_at',
+                    'avatar_id', 'chat_id',)
     inlines = [ObjectsLocalizationsInline, ObjectsImagesInline,
                ObjectsCategoriesInline, ObjectsMapInline, 
                ObjectsTensorImageInline]
     readonly_fields = ['updated_at']
     exclude = ('synced',)
+
     def save_model(self, request, obj, form, change):
+        # create objects map
+        museum = obj.museum
+        mus_map = museum.museumsimages_set.filter(image_type=f'{obj.floor}_map')
+        mus_pointer = museum.museumsimages_set.filter(image_type='pnt')
+        if mus_map and mus_pointer:
+            if getattr(mus_map[0], 'image', None) and \
+               getattr(mus_pointer[0], 'image', None):
+                try:
+                    mus_image = Image.open(mus_map[0].image)
+                    pnt_image = Image.open(mus_pointer[0].image)
+                except:
+                    messages.warning(request, "Map autogeneration failed. \
+                            Please check if museum maps images are not available.")
+                else:
+                    pnt_image = pnt_image.resize((40, 40)).convert("RGBA")
+                    mus_image.paste(pnt_image, (int(obj.positionx), int(obj.positiony)), pnt_image.split()[3])
+
+                    image_buffer = BytesIO()
+                    mus_image.save(image_buffer, "PNG")
+
+                    img_temp = NamedTemporaryFile(delete=True)
+                    img_temp.write(image_buffer.getvalue())
+
+                    if getattr(obj, 'object_map', None):
+                        obj.object_map.delete()
+
+                    om = ObjectsMap()
+                    om.objects_item = obj
+                    om.image.save(f'/o_maps/{str(obj.sync_id)}/map.png', img_temp)
+
         # bulk images
         if 'museum' in form.changed_data:
-            if obj.object_map:
+            if getattr(obj, 'object_map', None):
                 messages.warning(request, "You cannot change museum of object \
                         when map was autocreated. Create a new object instead")
                 return HttpResponseRedirect(".")
@@ -458,26 +493,23 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                 and a pointer image with corresponding image type')
         super(ObjectsItemAdmin, self).save_model(request, obj, form, change)
 
-    # def get_queryset(self, request):
-    #     return super(ObjectsItemAdmin,self).get_queryset(request).select_related('objectslocalizations_set')
-
     def avatar_id(self, obj):
         avatar = getattr(obj, 'avatar', None)
         if avatar:
             return avatar.name.split('/')[-1][:20]
 
     def chat_id(self, obj):
-        obj_loc = getattr(obj, 'objectslocalizations_set', None)
-        if obj_loc:
-            return [i.conversation.name.split('/')[-1][:20] for i in obj_loc.all()]
+        obj_locs = obj.objectslocalizations_set.all()
+        if obj_locs:
+            return [i.conversation.name.split('/')[-1][:20] for i in obj_locs]
 
-    def local(self, obj):
+    def title(self, obj):
         obj = obj.objectslocalizations_set.first()
-        local = getattr(obj, 'local', None)
-        if local:
-            return local
+        title = getattr(obj, 'title', None)
+        if title:
+            return title
 
-    def tensor_images(self, obj):
+    def tensor_images_number(self, obj):
         images_number = obj.object_tensor_image.count()
         return images_number
 
@@ -489,11 +521,9 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                 return [i.id for i in categories]
 
     def localizations(self, obj):
-        obj_loc = getattr(obj, 'objectslocalizations_set', None)
-        if obj_loc:
-            localizations = obj_loc.all()
-            if localizations:
-                return [i.language for i in localizations]
+        obj_locs = obj.objectslocalizations_set.all()
+        if obj_locs:
+            return [i.language for i in obj_locs]
 
     def images_number(self, obj):
         return obj.objectsimages_set.count()
