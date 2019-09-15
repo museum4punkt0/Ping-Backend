@@ -429,6 +429,21 @@ class SemanticRelationAdmin(admin.ModelAdmin):
 
 
 class ObjectsItemAdmin(admin.ModelAdmin):
+
+    fieldsets = (
+        ('General Info', {
+            'fields': ('museum', 'floor',  'language_style', 'priority', 
+                        'positionx', 'positiony', 'onboarding', 'vip'),
+        }),
+        ('Author', {
+            'fields': (('author'),),
+            'classes': ('author',)
+        }),
+        ('Avatars', {
+            'fields': ('avatar', 'cropped_avatar', ),
+        }),
+    )
+
     change_form_template = "admin/main/objectsitem/bulk_images.html"
     list_display = ('id', 'title',
                     'museum', 'onboarding', 'vip',
@@ -440,6 +455,13 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                ObjectsTensorImageInline]
     readonly_fields = ['updated_at']
     exclude = ('synced',)
+    search_fields = ('museum', 'title')
+
+    class Media:
+        js = (
+            'js/jquery-3.3.1.js',
+            'js/toogle_author.js',
+        )
 
     def save_model(self, request, obj, form, change):
         # create objects map

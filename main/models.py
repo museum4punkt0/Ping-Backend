@@ -406,6 +406,7 @@ class ObjectsItem(models.Model):
     positionx = models.DecimalField(db_column='positionX', max_digits=4, decimal_places=0)
     positiony = models.DecimalField(db_column='positionY', max_digits=4, decimal_places=0)
     vip = models.BooleanField(default=False)
+    author = models.CharField(max_length=145, blank=True, null=True)
     language_style = models.CharField(max_length=45, choices=LANGUEAGE_STYLE_CHOICES, default='easy')
     avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
     cropped_avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
