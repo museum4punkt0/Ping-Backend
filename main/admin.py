@@ -490,6 +490,7 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                     if getattr(obj, 'object_map', None):
                         obj.object_map.delete()
 
+                    obj.save()
                     om = ObjectsMap()
                     om.objects_item = obj
                     om.image.save(f'/o_maps/{str(obj.sync_id)}/map.png', img_temp)
@@ -497,8 +498,8 @@ class ObjectsItemAdmin(admin.ModelAdmin):
         # bulk images
         if 'museum' in form.changed_data:
             if getattr(obj, 'object_map', None):
-                messages.warning(request, "You cannot change museum of object \
-                        when map was autocreated. Create a new object instead")
+                messages.warning(request, "Notice that further you won't be able to  change museum of the object \
+                                    if objects map was autocreated. Make a new object instead")
                 return HttpResponseRedirect(".")
             if obj.object_tensor_image.all():
                 messages.info(request, "You cannot change museum of object \
