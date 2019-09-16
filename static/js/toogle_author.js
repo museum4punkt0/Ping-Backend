@@ -6,9 +6,8 @@ $(document).ready(function () {
             $('.author').hide();
         }
     }
-    toogle_author($('#id_vip').val());
+    toogle_author($('#id_vip').prop("checked"));
     $('#id_vip').on('change', function (event) {
-        console.log($(this).prop("checked"))
         toogle_author($(this).prop("checked"))
     });
 });

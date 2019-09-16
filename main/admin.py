@@ -334,6 +334,11 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                                 except:
                                     data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'stopped'})
                                     s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
+                                    labels = str(label_contents, 'utf8').split('\n')
+                                    labels = list(filter(None, labels))
+                                    for label in labels:
+                                        sync_id = '-'.join(label.split(' '))
+                                        ObjectsItem.objects.filter(sync_id=sync_id).update(in_tensor_model=True)
                                     logger.info('Checking workers stopped')
                     tl.start()
             else:
@@ -433,7 +438,8 @@ class ObjectsItemAdmin(admin.ModelAdmin):
     fieldsets = (
         ('General Info', {
             'fields': ('museum', 'floor',  'language_style', 'priority', 
-                        'positionx', 'positiony', 'onboarding', 'vip'),
+                        'positionx', 'positiony', 'in_tensor_model',
+                        'onboarding', 'vip'),
         }),
         ('Author', {
             'fields': (('author'),),
@@ -446,14 +452,14 @@ class ObjectsItemAdmin(admin.ModelAdmin):
 
     change_form_template = "admin/main/objectsitem/bulk_images.html"
     list_display = ('id', 'title',
-                    'museum', 'onboarding', 'vip',
-                    'categories', 'localizations', 'tensor_images_number', 
-                    'images_number', 'sync_id', 'updated_at',
-                    'avatar_id', 'chat_id',)
+                    'museum', 'categories', 'localizations',
+                    'tensor_images_number', 'in_tensor_model',
+                    'images_number', 'onboarding', 'vip',
+                    'sync_id', 'updated_at', 'avatar_id', 'chat_id',)
     inlines = [ObjectsLocalizationsInline, ObjectsImagesInline,
                ObjectsCategoriesInline, ObjectsMapInline, 
                ObjectsTensorImageInline]
-    readonly_fields = ['updated_at']
+    readonly_fields = ['updated_at', 'in_tensor_model']
     exclude = ('synced',)
     search_fields = ('museum', 'title')
 
