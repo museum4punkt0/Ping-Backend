@@ -27,7 +27,7 @@ def recognize(request):
 
     format = image.name.split('.')[1]
 
-    if not isinstance(image, (InMemoryUploadedFile, TemporaryUploadedFile)) or format not in ('jpg', 'jpeg'):
+    if not isinstance(image, (InMemoryUploadedFile, TemporaryUploadedFile)) or format not in ('jpg', 'jpeg', 'JPEG'):
         return JsonResponse({'error': 'Image must be jpg format'}, safe=True)
 
     if user_id:
@@ -81,7 +81,7 @@ def recognize(request):
             return JsonResponse({'error': 'Object not found'}, status=404)
 
         if not uuid.UUID(object_id):
-            return JsonResponse({'error': 'object_id must by UUID format'}, status=400)
+            return JsonResponse({'error': 'object_id must be UUID format'}, status=400)
 
         response = _match_coincidence(predict, object_id, img_bytes,
                                       museum_name, format, obj_name)
