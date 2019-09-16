@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.core.files.temp import NamedTemporaryFile
 from django import forms
 from django.contrib.gis.admin import OSMGeoAdmin
 from django.contrib.gis.db import models
@@ -11,6 +12,7 @@ from django.http import HttpResponseRedirect
 from django.core.files.base import ContentFile
 from main.variables import NUMBER_OF_LOCALIZATIONS
 from main.models import MusemsTensor, TENSOR_STATUSES
+from main.apps import tensors
 from mapwidgets.widgets import GooglePointFieldWidget
 from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     Categories, Categorieslocalizations, ObjectsCategories,\
@@ -30,6 +32,8 @@ from datetime import timedelta
 import logging
 from botocore.exceptions import WaiterError
 from collections import defaultdict
+from PIL import Image
+from io import BytesIO
 
 admin.site.site_header = "Museums Admin"
 admin.site.site_title = "Museums Admin"
@@ -123,7 +127,7 @@ class MusemsTensorInline(nested_admin.NestedTabularInline):
 class MusemsOpeningInline(MinValidatedInlineMixIn, nested_admin.NestedTabularInline):
     model = OpenningTime
     min_number = 0
-    extra = 1
+    extra = 0
 
 
 class MuseumLocalizationInline(MinValidatedInlineMixIn, nested_admin.NestedTabularInline):
@@ -134,6 +138,7 @@ class MuseumLocalizationInline(MinValidatedInlineMixIn, nested_admin.NestedTabul
 
 
 class MuseumsAdmin(nested_admin.NestedModelAdmin):
+    list_display = ['id', 'localizations', 'objects_number', 'sync_id']
     change_form_template = "admin/main/museum/create_model.html"
     inlines = [MuseumLocalizationInline, MusemsOpeningInline,
                MuseumsImagesInline, MuseumTourInline, MusemsTensorInline]
@@ -143,6 +148,12 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
         models.PointField: {"widget": GooglePointFieldWidget}
     }
 
+    def localizations(self, obj):
+        return getattr(obj.localizations.first(), 'title', 'No title')
+
+    def objects_number(self, obj):        
+        return obj.objectsitem_set.count()
+
     def _fetch_model(self, model_name, label_name, museum, mus_tensor, request):
         s3_resource = boto3.resource('s3')
         s3_client = boto3.client('s3')
@@ -150,7 +161,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
             model_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'{museum.sync_id}/model/graph/{model_name}')
             label_data = s3_client.get_object(Bucket='mein-objekt-tensorflow', Key=f'{museum.sync_id}/model/label/{label_name}')
         except s3_client.exceptions.NoSuchKey:
-            logger.error("Failed to generate a model")
+            logger.error("Failed to fetch a model or label")
             data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'stopped'})
             s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
             mus_tensor.tensor_status = TENSOR_STATUSES['error']
@@ -212,6 +223,9 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                     s3_resource.Object('mein-objekt-tensorflow', f'{museum.sync_id}/model/graph/dummy.txt').put(Body=data)
                     s3_resource.Object('mein-objekt-tensorflow', f'{museum.sync_id}/model/label/dummy.txt').put(Body=data)
                     logger.info('S3 directories created')
+                    # switch instance state to running
+                    data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'running'})
+                    s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
 
                     # run instances
                     response = ec2_client.start_instances(  
@@ -222,14 +236,14 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                         DryRun=False
                     )
                 except Exception as e:
+                    # switch instance state to running
+                    data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'stopped'})
+                    s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
                     logger.error(f'Failed to start tensor instance: {e}')
                     messages.info(request, "Failed to start images processing, \
                                             please try later")
                     return HttpResponseRedirect(".")
                 else:
-                    # switch instance state to running
-                    data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'running'})
-                    s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
                     mus_tensor.tensor_status = TENSOR_STATUSES['processing']
                     mus_tensor.mobile_tensor_status = TENSOR_STATUSES['processing']
                     mus_tensor.save()
@@ -255,7 +269,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
 
                             # check if models created
                             model_data, label_data = self._fetch_model(model_name, label_name, museum, mus_tensor, request)
-                            if not model_data and not label_data:
+                            if not model_data or not label_data:
                                 try:
                                     tl.stop()
                                 except:
@@ -267,8 +281,8 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                             mobile_label = ContentFile(label_contents)
 
                             mus_tensor.mobile_tensor_status = TENSOR_STATUSES['ready']
-                            mus_tensor.mobile_tensor_flow_model.save(model_name, mobile_tensor)
-                            mus_tensor.mobile_tensor_flow_lables.save(label_name, mobile_label)
+                            mus_tensor.mobile_tensor_flow_model.save(f'{museum.sync_id}/model/graph/{model_name}', mobile_tensor)
+                            mus_tensor.mobile_tensor_flow_lables.save(f'{museum.sync_id}/model/label/{label_name}', mobile_label)
                             mus_tensor.save()
 
                             # stop workers if both models created 
@@ -288,7 +302,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                             waiter.wait(InstanceIds=[backend_instance_id],
                                         WaiterConfig={
                                             'Delay': 25,
-                                            'MaxAttempts': 35  
+                                            'MaxAttempts': 3
                                         })
                             logger.info("Backend Instance working")
                         except:
@@ -297,7 +311,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                             label_name = 'backend_label.txt'
                             # check if models created
                             model_data, label_data = self._fetch_model(model_name, label_name, museum, mus_tensor, request)
-                            if not model_data and not label_data:
+                            if not model_data or not label_data:
                                 try:
                                     tl.stop()
                                 except:
@@ -309,15 +323,22 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                             backend_label = ContentFile(label_contents)
 
                             mus_tensor.tensor_status = TENSOR_STATUSES['ready']
-                            mus_tensor.tensor_flow_model.save(model_name, backend_tensor)
-                            mus_tensor.tensor_flow_lables.save(label_name, backend_label)
+                            mus_tensor.tensor_flow_model.save(f'{museum.sync_id}/model/graph/{model_name}', backend_tensor)
+                            mus_tensor.tensor_flow_lables.save(f'{museum.sync_id}/model/label/{label_name}', backend_label)
                             mus_tensor.save()
+                            tensors[museum.sync_id] = {'tensor_flow_model': model_contents,
+                                                       'tensor_flow_lables': label_contents}
                             if mus_tensor.mobile_tensor_status == TENSOR_STATUSES['ready']:
                                 try:
                                     tl.stop()
                                 except:
                                     data = json.dumps({'musueum_id': str(museum.sync_id),'status': 'stopped'})
                                     s3_resource.Object('mein-objekt-tensorflow', 'instance_info.json').put(Body=data)
+                                    labels = str(label_contents, 'utf8').split('\n')
+                                    labels = list(filter(None, labels))
+                                    for label in labels:
+                                        sync_id = '-'.join(label.split(' '))
+                                        ObjectsItem.objects.filter(sync_id=sync_id).update(in_tensor_model=True)
                                     logger.info('Checking workers stopped')
                     tl.start()
             else:
@@ -413,18 +434,83 @@ class SemanticRelationAdmin(admin.ModelAdmin):
 
 
 class ObjectsItemAdmin(admin.ModelAdmin):
+
+    fieldsets = (
+        ('General Info', {
+            'fields': ('museum', 'floor',  'language_style', 'priority', 
+                        'positionx', 'positiony', 'in_tensor_model',
+                        'onboarding', 'vip'),
+        }),
+        ('Author', {
+            'fields': (('author'),),
+            'classes': ('author',)
+        }),
+        ('Avatars', {
+            'fields': ('avatar', 'cropped_avatar', ),
+        }),
+    )
+
     change_form_template = "admin/main/objectsitem/bulk_images.html"
-    list_display = ('id', 'title', 'avatar_id', 'chat_id', 'museum',
-                    'onboarding', 'vip', 'cropped_avatar',
-                    'updated_at', 'categories', 'localizations',
-                    'images_number', 'sync_id')
+    list_display = ('id', 'title',
+                    'museum', 'categories', 'localizations',
+                    'tensor_images_number', 'in_tensor_model',
+                    'images_number', 'onboarding', 'vip',
+                    'sync_id', 'updated_at', 'avatar_id', 'chat_id',)
     inlines = [ObjectsLocalizationsInline, ObjectsImagesInline,
                ObjectsCategoriesInline, ObjectsMapInline, 
                ObjectsTensorImageInline]
-    readonly_fields = ['updated_at']
+    readonly_fields = ['updated_at', 'in_tensor_model']
     exclude = ('synced',)
+    search_fields = ('museum', 'title')
+
+    class Media:
+        js = (
+            'js/jquery-3.3.1.js',
+            'js/toogle_author.js',
+        )
+
     def save_model(self, request, obj, form, change):
+        # create objects map
+        museum = obj.museum
+        mus_map = museum.museumsimages_set.filter(image_type=f'{obj.floor}_map')
+        mus_pointer = museum.museumsimages_set.filter(image_type='pnt')
+        if mus_map and mus_pointer:
+            if getattr(mus_map[0], 'image', None) and \
+               getattr(mus_pointer[0], 'image', None):
+                try:
+                    mus_image = Image.open(mus_map[0].image)
+                    pnt_image = Image.open(mus_pointer[0].image)
+                except:
+                    messages.warning(request, "Map autogeneration failed. \
+                            Please check if museum maps images are not available.")
+                else:
+                    pnt_image = pnt_image.resize((40, 40)).convert("RGBA")
+                    mus_image.paste(pnt_image, (int(obj.positionx), int(obj.positiony)), pnt_image.split()[3])
+
+                    image_buffer = BytesIO()
+                    mus_image.save(image_buffer, "PNG")
+
+                    img_temp = NamedTemporaryFile(delete=True)
+                    img_temp.write(image_buffer.getvalue())
+
+                    if getattr(obj, 'object_map', None):
+                        obj.object_map.delete()
+
+                    obj.save()
+                    om = ObjectsMap()
+                    om.objects_item = obj
+                    om.image.save(f'/o_maps/{str(obj.sync_id)}/map.png', img_temp)
+
         # bulk images
+        if 'museum' in form.changed_data:
+            if getattr(obj, 'object_map', None):
+                messages.warning(request, "Notice that further you won't be able to  change museum of the object \
+                                    if objects map was autocreated. Make a new object instead")
+                return HttpResponseRedirect(".")
+            if obj.object_tensor_image.all():
+                messages.info(request, "You cannot change museum of object \
+                        when tensor images uploaded. Create a new object instead")
+                return HttpResponseRedirect(".")
 
         obj.save()
         for afile in request.FILES.getlist('photos_multiple'):
@@ -436,24 +522,25 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                 and a pointer image with corresponding image type')
         super(ObjectsItemAdmin, self).save_model(request, obj, form, change)
 
-    # def get_queryset(self, request):
-    #     return super(ObjectsItemAdmin,self).get_queryset(request).select_related('objectslocalizations_set')
-
     def avatar_id(self, obj):
         avatar = getattr(obj, 'avatar', None)
         if avatar:
             return avatar.name.split('/')[-1][:20]
 
     def chat_id(self, obj):
-        obj_loc = getattr(obj, 'objectslocalizations_set', None)
-        if obj_loc:
-            return [i.conversation.name.split('/')[-1][:20] for i in obj_loc.all()]
+        obj_locs = obj.objectslocalizations_set.all()
+        if obj_locs:
+            return [i.conversation.name.split('/')[-1][:20] for i in obj_locs]
 
     def title(self, obj):
         obj = obj.objectslocalizations_set.first()
         title = getattr(obj, 'title', None)
         if title:
             return title
+
+    def tensor_images_number(self, obj):
+        images_number = obj.object_tensor_image.count()
+        return images_number
 
     def categories(self, obj):
         obj_cat = getattr(obj, 'objectscategories', None)
@@ -463,11 +550,9 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                 return [i.id for i in categories]
 
     def localizations(self, obj):
-        obj_loc = getattr(obj, 'objectslocalizations_set', None)
-        if obj_loc:
-            localizations = obj_loc.all()
-            if localizations:
-                return [i.language for i in localizations]
+        obj_locs = obj.objectslocalizations_set.all()
+        if obj_locs:
+            return [i.language for i in obj_locs]
 
     def images_number(self, obj):
         return obj.objectsimages_set.count()

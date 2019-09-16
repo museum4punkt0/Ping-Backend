@@ -1,7 +1,7 @@
 from django.contrib.postgres.fields import JSONField, ArrayField
 from django.contrib.gis.db import models
+from django.contrib import messages
 from django.utils import timezone
-from django.core.files.temp import NamedTemporaryFile
 from django.utils.html import format_html
 from django.db.models.signals import pre_delete, post_save
 from django.dispatch import receiver
@@ -16,8 +16,6 @@ from model_utils import Choices
 import urllib
 import uuid
 import os
-from PIL import Image
-from io import BytesIO
 from multiselectfield import MultiSelectField
 from storages.backends.s3boto3 import S3Boto3Storage
 import boto3
@@ -213,6 +211,7 @@ class Settings(models.Model):
     language_styles = MultiSelectField(choices=LANGUEAGE_STYLE_CHOICES,
                                  max_choices=4,
                                  max_length=80)
+    save_collections_to_tensor = models.BooleanField(default=False)
     sync_id = models.UUIDField(default=uuid.uuid4,editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -407,11 +406,13 @@ class ObjectsItem(models.Model):
     positionx = models.DecimalField(db_column='positionX', max_digits=4, decimal_places=0)
     positiony = models.DecimalField(db_column='positionY', max_digits=4, decimal_places=0)
     vip = models.BooleanField(default=False)
+    author = models.CharField(max_length=145, blank=True, null=True)
     language_style = models.CharField(max_length=45, choices=LANGUEAGE_STYLE_CHOICES, default='easy')
     avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
     cropped_avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
     onboarding = models.BooleanField(default=False)
     semantic_relation = models.ManyToManyField('self', through='SemanticRelation', symmetrical=False)
+    in_tensor_model = models.BooleanField(default=False)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -566,39 +567,6 @@ class SemanticRelationLocalization(models.Model):
 def create_delete_objects(sender, instance, **kwargs):
     DeletedItems.objects.create(objects_item=instance.sync_id)
 
-@receiver(post_save, sender=ObjectsItem, dispatch_uid="create_map")
-def create_maps(sender, instance, **kwargs):
-    museum = instance.museum
-    mus_map = museum.museumsimages_set.filter(image_type=f'{instance.floor}_map')
-    mus_pointer = museum.museumsimages_set.filter(image_type='pnt')
-    if mus_map and mus_pointer:
-        if getattr(mus_map[0], 'image', None) and \
-           getattr(mus_pointer[0], 'image', None):
-            mus_response = urllib.request.urlopen(mus_map[0].image.url).read()
-            pnt_response = urllib.request.urlopen(mus_pointer[0].image.url).read()
-
-            if mus_response and pnt_response:
-                mus_io = BytesIO(mus_response)
-                pnt_io = BytesIO(pnt_response)
-
-                mus_image = Image.open(mus_io)
-                pnt_image = Image.open(pnt_io).convert("RGBA")
-
-                pnt_image = pnt_image.resize((40, 40))
-                mus_image.paste(pnt_image, (int(instance.positionx), int(instance.positiony)), pnt_image.split()[3])
-
-                image_buffer = BytesIO()
-                mus_image.save(image_buffer, "PNG")
-
-                img_temp = NamedTemporaryFile(delete=True)
-                img_temp.write(image_buffer.getvalue())
-
-                if getattr(instance, 'object_map', None):
-                    instance.object_map.delete()
-
-                om = ObjectsMap()
-                om.objects_item = instance
-                om.image.save(f'/o_maps/{str(instance.sync_id)}/map.png', img_temp)
 
 class SettingsPredefinedObjectsItems(models.Model):
     class Meta:
@@ -645,14 +613,16 @@ class Collections(models.Model):
     def __str__(self):
         return f'{self.id}'
 
-@receiver(post_save, sender=Collections, dispatch_uid="create_objecttensorimage_objects")
-def create_objecttensorimage_objects(sender, instance, **kwargs):
-    image_copy = ContentFile(instance.image.read())
-    name = instance.image.name.split("/")[-1]
-    tensorimage_instance = ObjectsTensorImage()
-    tensorimage_instance.objects_item = instance.objects_item
-    tensorimage_instance.image.save(name, image_copy)
-    tensorimage_instance.save()
+@receiver(post_save, sender=Collections, dispatch_uid="create_objecttensor")
+def create_objecttensor(sender, instance, **kwargs):
+    museum = Museums.objects.get(objectsitem=instance.objects_item)
+    if getattr(museum.settings, 'save_collections_to_tensor', None):
+        image_copy = ContentFile(instance.image.read())
+        name = instance.image.name.split("/")[-1]
+        tensorimage_instance = ObjectsTensorImage()
+        tensorimage_instance.objects_item = instance.objects_item
+        tensorimage_instance.image.save(name, image_copy)
+        tensorimage_instance.save()
 
 class Categorieslocalizations(models.Model):
     class Meta:
@@ -817,7 +787,7 @@ class ObjectsTensorImage(models.Model):
         return f'{self.id}'
 
 @receiver(post_save, sender=ObjectsTensorImage, dispatch_uid="check_20")
-def create_objecttensorimage_objects(sender, instance, **kwargs):
+def check_20(sender, instance, **kwargs):
     ob_item = instance.objects_item
     museum = ob_item.museum
     bucket = 'mein-objekt-tensorflow'
