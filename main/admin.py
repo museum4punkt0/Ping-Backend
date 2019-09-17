@@ -513,6 +513,11 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                 return HttpResponseRedirect(".")
 
         obj.save()
+        sizes = [True for file in request.FILES.getlist('photos_multiple') if file.size > 3400000]
+        if len(request.FILES.getlist('photos_multiple')) > 15 or any(sizes):
+            messages.warning(request, "Per one upload files number should not exceed 15 and images should not be \
+                                        lareger than 3.2 MB each.")
+            return HttpResponseRedirect(".")
         for afile in request.FILES.getlist('photos_multiple'):
             obj.object_tensor_image.create(image=afile)
 
