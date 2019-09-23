@@ -277,7 +277,7 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = ObjectsItem
         fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony',
-            'vip', 'language_style', 'avatar', 'onboarding', 'object_map',
+            'vip', 'author', 'language_style', 'avatar', 'onboarding', 'object_map',
             'sync_id', 'synced', 'created_at', 'updated_at', 'images',
             'localizations', 'semantic_relation', 'cropped_avatar')
 
@@ -608,6 +608,7 @@ def serialize_synch_data(museum,
                       'positionX': None,
                       'positionY': None,
                       'vip': None,
+                      'author': None,
                       'language_style': None,
                       'avatar': None,
                       'cropped_avatar': None,
@@ -626,6 +627,7 @@ def serialize_synch_data(museum,
         item_table['positionX'] = item['positionx']
         item_table['positionY'] = item['positiony']
         item_table['vip'] = item['vip']
+        item_table['author'] = item['author']
         item_table['language_style'] = item['language_style']
         item_table['avatar'] = item['avatar']
         item_table['cropped_avatar'] = item['cropped_avatar']
