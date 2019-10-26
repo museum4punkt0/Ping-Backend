@@ -25,10 +25,15 @@ def recognize(request):
     if not image:
         return JsonResponse({'error': 'Image is required'}, safe=True)
 
-    format = image.name.split('.')[1]
+    try:
+        im_format = image.name.split('.')[1]
+    except:
+        return JsonResponse({'error': 'Unappropriate image name or format'}, safe=True)
 
-    if not isinstance(image, (InMemoryUploadedFile, TemporaryUploadedFile)) or format not in ('jpg', 'jpeg', 'JPEG'):
-        return JsonResponse({'error': 'Image must be jpg format'}, safe=True)
+    if not isinstance(image, (InMemoryUploadedFile, TemporaryUploadedFile)) \
+            or im_format not in ('jpg', 'jpeg', 'JPEG', 'JPG') \
+            or image.size == 0:
+        return JsonResponse({'error': 'Image must be jpg format and its size must be not null'}, safe=True)
 
     if user_id:
         try:
@@ -49,7 +54,7 @@ def recognize(request):
             else:
                 museum_name = museum_id
         except (Museums.DoesNotExist, ValidationError):
-            return JsonResponse({'error': 'Museum not found'}, status=404)
+            return JsonResponse({'error': 'Museum not found'}, status=400)
     else:
         logging.error(f'Museum id must be provided')
         return JsonResponse({'error': 'Existing museum id must be provided'},
@@ -84,7 +89,7 @@ def recognize(request):
             return JsonResponse({'error': 'object_id must be UUID format'}, status=400)
 
         response = _match_coincidence(predict, object_id, img_bytes,
-                                      museum_name, format, obj_name)
+                                      museum_name, im_format, obj_name)
     else:
         response = _search_for_object(predict)
 
@@ -99,7 +104,7 @@ def _search_for_object(predict):
     return JsonResponse({'sync_id': sync_id, 'prediction': str(predict[first])})
 
 
-def _match_coincidence(predict, object_id, image, museum, format, obj_name):
+def _match_coincidence(predict, object_id, image, museum, im_format, obj_name):
     recognition_threshold = Settings.objects.first().recognition_threshold
 
     for obj, key in predict.items():
@@ -110,7 +115,7 @@ def _match_coincidence(predict, object_id, image, museum, format, obj_name):
             if key > recognition_threshold:
 
                 if key > 70:
-                    _upload_image_to_storage(image, museum, format, obj_name)
+                    _upload_image_to_storage(image, museum, im_format, obj_name)
 
                 return JsonResponse({'sync_id': sync_id, 'prediction': str(key)})
             break
@@ -118,11 +123,11 @@ def _match_coincidence(predict, object_id, image, museum, format, obj_name):
     return JsonResponse({'error': "The object is not identified"}, status=204)
 
 
-def _upload_image_to_storage(image, museum, format, obj_name):
+def _upload_image_to_storage(image, museum, im_format, obj_name):
     client = boto3.client('s3')
 
     date = datetime.datetime.today().strftime("%m-%Y")
-    path = f'ti/{museum}/{obj_name}/{date}/{uuid.uuid4()}.{format}'
+    path = f'ti/{museum}/{obj_name}/{date}/{uuid.uuid4()}.{im_format}'
 
     try:
         client.upload_fileobj(image, 'meinobjekt', path)

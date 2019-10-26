@@ -202,7 +202,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                     item = list(filter(lambda x: x != '', i['Key'].split('/')))
                     filtered_o_item = ObjectsItem.objects.filter(museum=museum).filter(sync_id=item[2])
                     if len(item) > 3 and filtered_o_item:
-                        if item[3].split('.')[-1] not in ['jpg', 'jpeg', 'JPEG']:
+                        if item[3].split('.')[-1] not in ['jpg', 'jpeg', 'JPEG', 'JPG']:
                             messages.add_message(request, messages.WARNING, 'All objects items images must be in jpeg format')
                             return HttpResponseRedirect(".")
                         items_images[item[2]] += 1
