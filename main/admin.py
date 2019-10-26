@@ -202,7 +202,7 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
                     item = list(filter(lambda x: x != '', i['Key'].split('/')))
                     filtered_o_item = ObjectsItem.objects.filter(museum=museum).filter(sync_id=item[2])
                     if len(item) > 3 and filtered_o_item:
-                        if item[3].split('.')[-1] not in ['jpg', 'jpeg', 'JPEG']:
+                        if item[3].split('.')[-1] not in ['jpg', 'jpeg', 'JPEG', 'JPG']:
                             messages.add_message(request, messages.WARNING, 'All objects items images must be in jpeg format')
                             return HttpResponseRedirect(".")
                         items_images[item[2]] += 1
@@ -513,6 +513,11 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                 return HttpResponseRedirect(".")
 
         obj.save()
+        sizes = [True for file in request.FILES.getlist('photos_multiple') if file.size > 3400000]
+        if len(request.FILES.getlist('photos_multiple')) > 15 or any(sizes):
+            messages.warning(request, "Per one upload files number should not exceed 15 and images should not be \
+                                        lareger than 3.2 MB each.")
+            return HttpResponseRedirect(".")
         for afile in request.FILES.getlist('photos_multiple'):
             obj.object_tensor_image.create(image=afile)
 
