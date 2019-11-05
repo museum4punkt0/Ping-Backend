@@ -79,11 +79,11 @@ class MusImagesFormSet(BaseInlineFormSet):
         logo_types = [True for i in mus_image_types if 'logo' in i]
 
         if not any(map_types):
-            raise ValidationError('There must be at least one map image with type "<floor_number>_map"!')
+            raise ValidationError('There must be at least one map image with type "<number> floor map"!')
         if len(pointer_types) != 1:
-            raise ValidationError('There must be exatly one pointer image with type "pnt"!')
+            raise ValidationError('There must be exatly one pointer image with type "Pointer"!')
         if len(logo_types) != 1:
-            raise ValidationError('There must be one image with type "logo"!')
+            raise ValidationError('There must be one image with type "Logo"!')
 
 
 class MuseumTourLocalizationInline(MinValidatedInlineMixIn, nested_admin.NestedTabularInline):
@@ -488,7 +488,7 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                     mus_image.paste(pnt_image, (int(obj.positionx), int(obj.positiony)), pnt_image.split()[3])
 
                     image_buffer = BytesIO()
-                    mus_image.save(image_buffer, "PNG")
+                    mus_image.convert(mode='RGB').save(image_buffer, "PNG", optimize=True)
 
                     img_temp = NamedTemporaryFile(delete=True)
                     img_temp.write(image_buffer.getvalue())
@@ -518,6 +518,7 @@ class ObjectsItemAdmin(admin.ModelAdmin):
             messages.warning(request, "Per one upload files number should not exceed 15 and images should not be \
                                         lareger than 3.2 MB each.")
             return HttpResponseRedirect(".")
+
         for afile in request.FILES.getlist('photos_multiple'):
             obj.object_tensor_image.create(image=afile)
 

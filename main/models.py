@@ -13,6 +13,7 @@ from django.conf import settings
 from main.variables import DEFAULT_MUSEUM
 from model_utils import Choices
 
+import cchardet
 import urllib
 import uuid
 import os
@@ -856,6 +857,20 @@ class ObjectsLocalizations(models.Model):
             self.created_at = timezone.now()
         self.updated_at = timezone.now()
         return super(ObjectsLocalizations, self).save(*args, **kwargs)
+
+    def clean(self):
+        if self.conversation:            
+            chat = self.conversation.read()
+            try:
+                encoding = cchardet.detect(chat)['encoding']
+                if encoding.upper() != 'UTF-8':
+                    raise ValidationError('Bad convarsation file encoding. It should be UTF-8')
+
+                    #TODO discover converting encodings withour losses
+                    # newchat = chat.decode(encoding).encode('utf-8')
+                    # self.conversation.save(f'utf-8_{self.conversation.name}', ContentFile(newchat))
+            except:
+                raise ValidationError('Bad convarsation file encoding. It should be UTF-8')
 
     def __str__(self):
         return f'{self.id}'
