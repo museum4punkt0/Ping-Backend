@@ -392,7 +392,8 @@ class ObjectsTensorImageInline(admin.TabularInline):
     fields = ('thumbnail','image')
     readonly_fields = ['thumbnail', 'updated_at', 'sync_id']
     exclude = ('synced',)
-
+    classes = ['collapse']
+    
     def has_add_permission(self, request, obj=None):
        return False
 
