@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'mapwidgets',
     'nested_admin',
     'admin_tools',
+    'django_admin_listfilter_dropdown',
     # 'debug_toolbar'
 ]
 

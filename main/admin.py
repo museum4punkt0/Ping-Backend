@@ -40,6 +40,7 @@ admin.site.site_header = "Museums Admin"
 admin.site.site_title = "Museums Admin"
 
 logger = logging.getLogger('django')
+from django_admin_listfilter_dropdown.filters import DropdownFilter, RelatedDropdownFilter, ChoiceDropdownFilter
 
 
 class MinValidatedInlineMixIn:
@@ -391,7 +392,8 @@ class ObjectsTensorImageInline(admin.TabularInline):
     fields = ('thumbnail','image')
     readonly_fields = ['thumbnail', 'updated_at', 'sync_id']
     exclude = ('synced',)
-
+    classes = ['collapse']
+    
     def has_add_permission(self, request, obj=None):
        return False
 
@@ -464,7 +466,13 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                ObjectsTensorImageInline]
     readonly_fields = ['updated_at', 'in_tensor_model']
     exclude = ('synced',)
-    search_fields = ('museum', 'title')
+    ordering = ('museum',)
+    list_filter = (
+        ('museum', RelatedDropdownFilter),
+        ('in_tensor_model', DropdownFilter),
+        ('vip', DropdownFilter),
+        ('onboarding', DropdownFilter),
+    )
 
     class Media:
         js = (
