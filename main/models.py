@@ -10,9 +10,10 @@ from django.db import transaction
 from django.core.files.base import ContentFile
 from django.core.validators import FileExtensionValidator
 from django.conf import settings
-from main.variables import DEFAULT_MUSEUM
+from main.variables import DEFAULT_MUSEUM, MIN_TENSOR_IMAGE_SIZE
 from model_utils import Choices
 
+import cchardet
 import urllib
 import uuid
 import os
@@ -616,9 +617,13 @@ class Collections(models.Model):
 @receiver(post_save, sender=Collections, dispatch_uid="create_objecttensor")
 def create_objecttensor(sender, instance, **kwargs):
     museum = Museums.objects.get(objectsitem=instance.objects_item)
-    if getattr(museum.settings, 'save_collections_to_tensor', None):
-        image_copy = ContentFile(instance.image.read())
-        name = instance.image.name.split("/")[-1]
+    col_image = instance.image
+    name = col_image.name.split("/")[-1]
+    ext = name.split('.')[-1]
+    if getattr(museum.settings, 'save_collections_to_tensor', None) and \
+                         col_image.size > MIN_TENSOR_IMAGE_SIZE and \
+                         ext in ['jpg', 'jpeg', 'JPG', 'JPEG']:
+        image_copy = ContentFile(col_image.read())
         tensorimage_instance = ObjectsTensorImage()
         tensorimage_instance.objects_item = instance.objects_item
         tensorimage_instance.image.save(name, image_copy)
@@ -761,7 +766,7 @@ class ObjectsTensorImage(models.Model):
     objects_item = models.ForeignKey(ObjectsItem, related_name='object_tensor_image', on_delete=models.CASCADE)
     image = models.ImageField(storage=S3Boto3Storage(bucket='mein-objekt-tensorflow'),
                               upload_to=get_tensor_image_path, max_length=110,
-                              validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'JPEG'])])
+                              validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'JPG', 'JPEG'])])
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -856,6 +861,20 @@ class ObjectsLocalizations(models.Model):
             self.created_at = timezone.now()
         self.updated_at = timezone.now()
         return super(ObjectsLocalizations, self).save(*args, **kwargs)
+
+    def clean(self):
+        if self.conversation:            
+            chat = self.conversation.read()
+            try:
+                encoding = cchardet.detect(chat)['encoding']
+                if encoding.upper() != 'UTF-8':
+                    raise ValidationError('Bad convarsation file encoding. It should be UTF-8')
+
+                    #TODO discover converting encodings withour losses
+                    # newchat = chat.decode(encoding).encode('utf-8')
+                    # self.conversation.save(f'utf-8_{self.conversation.name}', ContentFile(newchat))
+            except:
+                raise ValidationError('Bad convarsation file encoding. It should be UTF-8')
 
     def __str__(self):
         return f'{self.id}'

@@ -33,3 +33,4 @@ django-map-widgets==0.2.2
 django-nested-admin==3.2.3
 django-admin-tools==0.8.1
 timeloop==1.0.2
+cchardet==2.1.4

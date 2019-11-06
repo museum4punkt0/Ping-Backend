@@ -10,7 +10,8 @@ from django.conf import settings
 from django.forms.models import BaseInlineFormSet
 from django.http import HttpResponseRedirect
 from django.core.files.base import ContentFile
-from main.variables import NUMBER_OF_LOCALIZATIONS
+from main.variables import NUMBER_OF_LOCALIZATIONS, MIN_TENSOR_IMAGE_SIZE, \
+                    MAX_TENSOR_IMAGE_SIZE
 from main.models import MusemsTensor, TENSOR_STATUSES
 from main.apps import tensors
 from mapwidgets.widgets import GooglePointFieldWidget
@@ -79,11 +80,11 @@ class MusImagesFormSet(BaseInlineFormSet):
         logo_types = [True for i in mus_image_types if 'logo' in i]
 
         if not any(map_types):
-            raise ValidationError('There must be at least one map image with type "<floor_number>_map"!')
+            raise ValidationError('There must be at least one map image with type "<number> floor map"!')
         if len(pointer_types) != 1:
-            raise ValidationError('There must be exatly one pointer image with type "pnt"!')
+            raise ValidationError('There must be exatly one pointer image with type "Pointer"!')
         if len(logo_types) != 1:
-            raise ValidationError('There must be one image with type "logo"!')
+            raise ValidationError('There must be one image with type "Logo"!')
 
 
 class MuseumTourLocalizationInline(MinValidatedInlineMixIn, nested_admin.NestedTabularInline):
@@ -391,6 +392,8 @@ class ObjectsTensorImageInline(admin.TabularInline):
     readonly_fields = ['thumbnail', 'updated_at', 'sync_id']
     exclude = ('synced',)
 
+    def has_add_permission(self, request, obj=None):
+       return False
 
 class SemanticRelatedLocalizationInline(admin.TabularInline):
     readonly_fields = ['updated_at']
@@ -469,6 +472,9 @@ class ObjectsItemAdmin(admin.ModelAdmin):
             'js/toogle_author.js',
         )
 
+    def message_user(self, *args):
+        pass
+
     def save_model(self, request, obj, form, change):
         # create objects map
         museum = obj.museum
@@ -488,7 +494,7 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                     mus_image.paste(pnt_image, (int(obj.positionx), int(obj.positiony)), pnt_image.split()[3])
 
                     image_buffer = BytesIO()
-                    mus_image.save(image_buffer, "PNG")
+                    mus_image.convert(mode='RGB').save(image_buffer, "PNG", optimize=True)
 
                     img_temp = NamedTemporaryFile(delete=True)
                     img_temp.write(image_buffer.getvalue())
@@ -508,21 +514,29 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                                     if objects map was autocreated. Make a new object instead")
                 return HttpResponseRedirect(".")
             if obj.object_tensor_image.all():
-                messages.info(request, "You cannot change museum of object \
+                messages.warning(request, "You cannot change museum of object \
                         when tensor images uploaded. Create a new object instead")
                 return HttpResponseRedirect(".")
 
         obj.save()
-        sizes = [True for file in request.FILES.getlist('photos_multiple') if file.size > 3400000]
+        sizes = [True for file in request.FILES.getlist('photos_multiple') if MIN_TENSOR_IMAGE_SIZE > file.size > MAX_TENSOR_IMAGE_SIZE]
+        exts = [True for file in request.FILES.getlist('photos_multiple') if file.name.split('.')[-1] not in ['jpg', 'jpeg', 'JPG', 'JPEG']]
+
         if len(request.FILES.getlist('photos_multiple')) > 15 or any(sizes):
-            messages.warning(request, "Per one upload files number should not exceed 15 and images should not be \
-                                        lareger than 3.2 MB each.")
+            messages.warning(request, "Tensor images number should not exceed 15 for one upload and images should not be \
+                                        less than 0.1 and lareger than 3.2 MB each.")
             return HttpResponseRedirect(".")
+
+        if any(exts):
+            list(messages.get_messages(request))
+            messages.warning(request, "All tensor imags must be either one of extension 'jpg', 'jpeg', 'JPG', 'JPEG' ")
+            return HttpResponseRedirect(".")
+
         for afile in request.FILES.getlist('photos_multiple'):
             obj.object_tensor_image.create(image=afile)
 
         if not getattr(obj, 'object_map', None):
-            messages.add_message(request, messages.INFO, 'For objects Map been \
+            messages.warning(request, 'For objects Map been \
                 autocreated you should add Museum Map for every museum floor \
                 and a pointer image with corresponding image type')
         super(ObjectsItemAdmin, self).save_model(request, obj, form, change)
