@@ -109,7 +109,8 @@ class Synchronization(APIView):
         categories = Categories.objects.all()
 
         if not settings:
-          return JsonResponse({'error': 'museums settings must be defined'},
+            logger.error('museums settings must be defined')
+            return JsonResponse({'error': 'museums settings must be defined'},
                               safe=True, status=400)
 
         return JsonResponse(serialize_synch_data(museum, user, settings,
@@ -131,8 +132,11 @@ class Synchronization(APIView):
                                 safe=True, status=400)
 
         try:
-            post_data = json.loads(request.data.get('data'))
+            post_data = request.data.get('data')
+            if isinstance(post_data, str):
+                post_data = json.loads(request.data.get('data'))
         except (json.JSONDecodeError, TypeError):
+            logger.error('json data with schema {"add": {}, "update": {},"delete": {}, "get": {} } must be transfered')
             return JsonResponse({'error': 'json data with schema {"add": {}, \
                                     "update": {},"delete": {}, "get": {} } must be transfered'},
                                 safe=True, status=400)
@@ -142,6 +146,7 @@ class Synchronization(APIView):
             add_values = post_data.get('add')
             update_values = post_data.get('update')
         else:
+            logger.error('json data with schema {"add": {}, "update": {},"delete": {}, "get": {} } must be transfered')
             return JsonResponse({'error': 'json data with schema {"add": {}, \
                         "update": {},"delete": {}, "get": {} } must be transfered'},
                                 safe=True, status=400)
@@ -152,6 +157,7 @@ class Synchronization(APIView):
             try:
                 museum = Museums.objects.get(sync_id=museum_id)
             except (Museums.DoesNotExist, ValidationError):
+                logger.error('Museum not found')
                 return JsonResponse({'error': 'Museum not found'}, status=404)
         else:
             logger.error(f'Museum id must be provided')
@@ -170,6 +176,7 @@ class Synchronization(APIView):
             if isinstance(get_values.get('categories'), list):
                 categories_sync_ids.extend(get_values.get('categories'))
             else:
+                logger.error('Categories must be list')
                 return JsonResponse(
                     {'error': 'Categories must be list'},
                     safe=True, status=400)
@@ -260,6 +267,7 @@ class Synchronization(APIView):
                                                          last_step)
 
                 if len(errors['add_errors']) > 0:
+                    logger.error(errors)
                     return JsonResponse(errors, safe=True, status=400)
 
                 try:
@@ -293,6 +301,7 @@ class Synchronization(APIView):
                                                            vote)
 
                 if len(errors['add_errors']) > 0:
+                    logger.error(errors)                    
                     return JsonResponse(errors, safe=True, status=400)
 
                 try:
@@ -336,6 +345,7 @@ class Synchronization(APIView):
                                                                ctgrs)
 
                 if len(errors['add_errors']) > 0:
+                    logger.error(errors)
                     return JsonResponse(errors, safe=True)
 
                 try:
@@ -374,6 +384,7 @@ class Synchronization(APIView):
                                                          updated_at,
                                                          mus_tr_sync_id)
                 if len(errors['add_errors']) > 0:
+                    logger.error(errors)
                     return JsonResponse(errors, safe=True, status=400)
                 try:
                     tours_objects.append(UserTour(**validated_data))
@@ -428,6 +439,7 @@ class Synchronization(APIView):
                                                          last_step)
 
                 if len(errors['update_errors']) > 0:
+                    logger.error(errors)
                     return JsonResponse(errors, safe=True)
 
                 chats_data.append(validated_data)
@@ -458,6 +470,7 @@ class Synchronization(APIView):
                                                            vote)
 
                 if len(errors['update_errors']) > 0:
+                    logger.error(errors)
                     return JsonResponse(errors, safe=True)
 
                 votings_data.append(validated_data)
@@ -492,6 +505,7 @@ class Synchronization(APIView):
                                                                ctgrs)
 
                 if len(errors['update_errors']) > 0:
+                    logger.error(errors)
                     return JsonResponse(errors, safe=True)
 
                 ctgs = validated_data.pop('category', None)
@@ -504,6 +518,7 @@ class Synchronization(APIView):
                         coltn.category.set(ctgs)
                     except Exception as e:
                         errors['update_errors'].append({'collection': e.args})
+                        logger.error(errors)
                         return JsonResponse(errors, safe=True)
 
 
@@ -530,6 +545,7 @@ class Synchronization(APIView):
                                                          updated_at,
                                                          mus_tr_sync_id)
                 if len(errors['add_errors']) > 0:
+                    logger.error(errors)
                     return JsonResponse(errors, safe=True, status=400)
                 try:
                     tours_objects.append(UserTour(**validated_data))
@@ -545,6 +561,7 @@ class Synchronization(APIView):
                 try:
                     lst[0].objects.filter(sync_id=data['sync_id']).update(**data)
                 except Exception as e:
+                    logger.error({f'{name}': e.args})
                     return JsonResponse({f'{name}': e.args}, safe=True)
 
         if up_user_data:
@@ -600,6 +617,7 @@ class Synchronization(APIView):
                                                     device_id)
 
             if len(errors['update_errors']) > 0:
+                logger.error(errors)
                 return JsonResponse(errors, safe=True)
 
             language_style = data.pop('language_style', None)
@@ -612,9 +630,11 @@ class Synchronization(APIView):
             try:
                 if not Users.objects.filter(sync_id=sync_id, device_id=user_id).update(**data):
                     errors['update_errors'].append({'user': 'User device id and sync id does not match'})
+                    logger.error(errors)
                     return JsonResponse(errors, safe=True)
             except Exception as e:
                 errors['update_errors'].append({'user': e.args})
+                logger.error(errors)
                 return JsonResponse(errors, safe=True)
 
         return JsonResponse(serialize_synch_data(museum, settings=settings, categories=categories), safe=True)
