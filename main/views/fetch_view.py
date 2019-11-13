@@ -68,9 +68,10 @@ def fetch(request):
                 museum = Museums.objects.get(sync_id=museum_id)
                 settings = getattr(museum, 'settings')
             except (Museums.DoesNotExist, ValidationError):
+                logger.error('Museum not found')
                 return JsonResponse({'error': 'Museum not found'}, status=404)
         else:
-            logging.error(f'Museum id must be provided')
+            logging.error(f'Existing museum id must be provided')
             return JsonResponse(
                 {'error': 'Existing museum id must be provided'},
                 safe=True, status=400)
