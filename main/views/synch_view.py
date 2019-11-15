@@ -624,14 +624,14 @@ class Synchronization(APIView):
             avatar = data.pop('avatar', None)
             sync_id = data.pop('sync_id', None)
             language_style.save()
-            if avatar:
-                user.avatar.save(avatar.name, avatar)
-
             try:
-                if not Users.objects.filter(sync_id=sync_id, device_id=user_id).update(**data):
+                user = Users.objects.filter(sync_id=sync_id, device_id=user_id)[0]
+                if not user:
                     errors['update_errors'].append({'user': 'User device id and sync id does not match'})
                     logger.error(errors)
                     return JsonResponse(errors, safe=True)
+                Users.objects.filter(sync_id=sync_id, device_id=user_id).update(**data)
+                user.avatar.save(avatar[1], avatar[0])
             except Exception as e:
                 errors['update_errors'].append({'user': e.args})
                 logger.error(errors)
