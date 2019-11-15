@@ -220,8 +220,8 @@ def validate_collections(action,
 
     if image:
         if isinstance(image, InMemoryUploadedFile):
-            image.name = f'{settings.MEDIA_ROOT}/{str(cl_sync_id)}/image.jpg'
-            data['image'] = image
+            image_name = f'collectns_images/{str(cl_sync_id)}/image.jpg'
+            data['image'] = (image, image_name)
         else:
             errors[f'{action}_errors'].append({'collection': f'Image must be jpg or png format'})
     else:
