@@ -84,7 +84,7 @@ class Synchronization(APIView):
                 museum = Museums.objects.get(sync_id=museum_id)
                 settings = getattr(museum, 'settings')
             except (Museums.DoesNotExist, ValidationError):
-                return JsonResponse({'error': 'Museum not found'}, status=404)
+                return JsonResponse({'error': 'Museum not found'}, status=400)
         else:
             logger.error(f'Museum id must be provided')
             return JsonResponse({'error': 'Existing museum id must be provided'},
@@ -158,7 +158,7 @@ class Synchronization(APIView):
                 museum = Museums.objects.get(sync_id=museum_id)
             except (Museums.DoesNotExist, ValidationError):
                 logger.error('Museum not found')
-                return JsonResponse({'error': 'Museum not found'}, status=404)
+                return JsonResponse({'error': 'Museum not found'}, status=400)
         else:
             logger.error(f'Museum id must be provided')
             return JsonResponse(
@@ -352,7 +352,7 @@ class Synchronization(APIView):
                     ctgs = validated_data.pop('category', None)
                     img = validated_data.pop('image', None)
                     coltn = Collections(**validated_data)
-                    coltn.image.save(img.name, img)
+                    coltn.image.save(img[1], img[0])
                     [coltn.category.add(ctg) for ctg in ctgs]
                     collections_objects.append(coltn)
                 except Exception as e:
@@ -514,7 +514,7 @@ class Synchronization(APIView):
                 if coltn:
                     try:
                         Collections.objects.filter(sync_id=validated_data['sync_id']).update(**validated_data)
-                        coltn.image.save(img.name, img)
+                        coltn.image.save(img[1], img[0])
                         coltn.category.set(ctgs)
                     except Exception as e:
                         errors['update_errors'].append({'collection': e.args})
