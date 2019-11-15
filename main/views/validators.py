@@ -293,8 +293,8 @@ def validate_user(action,
 
     if avatar:
         if isinstance(avatar, InMemoryUploadedFile):
-            avatar.name = f'{settings.MEDIA_ROOT}/{str(us_sync_id)}/image.jpg'
-            data['avatar'] = avatar
+            avatar_name = f'users_avatars/{str(us_sync_id)}/image.jpg'
+            data['avatar'] = (avatar, avatar_name)
         else:
             errors[f'{action}_errors'].append({'user': f'Image must be jpg or png format'})
 
