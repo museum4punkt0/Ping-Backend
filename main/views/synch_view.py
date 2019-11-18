@@ -352,7 +352,8 @@ class Synchronization(APIView):
                     ctgs = validated_data.pop('category', None)
                     img = validated_data.pop('image', None)
                     coltn = Collections(**validated_data)
-                    coltn.image.save(img[1], img[0])
+                    if img:
+                        coltn.image.save(img[1], img[0])
                     [coltn.category.add(ctg) for ctg in ctgs]
                     collections_objects.append(coltn)
                 except Exception as e:
@@ -539,7 +540,8 @@ class Synchronization(APIView):
                         for (key, value) in validated_data.items():
                             setattr(coltn, key, value)
                         coltn.category.set(ctgs)
-                        coltn.image.save(img[1], img[0])
+                        if img:
+                            coltn.image.save(img[1], img[0])
                         coltn.save()
                     except Exception as e:
                         errors['update_errors'].append({'collection': e.args})
@@ -687,7 +689,8 @@ class Synchronization(APIView):
                 try:
                     for (key, value) in validated_data.items():
                         setattr(user, key, value)
-                    user.avatar.save(avatar[1], avatar[0])
+                    if avatar:
+                        user.avatar.save(avatar[1], avatar[0])
                     user.save()
                 except Exception as e:
                     errors['update_errors'].append({'user': e.args})
