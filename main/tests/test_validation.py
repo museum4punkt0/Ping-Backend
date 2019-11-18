@@ -5,7 +5,9 @@ from rest_framework.test import APITestCase
 from main.models import Chats, Votings, ObjectsItem, Categories, Users
 from main.views.validators import validate_common_fields, validate_chats, \
     validate_collections, validate_user, validate_votings
-
+from PIL import Image
+from io import BytesIO
+from django.core.files.base import ContentFile
 
 class TestValidateCommonFields(APITestCase):
     fixtures = ['fixtures.json']
@@ -160,6 +162,10 @@ class TestValidateCollections(APITestCase):
         ob_sync_id = ObjectsItem.objects.get(id=38).sync_id
         self.ct_sync_id1 = Categories.objects.get(id=8).sync_id
         self.ct_sync_id2 = Categories.objects.get(id=9).sync_id
+        img = Image.new('RGB', (60, 30), color = (73, 109, 137))
+        img_io = BytesIO()
+        img.save(img_io, format='JPEG')
+        im = ContentFile(img_io.getvalue())
 
         self.data = {
             'user': 1,
@@ -170,7 +176,7 @@ class TestValidateCollections(APITestCase):
             'created_at': '2019-04-18T16:08:41.439Z',
             'updated_at': '2019-04-18T16:08:41.439Z',
             'ob_sync_id': str(ob_sync_id),
-            'image': 'error',
+            'image': im,
             'ctgrs': str(self.ct_sync_id1)
         }
 
@@ -183,22 +189,22 @@ class TestValidateCollections(APITestCase):
 
     def test_image_validation(self):
         data, errors = validate_collections(**self.data)
-        self.assertEqual(len(errors['update_errors']), 1)
+        self.assertEqual(len(errors['update_errors']), 0)
 
     def test_ctgrs_validation_with_invalid_category(self):
         self.data['ctgrs'] = 'error'
         data, errors = validate_collections(**self.data)
-        self.assertEqual(len(errors['update_errors']), 3)
+        self.assertEqual(len(errors['update_errors']), 2)
 
     def test_ctgrs_validation_with_valid_category(self):
         self.data['ctgrs'] = [str(self.ct_sync_id1), str(self.ct_sync_id2)]
         data, errors = validate_collections(**self.data)
-        self.assertEqual(len(errors['update_errors']), 1)
+        self.assertEqual(len(errors['update_errors']), 0)
 
     def test_ctgrs_validation_with_invalid_one_category(self):
         self.data['ctgrs'] = [str(uuid4()), str(self.ct_sync_id2)]
         data, errors = validate_collections(**self.data)
-        self.assertEqual(len(errors['update_errors']), 2)
+        self.assertEqual(len(errors['update_errors']), 1)
 
 
 class TestValidateUser(APITestCase):
