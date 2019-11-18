@@ -218,14 +218,11 @@ def validate_collections(action,
     if len(errors[f'{action}_errors']) > 0:
         return None, errors
 
-    if image:
-        if isinstance(image, InMemoryUploadedFile):
-            image_name = f'collectns_images/{str(cl_sync_id)}/image.jpg'
-            data['image'] = (image, image_name)
-        else:
-            errors[f'{action}_errors'].append({'collection': f'Image must be jpg or png format'})
+    if image and image.size > 0:
+      image_name = f'collectns_images/{str(cl_sync_id)}/image.jpg'
+      data['image'] = (image, image_name)
     else:
-        errors[f'{action}_errors'].append({'collection': f'Value "image" for collection {cl_sync_id} is required'})
+      errors[f'{action}_errors'].append({'collection': f'Image is required and must be jpg or png format'})
 
     if ctgrs:
         if isinstance(ctgrs, list):
@@ -292,11 +289,11 @@ def validate_user(action,
         data['name'] = str(name)
 
     if avatar:
-        if isinstance(avatar, InMemoryUploadedFile):
-            avatar_name = f'users_avatars/{str(us_sync_id)}/image.jpg'
-            data['avatar'] = (avatar, avatar_name)
-        else:
-            errors[f'{action}_errors'].append({'user': f'Image must be jpg or png format'})
+      if avatar.size > 0:
+        avatar_name = f'users_avatars/{str(us_sync_id)}/image.jpg'
+        data['avatar'] = (avatar, avatar_name)
+      else:
+        errors[f'{action}_errors'].append({'user': f'Image must be not null size'})
 
     if category:
         try:
