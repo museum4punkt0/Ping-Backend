@@ -476,6 +476,29 @@ class Synchronization(APIView):
                 votings_data.append(validated_data)
 
         if up_collections:
+            """
+            Accepts updated collectons serialized data structure. 
+                {
+                   "add":{},
+                   "update":{ 
+                      "collections":[ 
+                         { 
+                            "object_sync_id":"ddab2ad6-67bb-48fa-8f6a-c4c5fe6336e1",
+                            "image":"test_avatar",
+                            "categories":[ 
+                               "66251f34-27fd-4030-8a0a-62eeb9f33090"
+                            ],
+                            "sync_id":"0da256ef-e389-4ada-8990-73de91411008",
+                            "created_at":"2019-03-20T15:15:52.900016Z",
+                            "updated_at":"2019-05-20T15:15:52.900049Z"
+                         }
+                      ]
+                   },
+                   "delete":{},
+                   "get":{}
+                }
+            """
+
             for collection in up_collections:
                 data = {'user': None,
                         'objects_item': None,
@@ -513,9 +536,11 @@ class Synchronization(APIView):
                 coltn = Collections.objects.filter(sync_id=validated_data['sync_id']).first()
                 if coltn:
                     try:
-                        Collections.objects.filter(sync_id=validated_data['sync_id']).update(**validated_data)
-                        coltn.image.save(img[1], img[0])
+                        for (key, value) in validated_data.items():
+                            setattr(coltn, key, value)
                         coltn.category.set(ctgs)
+                        coltn.image.save(img[1], img[0])
+                        coltn.save()
                     except Exception as e:
                         errors['update_errors'].append({'collection': e.args})
                         logger.error(errors)
@@ -565,6 +590,35 @@ class Synchronization(APIView):
                     return JsonResponse({f'{name}': e.args}, safe=True)
 
         if up_user_data:
+            """
+            Accepts updated users serialized data structure. 
+                { 
+                   "add":{},
+                   "update":{ 
+                      "user":{ 
+                         "name":"Franky",
+                         "positionX":2,
+                         "positionY":3,
+                         "floor":2,
+                         "language":"de",
+                         "device_id":"972349236",
+                         "avatar":"test_avatar",
+                         "language_style":[ 
+                            { 
+                               "sync_id":"79a54ca0-561c-11e9-a33f-f97d7aa22efe",
+                               "score":56,
+                               "style":"easy"
+                            }
+                         ],
+                         "sync_id":"14f1134c-cc28-4942-b089-2b18935bce35",
+                         "created_at":"2019-03-20T15:15:52.900016Z",
+                         "updated_at":"2019-03-20T15:15:52.900049Z"
+                      }
+                   },
+                   "delete":{},
+                   "get":{}
+                }
+            """
             data = {'name': None,
                     'avatar': None,
                     'positionx': None,
@@ -624,17 +678,20 @@ class Synchronization(APIView):
             avatar = data.pop('avatar', None)
             sync_id = data.pop('sync_id', None)
             language_style.save()
-            try:
-                user = Users.objects.filter(sync_id=sync_id, device_id=user_id)[0]
-                if not user:
-                    errors['update_errors'].append({'user': 'User device id and sync id does not match'})
-                    logger.error(errors)
-                    return JsonResponse(errors, safe=True)
-                Users.objects.filter(sync_id=sync_id, device_id=user_id).update(**data)
-                user.avatar.save(avatar[1], avatar[0])
-            except Exception as e:
-                errors['update_errors'].append({'user': e.args})
+            user = Users.objects.filter(sync_id=sync_id, device_id=user_id).first()
+            if not user:
+                errors['update_errors'].append({'user': 'User device id and sync id does not match'})
                 logger.error(errors)
                 return JsonResponse(errors, safe=True)
+            else:                    
+                try:
+                    for (key, value) in validated_data.items():
+                        setattr(user, key, value)
+                    user.avatar.save(avatar[1], avatar[0])
+                    user.save()
+                except Exception as e:
+                    errors['update_errors'].append({'user': e.args})
+                    logger.error(errors)
+                    return JsonResponse(errors, safe=True)
 
         return JsonResponse(serialize_synch_data(museum, settings=settings, categories=categories), safe=True)
