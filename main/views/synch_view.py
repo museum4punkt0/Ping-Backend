@@ -540,15 +540,19 @@ class Synchronization(APIView):
                         for (key, value) in validated_data.items():
                             setattr(coltn, key, value)
                         coltn.category.set(ctgs)
-                        if img:
-                            coltn.image.save(img[1], img[0])
                         coltn.save()
                     except Exception as e:
                         errors['update_errors'].append({'collection': e.args})
                         logger.error(errors)
                         return JsonResponse(errors, safe=True)
-
-
+                    else:
+                        try:
+                            if img:
+                                coltn.image.save(img[1], img[0])
+                        except Exception as e:
+                            errors['update_errors'].append({'collection': f'collection image update failed: {e.args}'})
+                            logger.error(errors)
+                            return JsonResponse(errors, safe=True)
 
         if up_tours:
             for tour in up_tours:
