@@ -12,7 +12,8 @@ from django.http import JsonResponse
 from django.conf import settings
 
 from main.models import ObjectsItem, Chats, Votings, Collections, Categories, \
-             UsersLanguageStyles, UserTour, MuseumTour, LOCALIZATIONS_CHOICES, LANGUEAGE_STYLE_CHOICES
+             UsersLanguageStyles, UserTour, MuseumTour, Users, \
+             LOCALIZATIONS_CHOICES, LANGUEAGE_STYLE_CHOICES
 
 POSITION_RANGE = {'x': (0, 500), 'y': (0, 999)}
 
@@ -48,7 +49,11 @@ def validate_common_fields(entity_name, data, action, sync_ids=None, o_model=Non
 
     if action == 'add':
         if o_model.objects.filter(sync_id=entity_sync_id):
-            errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist'})
+            if entity_name == 'collection':
+              user = Users.objects.filter(collections__sync_id="0da256ef-e389-4ada-8990-73de91411008").first()
+              errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist in account of user: {user.sync_id}'})
+            else:
+              errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist'})
 
         if data['sync_id'] in sync_ids:
             errors.append({f'{entity_name}': f'Sync id {data["sync_id"]} in {entity_name} data sets must be unique'})

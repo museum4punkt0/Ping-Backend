@@ -640,7 +640,7 @@ class UserTourInline(admin.TabularInline):
 class UsersAdmin(admin.ModelAdmin):
     inlines = [UsersLanguageStylesInline, VotingsInline, CollectionsInline,
                ChatsInline, UserTourInline]
-    list_display = ['name', 'device_id', 'user_level', 'language', 'updated_at']
+    list_display = ['name', 'device_id', 'user_level', 'language', 'updated_at', 'sync_id']
     readonly_fields = ['name', 'avatar', 'device_id', 'category', 'positionx', 'positiony', 'floor', 'font_size', 'user_level', 'language', 'updated_at']
     exclude = ('synced',)
 
