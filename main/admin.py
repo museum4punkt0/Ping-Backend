@@ -443,7 +443,7 @@ class ObjectsItemAdmin(admin.ModelAdmin):
     fieldsets = (
         ('General Info', {
             'fields': ('museum', 'floor',  'language_style', 'priority', 
-                        'positionx', 'positiony', 'in_tensor_model',
+                        'positionx', 'positiony', 'object_level', 'in_tensor_model',
                         'onboarding', 'vip'),
         }),
         ('Author', {
@@ -459,7 +459,7 @@ class ObjectsItemAdmin(admin.ModelAdmin):
     list_display = ('id', 'title',
                     'museum', 'categories', 'localizations',
                     'tensor_images_number', 'in_tensor_model',
-                    'images_number', 'onboarding', 'vip',
+                    'images_number', 'onboarding', 'vip', 'object_level',
                     'sync_id', 'updated_at', 'avatar_id', 'chat_id',)
     inlines = [ObjectsLocalizationsInline, ObjectsImagesInline,
                ObjectsCategoriesInline, ObjectsMapInline, 
@@ -640,8 +640,8 @@ class UserTourInline(admin.TabularInline):
 class UsersAdmin(admin.ModelAdmin):
     inlines = [UsersLanguageStylesInline, VotingsInline, CollectionsInline,
                ChatsInline, UserTourInline]
-    list_display = ['name', 'device_id']
-    readonly_fields = ['name', 'avatar', 'device_id', 'category', 'positionx', 'positiony', 'floor', 'language', 'updated_at']
+    list_display = ['name', 'device_id', 'user_level', 'language', 'updated_at']
+    readonly_fields = ['name', 'avatar', 'device_id', 'category', 'positionx', 'positiony', 'floor', 'font_size', 'user_level', 'language', 'updated_at']
     exclude = ('synced',)
 
 

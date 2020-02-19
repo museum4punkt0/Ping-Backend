@@ -270,6 +270,8 @@ def validate_user(action,
                   floor,
                   language,
                   language_style,
+                  font_size,
+                  level,
                   score,
                   device_id):
     uuid_obj = None
@@ -344,6 +346,20 @@ def validate_user(action,
         data['language'] = language.lower()
     else:
         errors[f'{action}_errors'].append({'user': f'Value "language" for user {us_sync_id} is not available'})
+
+    if level:
+      try:
+        level = str(level)
+        data['user_level'] = level
+      except:
+        errors[f'{action}_errors'].append({'user': f'Value of "level" for user {us_sync_id} must be integer'})
+
+    if font_size:
+      try:
+        font_size = str(font_size)
+        data['font_size'] = font_size
+      except:
+        errors[f'{action}_errors'].append({'user': f'Value of "font_size" for user {us_sync_id} must be string'})
 
     ls = getattr(user, 'userslanguagestyles', None)
     if not ls:

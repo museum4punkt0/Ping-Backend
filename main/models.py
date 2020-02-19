@@ -84,6 +84,13 @@ TENSOR_STATUSES = Choices(
         ('error', 'Model creation error, please add more objects with tensor images')
       )
 
+LEVELS_CHOICES = [
+        ('1', 1),
+        ('2', 2),
+        ('3', 3),
+      ]
+
+
 def get_image_path(instance, filename):
     syncid = getattr(instance, 'sync_id', None).urn.split(':')[-1]
     if instance.__class__.__name__ in ('Users', 'Collections'):
@@ -166,6 +173,9 @@ class Users(models.Model):
     language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.en)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
+    user_level = models.CharField(max_length=45, choices=LEVELS_CHOICES,
+                                default=1)
+    font_size = models.CharField(max_length=45, blank=True, null=True, default=None)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -416,6 +426,8 @@ class ObjectsItem(models.Model):
     in_tensor_model = models.BooleanField(default=False)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
+    object_level = models.CharField(max_length=45, choices=LEVELS_CHOICES,
+                                default=1)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 

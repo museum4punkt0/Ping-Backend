@@ -134,7 +134,13 @@ class Synchronization(APIView):
         try:
             post_data = request.data.get('data')
             if isinstance(post_data, str):
-                post_data = json.loads(request.data.get('data'))
+                try:
+                    post_data = json.loads(request.data.get('data'))
+                except JSONDecodeError:
+                    logger.error('Failed loading data to json format')
+                    return JsonResponse({'Failed loading datato json format'},
+                                        safe=True, status=400)
+
         except (json.JSONDecodeError, TypeError):
             logger.error('json data with schema {"add": {}, "update": {},"delete": {}, "get": {} } must be transfered')
             return JsonResponse({'error': 'json data with schema {"add": {}, \
@@ -631,6 +637,9 @@ class Synchronization(APIView):
                     'positiony': None,
                     'floor': None,
                     'language': None,
+                    'language_style': None,
+                    'font_size': None,
+                    'level': None,
                     'sync_id': None,
                     'created_at': None,
                     'updated_at': None}
@@ -647,6 +656,8 @@ class Synchronization(APIView):
             floor = up_user_data.get('floor')
             language = up_user_data.get('language')
             language_style = up_user_data.get('language_style')
+            font_size = up_user_data.get('font_size')
+            level = up_user_data.get('level')
             score = up_user_data.get('score')
             device_id = up_user_data.get('device_id')
 
@@ -673,6 +684,8 @@ class Synchronization(APIView):
                                                     floor,
                                                     language,
                                                     language_style,
+                                                    font_size,
+                                                    level,
                                                     score,
                                                     device_id)
 
