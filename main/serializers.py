@@ -634,7 +634,7 @@ def serialize_synch_data(museum,
         item_table['cropped_avatar'] = item['cropped_avatar']
         item_table['onboarding'] = item['onboarding']
         item_table['object_map'] = item['object_map']
-        item_table['level'] = item['object_level']
+        item_table['level'] = int(item['object_level'])
         item_table['sync_id'] = item['sync_id']
         item_table['created_at'] = item['created_at']
         item_table['updated_at'] = item['updated_at']
@@ -739,7 +739,7 @@ def serialize_synch_data(museum,
         score = getattr(uls, 'score', None)
         user_table['language_style'] = language_style
         user_table['score'] = score
-        user_table['level'] = serialized_user['user_level']
+        user_table['level'] = int(serialized_user['user_level'])
         user_table['font_size'] = serialized_user['font_size']
         user_table['sync_id'] = serialized_user['sync_id']
         user_table['created_at'] = serialized_user['created_at']
