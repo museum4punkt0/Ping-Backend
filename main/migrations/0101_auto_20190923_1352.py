@@ -4,10 +4,7 @@ from django.db import migrations
 from main.models import ObjectsItem
 
 def str_to_null(apps, schema_editor):
-    for i in ObjectsItem.objects.all():
-        if i.author == 'none':
-            i.author = None
-            i.save()
+    pass
 
 
 class Migration(migrations.Migration):
