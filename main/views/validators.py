@@ -352,9 +352,9 @@ def validate_user(action,
     else:
         errors[f'{action}_errors'].append({'user': f'Value "language" for user {us_sync_id} is not available'})
 
-    if level:
+    if level is not None:
       try:
-        level = str(level)
+        level = int(level)
         data['user_level'] = level
       except:
         errors[f'{action}_errors'].append({'user': f'Value of "level" for user {us_sync_id} must be integer'})
