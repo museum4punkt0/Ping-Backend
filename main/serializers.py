@@ -152,7 +152,7 @@ class UsersSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'device_id', 'category', 'positionx',
             'positiony', 'floor', 'language', 'avatar', 'sync_id', 'synced',
             'created_at', 'updated_at', 'chats', 'collections', 'votings',
-            'user_tours')
+            'user_tours', 'user_level', 'font_size')
 
 
 class PredefinedAvatarsSerializer(serializers.ModelSerializer):
@@ -277,8 +277,8 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = ObjectsItem
         fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony',
-            'vip', 'author', 'language_style', 'avatar', 'onboarding', 'object_map',
-            'sync_id', 'synced', 'created_at', 'updated_at', 'images',
+            'vip', 'author', 'language_style', 'avatar', 'onboarding', 'object_map', 
+            'object_level', 'sync_id', 'synced', 'created_at', 'updated_at', 'images',
             'localizations', 'semantic_relation', 'cropped_avatar')
 
     @staticmethod
@@ -614,6 +614,7 @@ def serialize_synch_data(museum,
                       'cropped_avatar': None,
                       'onboarding': None,
                       'object_map': None,
+                      'level': None,
                       'sync_id': None,
                       'created_at': None,
                       'updated_at': None,
@@ -633,6 +634,7 @@ def serialize_synch_data(museum,
         item_table['cropped_avatar'] = item['cropped_avatar']
         item_table['onboarding'] = item['onboarding']
         item_table['object_map'] = item['object_map']
+        item_table['level'] = int(item['object_level'])
         item_table['sync_id'] = item['sync_id']
         item_table['created_at'] = item['created_at']
         item_table['updated_at'] = item['updated_at']
@@ -713,6 +715,8 @@ def serialize_synch_data(museum,
                       'language': None,
                       'language_style': None,
                       'score': None,
+                      'level': None,
+                      'font_size': None,
                       'sync_id': None,
                       'created_at': None,
                       'updated_at': None,
@@ -735,6 +739,8 @@ def serialize_synch_data(museum,
         score = getattr(uls, 'score', None)
         user_table['language_style'] = language_style
         user_table['score'] = score
+        user_table['level'] = int(serialized_user['user_level'])
+        user_table['font_size'] = serialized_user['font_size']
         user_table['sync_id'] = serialized_user['sync_id']
         user_table['created_at'] = serialized_user['created_at']
         user_table['updated_at'] = serialized_user['updated_at']

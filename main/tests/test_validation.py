@@ -229,6 +229,8 @@ class TestValidateUser(APITestCase):
             'positiony': 1,
             'floor': 1,
             'language': 'en',
+            'level': 1,
+            'font_size': 'big',
             'language_style': [],
             'score': None,
             'device_id': None

@@ -12,7 +12,8 @@ from django.http import JsonResponse
 from django.conf import settings
 
 from main.models import ObjectsItem, Chats, Votings, Collections, Categories, \
-             UsersLanguageStyles, UserTour, MuseumTour, LOCALIZATIONS_CHOICES, LANGUEAGE_STYLE_CHOICES
+             UsersLanguageStyles, UserTour, MuseumTour, Users, \
+             LOCALIZATIONS_CHOICES, LANGUEAGE_STYLE_CHOICES
 
 POSITION_RANGE = {'x': (0, 500), 'y': (0, 999)}
 
@@ -48,7 +49,11 @@ def validate_common_fields(entity_name, data, action, sync_ids=None, o_model=Non
 
     if action == 'add':
         if o_model.objects.filter(sync_id=entity_sync_id):
-            errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist'})
+            if entity_name == 'collection':
+              user = Users.objects.filter(collections__sync_id="0da256ef-e389-4ada-8990-73de91411008").first()
+              errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist in account of user: {user.sync_id}'})
+            else:
+              errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist'})
 
         if data['sync_id'] in sync_ids:
             errors.append({f'{entity_name}': f'Sync id {data["sync_id"]} in {entity_name} data sets must be unique'})
@@ -270,6 +275,8 @@ def validate_user(action,
                   floor,
                   language,
                   language_style,
+                  font_size,
+                  level,
                   score,
                   device_id):
     uuid_obj = None
@@ -344,6 +351,20 @@ def validate_user(action,
         data['language'] = language.lower()
     else:
         errors[f'{action}_errors'].append({'user': f'Value "language" for user {us_sync_id} is not available'})
+
+    if level:
+      try:
+        level = str(level)
+        data['user_level'] = level
+      except:
+        errors[f'{action}_errors'].append({'user': f'Value of "level" for user {us_sync_id} must be integer'})
+
+    if font_size:
+      try:
+        font_size = str(font_size)
+        data['font_size'] = font_size
+      except:
+        errors[f'{action}_errors'].append({'user': f'Value of "font_size" for user {us_sync_id} must be string'})
 
     ls = getattr(user, 'userslanguagestyles', None)
     if not ls:
