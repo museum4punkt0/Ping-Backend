@@ -175,7 +175,7 @@ class Users(models.Model):
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     user_level = models.CharField(max_length=45, choices=LEVELS_CHOICES,
-                                default=1)
+                                default=0)
     font_size = models.CharField(max_length=45, blank=True, null=True, default=None)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
@@ -428,7 +428,7 @@ class ObjectsItem(models.Model):
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     object_level = models.CharField(max_length=45, choices=LEVELS_CHOICES,
-                                default=1)
+                                default=0)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 
