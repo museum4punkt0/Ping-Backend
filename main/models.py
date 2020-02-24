@@ -456,6 +456,29 @@ class ObjectsItem(models.Model):
             return f'{self.id}'
 
 
+class SuggestedObject(models.Model):
+    position = models.PositiveIntegerField(default=0, blank=False, null=False)
+    objectsitem = models.ForeignKey(ObjectsItem,
+                                 blank=False, null=False,
+                                 on_delete=models.CASCADE,
+                                 related_name='sug_objectsitem')
+    suggested = models.OneToOneField(ObjectsItem, models.CASCADE,
+                                 blank=True, null=True,
+                                 related_name='object_to_suggest')
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    class Meta(object):
+        ordering = ['position']
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(SuggestedObject, self).save(*args, **kwargs)
+
+
 class MuseumTour(models.Model):
     museum = models.ForeignKey(Museums, models.CASCADE,
                                related_name='tours',
@@ -534,13 +557,13 @@ class UserTour(models.Model):
 
 
 class SemanticRelation(models.Model):
-    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     from_object_item = models.ForeignKey(ObjectsItem,
                                          on_delete=models.CASCADE,
                                          related_name='from_object_item')
     to_object_item = models.ForeignKey(ObjectsItem,
                                        on_delete=models.CASCADE,
                                        related_name='to_object_item')
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 

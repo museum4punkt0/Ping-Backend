@@ -23,7 +23,7 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     ObjectsMap, MusemsTensor, SemanticRelationLocalization, \
                     SemanticRelation, OpenningTime, MuseumLocalization, \
                     MuseumTour, MuseumTourLocalization, TourObjectsItems, \
-                    ObjectsTensorImage, UserTour
+                    ObjectsTensorImage, UserTour, SuggestedObject
 import json
 import nested_admin
 import boto3
@@ -31,6 +31,7 @@ import time
 from timeloop import Timeloop
 from datetime import timedelta
 import logging
+from adminsortable2.admin import SortableInlineAdminMixin
 from botocore.exceptions import WaiterError
 from collections import defaultdict
 from PIL import Image
@@ -438,6 +439,12 @@ class SemanticRelationAdmin(admin.ModelAdmin):
     form = SemanticRelationForm
 
 
+class SuggestedObjectInline(SortableInlineAdminMixin, admin.TabularInline):
+    model = SuggestedObject
+    readonly_fields = ('position', 'updated_at',)
+    fk_name = 'objectsitem'
+    extra = 0
+
 class ObjectsItemAdmin(admin.ModelAdmin):
 
     fieldsets = (
@@ -461,7 +468,7 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                     'tensor_images_number', 'in_tensor_model',
                     'images_number', 'onboarding', 'vip', 'object_level',
                     'sync_id', 'updated_at', 'avatar_id', 'chat_id',)
-    inlines = [ObjectsLocalizationsInline, ObjectsImagesInline,
+    inlines = [SuggestedObjectInline, ObjectsLocalizationsInline, ObjectsImagesInline,
                ObjectsCategoriesInline, ObjectsMapInline, 
                ObjectsTensorImageInline]
     readonly_fields = ['updated_at', 'in_tensor_model']
