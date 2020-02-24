@@ -50,7 +50,7 @@ def validate_common_fields(entity_name, data, action, sync_ids=None, o_model=Non
     if action == 'add':
         if o_model.objects.filter(sync_id=entity_sync_id):
             if entity_name == 'collection':
-              user = Users.objects.filter(collections__sync_id="0da256ef-e389-4ada-8990-73de91411008").first()
+              user = Users.objects.filter(collections__sync_id=entity_sync_id).first()
               errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist in account of user: {user.sync_id}'})
             else:
               errors.append({f'{entity_name}': f'{entity_name} with this sync id {entity_sync_id} already exist'})
