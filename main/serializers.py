@@ -25,7 +25,8 @@ from main.models import (
                      MuseumTour,
                      MuseumTourLocalization,
                      TourObjectsItems,
-                     UserTour
+                     UserTour,
+                     SuggestedObject
                      )
 
 
@@ -256,12 +257,21 @@ class SemanticRelationSerializer(serializers.Serializer):
     updated_at = serializers.DateTimeField()
 
 
+class SuggestedObjectSerializer(serializers.ModelSerializer):
+    sync_id = serializers.CharField(source='suggested.sync_id')
+
+    class Meta:
+        model = SuggestedObject
+        fields = ('position', 'sync_id')
+
+
 class ObjectsItemSerializer(serializers.ModelSerializer):
     images = ObjectsImagesSerializer(many=True)
     localizations = ObjectsLocalizationsSerializer(many=True)
     object_map = ObjectsMapField(read_only=True)
     semantic_relation = serializers.SerializerMethodField()
     museum = serializers.SlugRelatedField(read_only=True, slug_field='sync_id')
+    objects_to_suggest = SuggestedObjectSerializer(source='sug_objectsitem', many=True)
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -279,7 +289,7 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
         fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony',
             'vip', 'author', 'language_style', 'avatar', 'onboarding', 'object_map', 
             'object_level', 'sync_id', 'synced', 'created_at', 'updated_at', 'images',
-            'localizations', 'semantic_relation', 'cropped_avatar')
+            'localizations', 'semantic_relation', 'cropped_avatar', 'objects_to_suggest')
 
     @staticmethod
     def get_semantic_relation(obj):
@@ -620,7 +630,8 @@ def serialize_synch_data(museum,
                       'updated_at': None,
                       'localizations': [],
                       'images': [],
-                      'semantic_relations': []}
+                      'semantic_relations': [],
+                      'objects_to_suggest': []}
 
         item_table['id'] = item['id']
         item_table['priority'] = item['priority']
@@ -639,6 +650,8 @@ def serialize_synch_data(museum,
         item_table['created_at'] = item['created_at']
         item_table['updated_at'] = item['updated_at']
         item_table['semantic_relations'] = item['semantic_relation']
+        item_table['objects_to_suggest'] = item['objects_to_suggest']
+
 
         localizations = item['localizations']
         for local in localizations:

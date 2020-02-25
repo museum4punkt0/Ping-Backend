@@ -445,6 +445,16 @@ class SuggestedObjectInline(SortableInlineAdminMixin, admin.TabularInline):
     fk_name = 'objectsitem'
     extra = 0
 
+    def get_formset(self, request, obj=None, **kwargs):
+        self.parent_obj = obj
+        return super(SuggestedObjectInline, self).get_formset(
+            request, obj, **kwargs)
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):        
+        if db_field.name == 'suggested' and self.parent_obj:
+            kwargs['queryset'] = db_field.related_model.objects.filter(museum=self.parent_obj.museum).exclude(id=self.parent_obj.id)
+        return super(SuggestedObjectInline, self).formfield_for_foreignkey(db_field, request=request, **kwargs)
+
 class ObjectsItemAdmin(admin.ModelAdmin):
 
     fieldsets = (

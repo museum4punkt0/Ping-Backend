@@ -462,15 +462,16 @@ class SuggestedObject(models.Model):
                                  blank=False, null=False,
                                  on_delete=models.CASCADE,
                                  related_name='sug_objectsitem')
-    suggested = models.OneToOneField(ObjectsItem, models.CASCADE,
+    suggested = models.ForeignKey(ObjectsItem, models.CASCADE,
                                  blank=True, null=True,
-                                 related_name='object_to_suggest')
+                                 related_name='objects_to_suggest')
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 
     class Meta(object):
         ordering = ['position']
-
+        unique_together = (("objectsitem", "suggested"),)
+        
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
         if not self.id:
