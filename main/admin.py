@@ -352,14 +352,14 @@ class MuseumsAdmin(nested_admin.NestedModelAdmin):
         return super().response_change(request, obj)
 
 
-class ObjectsImagesInline(admin.TabularInline):
+class ObjectsImagesInline(nested_admin.NestedTabularInline):
     model = ObjectsImages
     extra = 0
     readonly_fields = ['updated_at']
     exclude = ('synced',)
 
 
-class ObjectsLocalizationsInline(MinValidatedInlineMixIn, admin.TabularInline):
+class ObjectsLocalizationsInline(MinValidatedInlineMixIn, nested_admin.NestedTabularInline):
     model = ObjectsLocalizations
     min_num = NUMBER_OF_LOCALIZATIONS
     extra = 0
@@ -367,7 +367,7 @@ class ObjectsLocalizationsInline(MinValidatedInlineMixIn, admin.TabularInline):
     exclude = ('synced',)
 
 
-class ObjectsCategoriesInline(MinValidatedInlineMixIn, admin.TabularInline):
+class ObjectsCategoriesInline(MinValidatedInlineMixIn, nested_admin.NestedTabularInline):
     model = ObjectsCategories
     min_num = 1
     extra = 0
@@ -375,31 +375,49 @@ class ObjectsCategoriesInline(MinValidatedInlineMixIn, admin.TabularInline):
     exclude = ('synced',)
 
 
-class ObjectsMapAdmin(admin.ModelAdmin):
-    list_display = ('thumbnail',)
+class ObjectsMapInlineFormset(forms.models.BaseInlineFormSet):
+    def save_new(self, form, commit=True):        
+        # Ensure the latest copy of the related instance is present on each
+        # form (it may have been saved after the formset was originally
+        # instantiated).
+        setattr(form.instance, self.fk.name, self.instance)
+        # Use commit=False so we can assign the parent key afterwards, then
+        # save the object.
+        obj = form.save(commit=False)
+        pk_value = getattr(self.instance, self.fk.remote_field.field_name)
+        setattr(obj, self.fk.get_attname(), getattr(pk_value, 'pk', pk_value))
+        if commit:
+            obj.save()
+        if commit and hasattr(form, 'save_m2m'):
+            form.save_m2m()
+        return obj
 
 
-class ObjectsMapInline(admin.TabularInline):
+class ObjectsMapInline(nested_admin.NestedTabularInline):
     model = ObjectsMap
     extra = 0
     fields = ('thumbnail',)
     readonly_fields = ['thumbnail']
     exclude = ('synced',)
+    formset = ObjectsMapInlineFormset
+    verbose_name_plural = "Object map (if position does not change after saving an object, please reload page with Ctrl+R)"
 
 
-class ObjectsTensorImageInline(admin.TabularInline):
+class ObjectsTensorImageInline(nested_admin.NestedTabularInline):
     model = ObjectsTensorImage
     extra = 0
     fields = ('thumbnail','image')
     readonly_fields = ['thumbnail', 'updated_at', 'sync_id']
     exclude = ('synced',)
     classes = ['collapse']
+    verbose_name_plural = "Saved Tensor Images (for better performance do not upload more than 10 images at a time)"
 
     def has_add_permission(self, request, obj=None):
        return False
 
-class SemanticRelatedLocalizationInline(admin.TabularInline):
-    readonly_fields = ['updated_at']
+
+class SemanticRelatedLocalizationInline(nested_admin.NestedTabularInline):
+    readonly_fields = ['updated_at',]
     model = SemanticRelationLocalization
     extra = 0
 
@@ -415,7 +433,7 @@ class SemanticRelationForm(forms.ModelForm):
 
             if to_object_item == from_object_item:
                 raise forms.ValidationError(
-                    'Semantic relation to self impossible')
+                    'Semantic relation to self can not be created')
 
             if not self.instance.id:
                 relations1 = SemanticRelation.objects.filter(
@@ -432,18 +450,22 @@ class SemanticRelationForm(forms.ModelForm):
         return cleaned_data
 
 
-class SemanticRelationAdmin(admin.ModelAdmin):
+class SemanticRelationInline(nested_admin.NestedTabularInline):
     readonly_fields = ['updated_at']
     model = SemanticRelation
     inlines = [SemanticRelatedLocalizationInline]
+    fk_name = 'from_object_item'
     form = SemanticRelationForm
-
-
-class SuggestedObjectInline(SortableInlineAdminMixin, admin.TabularInline):
-    model = SuggestedObject
-    readonly_fields = ('position', 'updated_at',)
-    fk_name = 'objectsitem'
     extra = 0
+
+
+class SuggestedObjectInline(nested_admin.NestedTabularInline):
+    fields = ('position', 'suggested')
+    model = SuggestedObject
+    fk_name = 'objectsitem'
+    sortable_field_name = "position"
+    extra = 0
+    verbose_name_plural = "Suggested Objects (use slider on the left side for changing a position)"
 
     def get_formset(self, request, obj=None, **kwargs):
         self.parent_obj = obj
@@ -455,8 +477,8 @@ class SuggestedObjectInline(SortableInlineAdminMixin, admin.TabularInline):
             kwargs['queryset'] = db_field.related_model.objects.filter(museum=self.parent_obj.museum).exclude(id=self.parent_obj.id)
         return super(SuggestedObjectInline, self).formfield_for_foreignkey(db_field, request=request, **kwargs)
 
-class ObjectsItemAdmin(admin.ModelAdmin):
 
+class ObjectsItemAdmin(nested_admin.NestedModelAdmin):
     fieldsets = (
         ('General Info', {
             'fields': ('museum', 'floor',  'language_style', 'priority', 
@@ -478,7 +500,8 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                     'tensor_images_number', 'in_tensor_model',
                     'images_number', 'onboarding', 'vip', 'object_level',
                     'sync_id', 'updated_at', 'avatar_id', 'chat_id',)
-    inlines = [SuggestedObjectInline, ObjectsLocalizationsInline, ObjectsImagesInline,
+    inlines = [SuggestedObjectInline, SemanticRelationInline,
+               ObjectsLocalizationsInline, ObjectsImagesInline,
                ObjectsCategoriesInline, ObjectsMapInline, 
                ObjectsTensorImageInline]
     readonly_fields = ['updated_at', 'in_tensor_model']
@@ -524,10 +547,8 @@ class ObjectsItemAdmin(admin.ModelAdmin):
                     img_temp = NamedTemporaryFile(delete=True)
                     img_temp.write(image_buffer.getvalue())
 
-                    if getattr(obj, 'object_map', None):
-                        obj.object_map.delete()
+                    obj.object_map.all().delete()
 
-                    obj.save()
                     om = ObjectsMap()
                     om.objects_item = obj
                     om.image.save(f'/o_maps/{str(obj.sync_id)}/map.png', img_temp)
@@ -673,4 +694,3 @@ admin.site.register(Settings, SettingsAdmin)
 admin.site.register(Museums, MuseumsAdmin)
 admin.site.register(ObjectsItem, ObjectsItemAdmin)
 admin.site.register(Categories, CategoriesAdmin)
-admin.site.register(SemanticRelation, SemanticRelationAdmin)

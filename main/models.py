@@ -769,7 +769,7 @@ class ObjectsMap(models.Model):
     class Meta:
         verbose_name_plural = "Objects Map"
 
-    objects_item = models.OneToOneField(ObjectsItem, related_name='object_map', on_delete=models.CASCADE)
+    objects_item = models.ForeignKey(ObjectsItem, related_name='object_map', on_delete=models.CASCADE)
     image = models.ImageField()
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
