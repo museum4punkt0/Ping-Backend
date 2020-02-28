@@ -211,7 +211,6 @@ class ObjectsLocalizationsSerializer(serializers.ModelSerializer):
             for field_name in existing - allowed:
                 self.fields.pop(field_name)
 
-
     class Meta:
         model = ObjectsLocalizations
         fields = ('__all__')

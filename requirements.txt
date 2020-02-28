@@ -35,4 +35,3 @@ django-admin-tools==0.8.1
 timeloop==1.0.2
 cchardet==2.1.4
 django-admin-list-filter-dropdown==1.0.3
-django-admin-sortable2==0.7.5

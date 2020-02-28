@@ -463,7 +463,7 @@ class SuggestedObject(models.Model):
                                  on_delete=models.CASCADE,
                                  related_name='sug_objectsitem')
     suggested = models.ForeignKey(ObjectsItem, models.CASCADE,
-                                 blank=True, null=True,
+                                 blank=False, null=False,
                                  related_name='objects_to_suggest')
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
@@ -901,8 +901,8 @@ class ObjectsLocalizations(models.Model):
 
     def clean(self):
         if self.conversation:            
-            chat = self.conversation.read()
             try:
+                chat = self.conversation.read()
                 encoding = cchardet.detect(chat)['encoding']
                 if encoding.upper() != 'UTF-8':
                     raise ValidationError('Bad convarsation file encoding. It should be UTF-8')
