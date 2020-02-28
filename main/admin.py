@@ -462,6 +462,11 @@ class SemanticRelationInline(nested_admin.NestedTabularInline):
     form = SemanticRelationForm
     extra = 0
 
+    def has_add_permission(self, request, obj=None):
+        if getattr(obj, 'museum', None):
+            return True
+        return False
+
 
 class SuggestedObjectInline(nested_admin.NestedTabularInline):
     fields = ('position', 'suggested')
@@ -480,6 +485,11 @@ class SuggestedObjectInline(nested_admin.NestedTabularInline):
         if db_field.name == 'suggested' and self.parent_obj:
             kwargs['queryset'] = db_field.related_model.objects.filter(museum=self.parent_obj.museum).exclude(id=self.parent_obj.id)
         return super(SuggestedObjectInline, self).formfield_for_foreignkey(db_field, request=request, **kwargs)
+
+    def has_add_permission(self, request, obj=None):
+        if getattr(obj, 'museum', None):
+            return True
+        return False
 
 
 class ObjectsItemAdmin(nested_admin.NestedModelAdmin):
@@ -536,36 +546,6 @@ class ObjectsItemAdmin(nested_admin.NestedModelAdmin):
         return readonly_fields
 
     def save_model(self, request, obj, form, change):
-        # create objects map
-        museum = obj.museum
-        mus_map = museum.museumsimages_set.filter(image_type=f'{obj.floor}_map')
-        mus_pointer = museum.museumsimages_set.filter(image_type='pnt')
-        if mus_map and mus_pointer:
-            if getattr(mus_map[0], 'image', None) and \
-               getattr(mus_pointer[0], 'image', None):
-                try:
-                    mus_image = Image.open(mus_map[0].image)
-                    pnt_image = Image.open(mus_pointer[0].image)
-                except:
-                    messages.warning(request, "Map autogeneration failed. \
-                            Please check if museum maps images are not available.")
-                else:
-                    pnt_image = pnt_image.resize((40, 40)).convert("RGBA")
-                    mus_image.paste(pnt_image, (int(obj.positionx), int(obj.positiony)), pnt_image.split()[3])
-
-                    image_buffer = BytesIO()
-                    mus_image.convert(mode='RGB').save(image_buffer, "PNG", optimize=True)
-
-                    img_temp = NamedTemporaryFile(delete=True)
-                    img_temp.write(image_buffer.getvalue())
-
-                    obj.object_map.all().delete()
-                    obj.save()
-                    om = ObjectsMap()
-                    om.objects_item = obj
-                    om.image.save(f'/o_maps/{str(obj.sync_id)}/map.png', img_temp)
-
-
         # bulk images validation
         sizes = [True for file in request.FILES.getlist('photos_multiple') if MIN_TENSOR_IMAGE_SIZE > file.size > MAX_TENSOR_IMAGE_SIZE]
         exts = [True for file in request.FILES.getlist('photos_multiple') if file.name.split('.')[-1] not in ['jpg', 'jpeg', 'JPG', 'JPEG']]
@@ -587,6 +567,42 @@ class ObjectsItemAdmin(nested_admin.NestedModelAdmin):
             messages.warning(request, 'For objects Map been \
                 autocreated you should add Museum Map for every museum floor \
                 and a pointer image with corresponding image type')
+
+        # create objects map
+        museum = obj.museum
+        mus_map = museum.museumsimages_set.filter(image_type=f'{obj.floor}_map')
+        mus_pointer = museum.museumsimages_set.filter(image_type='pnt')
+
+        obj.save()
+
+        if mus_map and mus_pointer:
+            if getattr(mus_map[0], 'image', None) and \
+               getattr(mus_pointer[0], 'image', None):
+                try:
+                    mus_image = Image.open(mus_map[0].image)
+                    pnt_image = Image.open(mus_pointer[0].image)
+                except:
+                    messages.warning(request, "Map autogeneration failed. \
+                            Please check if museum maps images for each floor and a pointer image are available.")
+                else:
+                    pnt_image = pnt_image.resize((40, 40)).convert("RGBA")
+                    mus_image.paste(pnt_image, (int(obj.positionx), int(obj.positiony)), pnt_image.split()[3])
+
+                    image_buffer = BytesIO()
+                    mus_image.convert(mode='RGB').save(image_buffer, "PNG", optimize=True)
+
+                    img_temp = NamedTemporaryFile(delete=True)
+                    img_temp.write(image_buffer.getvalue())
+
+                    obj.object_map.all().delete()
+                    obj.save()
+                    om = ObjectsMap()
+                    om.objects_item = obj
+                    om.image.save(f'/o_maps/{str(obj.sync_id)}/map.png', img_temp)
+
+        else:            
+            messages.warning(request, "Map autogeneration failed. \
+                Please check if museum maps images for each floor and a pointer image are available.")
 
     def avatar_id(self, obj):
         avatar = getattr(obj, 'avatar', None)
