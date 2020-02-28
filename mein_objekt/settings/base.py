@@ -33,7 +33,6 @@ INSTALLED_APPS = [
     'mapwidgets',
     'admin_tools',
     'django_admin_listfilter_dropdown',
-    'adminsortable2'
     # 'debug_toolbar'
 ]
 

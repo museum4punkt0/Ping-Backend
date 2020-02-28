@@ -31,7 +31,6 @@ import time
 from timeloop import Timeloop
 from datetime import timedelta
 import logging
-from adminsortable2.admin import SortableInlineAdminMixin
 from botocore.exceptions import WaiterError
 from collections import defaultdict
 from PIL import Image
