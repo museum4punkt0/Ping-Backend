@@ -59,7 +59,7 @@ class PredefinedAvatarsInline(MinValidatedInlineMixIn, admin.TabularInline):
 
 class SettingsPredefinedObjectsItemsInline(MinValidatedInlineMixIn, admin.TabularInline):
     model = SettingsPredefinedObjectsItems
-    min_num = 8
+    min_num = 0
     extra = 0
     readonly_fields = ['updated_at']
     exclude = ('synced',)
@@ -466,6 +466,16 @@ class SemanticRelationInline(nested_admin.NestedTabularInline):
             return True
         return False
 
+    def get_formset(self, request, obj=None, **kwargs):
+        self.parent_obj = obj
+        return super(SemanticRelationInline, self).get_formset(
+            request, obj, **kwargs)
+
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
+        if db_field.name == 'to_object_item' and self.parent_obj:
+            kwargs['queryset'] = db_field.related_model.objects.filter(museum=self.parent_obj.museum).exclude(id=self.parent_obj.id)
+        return super(SemanticRelationInline, self).formfield_for_foreignkey(db_field, request=request, **kwargs)
+
 
 class SuggestedObjectInline(nested_admin.NestedTabularInline):
     fields = ('position', 'suggested')
@@ -480,7 +490,7 @@ class SuggestedObjectInline(nested_admin.NestedTabularInline):
         return super(SuggestedObjectInline, self).get_formset(
             request, obj, **kwargs)
 
-    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):        
+    def formfield_for_foreignkey(self, db_field, request=None, **kwargs):
         if db_field.name == 'suggested' and self.parent_obj:
             kwargs['queryset'] = db_field.related_model.objects.filter(museum=self.parent_obj.museum).exclude(id=self.parent_obj.id)
         return super(SuggestedObjectInline, self).formfield_for_foreignkey(db_field, request=request, **kwargs)
