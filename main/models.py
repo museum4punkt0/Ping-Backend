@@ -207,6 +207,7 @@ class Settings(models.Model):
     class Meta:
         verbose_name_plural = "Settings"
 
+    redirection_timout = models.PositiveIntegerField(default=0, blank=True, null=True)
     position_score = JSONField(default=list)
     site_url = models.URLField(blank=True, null=True)
     category_score = JSONField(blank=True, null=True)

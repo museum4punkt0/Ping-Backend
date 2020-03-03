@@ -190,7 +190,7 @@ class SettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Settings
-        fields = ('position_score', 'category_score', 'exit_position', 
+        fields = ('redirection_timout', 'position_score', 'category_score', 'exit_position', 
             'likes_score', 'chat_score', 'priority_score',
             'distance_score', 'predifined_collections', 'languages', 'language_styles', 
             'sync_id', 'synced', 'created_at', 'updated_at', 'predefined_avatars',
@@ -810,6 +810,7 @@ def serialize_synch_data(museum,
     if settings:
         serialized_settings = SettingsSerializer(settings).data
         settings_table = {'id': None,
+                          'redirection_timout': None,
                           'position_scores': None,
                           'category_score': None,
                           'exit_position': None,
@@ -827,6 +828,7 @@ def serialize_synch_data(museum,
                           'updated_at': None,
                           'site_url': None}
 
+        settings_table['redirection_timout'] = serialized_settings['redirection_timout']
         settings_table['position_scores'] = serialized_settings['position_score']
         settings_table['category_score'] = serialized_settings['category_score']
         settings_table['exit_position'] = serialized_settings['exit_position']
