@@ -207,6 +207,7 @@ class Settings(models.Model):
     class Meta:
         verbose_name_plural = "Settings"
 
+    redirection_timout = models.PositiveIntegerField(default=0, blank=True, null=True)
     position_score = JSONField(default=list)
     site_url = models.URLField(blank=True, null=True)
     category_score = JSONField(blank=True, null=True)
@@ -456,6 +457,30 @@ class ObjectsItem(models.Model):
             return f'{self.id}'
 
 
+class SuggestedObject(models.Model):
+    position = models.PositiveIntegerField(default=0, blank=False, null=False)
+    objectsitem = models.ForeignKey(ObjectsItem,
+                                 blank=False, null=False,
+                                 on_delete=models.CASCADE,
+                                 related_name='sug_objectsitem')
+    suggested = models.ForeignKey(ObjectsItem, models.CASCADE,
+                                 blank=False, null=False,
+                                 related_name='objects_to_suggest')
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    class Meta(object):
+        ordering = ['position']
+        unique_together = (("objectsitem", "suggested"),)
+        
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(SuggestedObject, self).save(*args, **kwargs)
+
+
 class MuseumTour(models.Model):
     museum = models.ForeignKey(Museums, models.CASCADE,
                                related_name='tours',
@@ -534,13 +559,13 @@ class UserTour(models.Model):
 
 
 class SemanticRelation(models.Model):
-    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     from_object_item = models.ForeignKey(ObjectsItem,
                                          on_delete=models.CASCADE,
                                          related_name='from_object_item')
     to_object_item = models.ForeignKey(ObjectsItem,
                                        on_delete=models.CASCADE,
                                        related_name='to_object_item')
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -745,7 +770,7 @@ class ObjectsMap(models.Model):
     class Meta:
         verbose_name_plural = "Objects Map"
 
-    objects_item = models.OneToOneField(ObjectsItem, related_name='object_map', on_delete=models.CASCADE)
+    objects_item = models.ForeignKey(ObjectsItem, related_name='object_map', on_delete=models.CASCADE)
     image = models.ImageField()
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
@@ -877,8 +902,8 @@ class ObjectsLocalizations(models.Model):
 
     def clean(self):
         if self.conversation:            
-            chat = self.conversation.read()
             try:
+                chat = self.conversation.read()
                 encoding = cchardet.detect(chat)['encoding']
                 if encoding.upper() != 'UTF-8':
                     raise ValidationError('Bad convarsation file encoding. It should be UTF-8')

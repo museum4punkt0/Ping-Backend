@@ -25,7 +25,8 @@ from main.models import (
                      MuseumTour,
                      MuseumTourLocalization,
                      TourObjectsItems,
-                     UserTour
+                     UserTour,
+                     SuggestedObject
                      )
 
 
@@ -189,7 +190,7 @@ class SettingsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Settings
-        fields = ('position_score', 'category_score', 'exit_position', 
+        fields = ('redirection_timout', 'position_score', 'category_score', 'exit_position', 
             'likes_score', 'chat_score', 'priority_score',
             'distance_score', 'predifined_collections', 'languages', 'language_styles', 
             'sync_id', 'synced', 'created_at', 'updated_at', 'predefined_avatars',
@@ -209,7 +210,6 @@ class ObjectsLocalizationsSerializer(serializers.ModelSerializer):
             existing = set(self.fields)
             for field_name in existing - allowed:
                 self.fields.pop(field_name)
-
 
     class Meta:
         model = ObjectsLocalizations
@@ -256,12 +256,21 @@ class SemanticRelationSerializer(serializers.Serializer):
     updated_at = serializers.DateTimeField()
 
 
+class SuggestedObjectSerializer(serializers.ModelSerializer):
+    sync_id = serializers.CharField(source='suggested.sync_id')
+
+    class Meta:
+        model = SuggestedObject
+        fields = ('position', 'sync_id')
+
+
 class ObjectsItemSerializer(serializers.ModelSerializer):
     images = ObjectsImagesSerializer(many=True)
     localizations = ObjectsLocalizationsSerializer(many=True)
     object_map = ObjectsMapField(read_only=True)
     semantic_relation = serializers.SerializerMethodField()
     museum = serializers.SlugRelatedField(read_only=True, slug_field='sync_id')
+    objects_to_suggest = SuggestedObjectSerializer(source='sug_objectsitem', many=True)
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -279,7 +288,7 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
         fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony',
             'vip', 'author', 'language_style', 'avatar', 'onboarding', 'object_map', 
             'object_level', 'sync_id', 'synced', 'created_at', 'updated_at', 'images',
-            'localizations', 'semantic_relation', 'cropped_avatar')
+            'localizations', 'semantic_relation', 'cropped_avatar', 'objects_to_suggest')
 
     @staticmethod
     def get_semantic_relation(obj):
@@ -620,7 +629,8 @@ def serialize_synch_data(museum,
                       'updated_at': None,
                       'localizations': [],
                       'images': [],
-                      'semantic_relations': []}
+                      'semantic_relations': [],
+                      'objects_to_suggest': []}
 
         item_table['id'] = item['id']
         item_table['priority'] = item['priority']
@@ -639,6 +649,8 @@ def serialize_synch_data(museum,
         item_table['created_at'] = item['created_at']
         item_table['updated_at'] = item['updated_at']
         item_table['semantic_relations'] = item['semantic_relation']
+        item_table['objects_to_suggest'] = item['objects_to_suggest']
+
 
         localizations = item['localizations']
         for local in localizations:
@@ -798,6 +810,7 @@ def serialize_synch_data(museum,
     if settings:
         serialized_settings = SettingsSerializer(settings).data
         settings_table = {'id': None,
+                          'redirection_timout': None,
                           'position_scores': None,
                           'category_score': None,
                           'exit_position': None,
@@ -815,6 +828,7 @@ def serialize_synch_data(museum,
                           'updated_at': None,
                           'site_url': None}
 
+        settings_table['redirection_timout'] = serialized_settings['redirection_timout']
         settings_table['position_scores'] = serialized_settings['position_score']
         settings_table['category_score'] = serialized_settings['category_score']
         settings_table['exit_position'] = serialized_settings['exit_position']

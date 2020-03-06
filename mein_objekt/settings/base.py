@@ -18,6 +18,7 @@ ALLOWED_HOSTS = ["*"]
 
 # Application definition
 INSTALLED_APPS = [
+    'nested_admin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -30,7 +31,6 @@ INSTALLED_APPS = [
     'django_nose',
     'django.contrib.gis',
     'mapwidgets',
-    'nested_admin',
     'admin_tools',
     'django_admin_listfilter_dropdown',
     # 'debug_toolbar'
