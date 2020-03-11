@@ -92,6 +92,22 @@ LEVELS_CHOICES = [
       ]
 
 
+CHAT_LINE_CHOICES = Choices(
+  ('redirect', ("Redirect")),
+  ('multichoice', ("Multichoice")),
+  ('||Exit', ("Exit")),
+  ('||Cam', ("Cam")),
+  ('||Map', ("Map")),
+  ('||Collection', ("Collection")),
+  ('||Map', ("Map")),
+  ('||Image1', ("Image1")),
+  ('||Image2', ("Image2")),
+  ('||Image3', ("Image3")),
+)
+
+CHAT_MULTI_CHOICES = list(zip(*[range(1, 99 + 1)] * 2))
+
+
 def get_image_path(instance, filename):
     syncid = getattr(instance, 'sync_id', None).urn.split(':')[-1]
     if instance.__class__.__name__ in ('Users', 'Collections'):
@@ -100,7 +116,7 @@ def get_image_path(instance, filename):
             user_syncid = instance.user.sync_id.urn.split(':')[-1]
             dir_name = f'User/{user_syncid}/Collection'
     elif instance.__class__.__name__ in ('ObjectsItem',
-        'MuseumsImages', 'ObjectsImages', 'PredefinedAvatars', 'ObjectsLocalizations'):
+        'MuseumsImages', 'ObjectsImages', 'PredefinedAvatars', 'ObjectsLocalizations', 'ChatDesigner'):
         object_syncid = instance.sync_id
         museum_name = getattr(instance, 'museum', None)
         if museum_name is None:
@@ -984,3 +1000,67 @@ class DeletedItems(models.Model):
 
     def __str__(self):
         return f'{self.id}'
+
+
+class ChatDesigner(models.Model):
+    poll = models.BooleanField(default=False)
+    objectsitem = models.ForeignKey(ObjectsItem,
+                                 blank=False, null=False,
+                                 on_delete=models.CASCADE,
+                                 related_name='chat_designer')
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+        
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(ChatDesigner, self).save(*args, **kwargs)
+
+
+class SingleLine(models.Model):
+    position = models.PositiveIntegerField(default=0, blank=False, null=False)
+    chat = models.ForeignKey(ChatDesigner,
+                                 blank=False, null=False,
+                                 on_delete=models.CASCADE)
+    line_type = models.CharField(max_length=45, choices=CHAT_LINE_CHOICES, 
+                                 default=CHAT_LINE_CHOICES.redirect)
+    redirect = models.PositiveIntegerField(default=0, blank=False, null=False)
+    multichoice = MultiSelectField(
+        choices=CHAT_MULTI_CHOICES,
+        blank=True,
+        null=True,
+        verbose_name='Multichoices'
+    )
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    class Meta(object):
+        ordering = ['position']
+        
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(SingleLine, self).save(*args, **kwargs)
+
+
+class SingleLineLocalization(models.Model):
+    line = models.ForeignKey(SingleLine,
+                                 blank=False, null=False,
+                                 on_delete=models.CASCADE)
+    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES,
+                                default=LOCALIZATIONS_CHOICES.en)
+    text = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+        
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(SingleLineLocalization, self).save(*args, **kwargs)

@@ -8,6 +8,7 @@ from django.contrib.gis.db import models
 from django.contrib import messages
 from django.conf import settings
 from django.forms.models import BaseInlineFormSet
+from django.forms import widgets
 from django.http import HttpResponseRedirect
 from django.core.files.base import ContentFile
 from main.variables import NUMBER_OF_LOCALIZATIONS, MIN_TENSOR_IMAGE_SIZE, \
@@ -23,7 +24,9 @@ from .models import Collections, Users, Settings, Museums, ObjectsItem,\
                     ObjectsMap, MusemsTensor, SemanticRelationLocalization, \
                     SemanticRelation, OpenningTime, MuseumLocalization, \
                     MuseumTour, MuseumTourLocalization, TourObjectsItems, \
-                    ObjectsTensorImage, UserTour, SuggestedObject
+                    ObjectsTensorImage, UserTour, SuggestedObject, ChatDesigner,\
+                    SingleLine, SingleLineLocalization, LANGUEAGE_STYLE_CHOICES, \
+                    CHAT_MULTI_CHOICES
 import json
 import nested_admin
 import boto3
@@ -36,8 +39,8 @@ from collections import defaultdict
 from PIL import Image
 from io import BytesIO
 
-admin.site.site_header = "Museums Admin"
-admin.site.site_title = "Museums Admin"
+admin.site.site_header = "MeinObjekt"
+admin.site.site_title = "MeinObjekt"
 
 logger = logging.getLogger('django')
 from django_admin_listfilter_dropdown.filters import DropdownFilter, RelatedDropdownFilter, ChoiceDropdownFilter
@@ -364,6 +367,16 @@ class ObjectsLocalizationsInline(MinValidatedInlineMixIn, nested_admin.NestedTab
     extra = 0
     readonly_fields = ['updated_at']
     exclude = ('synced',)
+    formfield_overrides = {
+        models.TextField: {'widget': widgets.Textarea(
+                           attrs={'rows': 1,
+                                  'cols': 40,
+                                  'style': 'height: 6em;'})},
+        models.CharField: {'widget': widgets.TextInput(
+                           attrs={'rows': 1,
+                                  'cols': 40,
+                                  'style': 'height: 6em;'})},
+    }
 
 
 class ObjectsCategoriesInline(MinValidatedInlineMixIn, nested_admin.NestedTabularInline):
@@ -501,6 +514,51 @@ class SuggestedObjectInline(nested_admin.NestedTabularInline):
         return False
 
 
+class SingleLineLocalizationInline(nested_admin.NestedTabularInline):
+    model = SingleLineLocalization
+    readonly_fields = ['updated_at',]
+    extra = 0
+    formfield_overrides = {
+        models.TextField: {'widget': widgets.Textarea(
+                           attrs={'rows': 1,
+                                  'cols': 80,
+                                  'style': 'height: 2em;'})},
+    }
+
+
+class SingleLineForm(forms.ModelForm):
+    multichoice = forms.MultipleChoiceField(
+        choices=CHAT_MULTI_CHOICES,
+        widget=widgets.SelectMultiple(attrs={'style': 'width: 4em; height: 7em; min-height: 70px;',
+                                             'class': 'multiple-choice'}),
+        help_text='Hold down "Shift", or "Command" ' \
+                    'on a Mac, to select more than one.',
+        required=True
+    )
+
+    class Meta:
+        model = SingleLine
+        fields = '__all__'
+
+
+class SingleLineInline(nested_admin.NestedTabularInline):
+    model = SingleLine
+    form = SingleLineForm
+    sortable_field_name = "position"
+    readonly_fields = ['updated_at',]
+    inlines = [SingleLineLocalizationInline, ]
+    extra = 0
+
+
+class ChatDesignerInline(nested_admin.NestedTabularInline):
+    model = ChatDesigner
+    # fields = ('position', 'suggested')
+    # fk_name = 'objectsitem'
+    extra = 0
+    verbose_name_plural = "Chat Designer (use slider on the left side for changing a position)"
+    readonly_fields = ['updated_at',]
+    inlines = [SingleLineInline,]
+
 class ObjectsItemAdmin(nested_admin.NestedModelAdmin):
     fieldsets = (
         ('General Info', {
@@ -526,7 +584,7 @@ class ObjectsItemAdmin(nested_admin.NestedModelAdmin):
     inlines = [SuggestedObjectInline, SemanticRelationInline,
                ObjectsLocalizationsInline, ObjectsImagesInline,
                ObjectsCategoriesInline, ObjectsMapInline, 
-               ObjectsTensorImageInline]
+               ChatDesignerInline, ObjectsTensorImageInline]
     readonly_fields = ['updated_at', 'in_tensor_model']
     exclude = ('synced',)
     ordering = ('-created_at',)

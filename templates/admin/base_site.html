@@ -1,0 +1,29 @@
+{% extends "admin/base_site.html" %}
+{% block extrahead %}
+    <style>
+        .module h2 {
+            background: #0554a2;
+        }
+        fieldset.collapsed h2 {
+            background: #0554a2;
+            color: #f8f8f8;
+        }
+        fieldset.collapsed .collapse-toggle {
+            background: transparent;
+            display: inline;
+            color: #c2ff00;
+        }
+        .inline-group h2 {
+            background: #0554a2;
+        }
+        .inline-related h2{
+            background: #0784ff;
+        }
+        .module .inline-related > .djn-fieldset h2 {
+            background: #36cfff;
+        }
+        .djn-tr > h2 {
+            background: #9ae7ff;
+        }
+    </style>
+{% endblock %}
