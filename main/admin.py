@@ -677,6 +677,8 @@ class ObjectsItemAdmin(nested_admin.NestedModelAdmin):
             return avatar.name.split('/')[-1][:20]
 
     def chat_id(self, obj):
+        if len(obj.chat_designer.all()) > 0:
+            return f"Chat designs: {list(map(lambda x:x.id, obj.chat_designer.all()))}"
         obj_locs = obj.objectslocalizations_set.all()
         if obj_locs:
             return [i.conversation.name.split('/')[-1][:20] for i in obj_locs]
