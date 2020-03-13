@@ -105,7 +105,7 @@ CHAT_LINE_CHOICES = Choices(
   ('||Image3', ("Image3")),
 )
 
-CHAT_MULTI_CHOICES = list(zip(*[range(1, 99 + 1)] * 2))
+CHAT_MULTI_CHOICES = list(zip(*[range(0, 99 + 1)] * 2))
 
 
 def get_image_path(instance, filename):
@@ -1008,6 +1008,7 @@ class ChatDesigner(models.Model):
                                  blank=False, null=False,
                                  on_delete=models.CASCADE,
                                  related_name='chat_designer')
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
         
@@ -1022,23 +1023,40 @@ class ChatDesigner(models.Model):
 class SingleLine(models.Model):
     position = models.PositiveIntegerField(default=0, blank=False, null=False)
     chat = models.ForeignKey(ChatDesigner,
-                                 blank=False, null=False,
-                                 on_delete=models.CASCADE)
+                             blank=False, null=False,
+                             on_delete=models.CASCADE,
+                             related_name='single_line')
     line_type = models.CharField(max_length=45, choices=CHAT_LINE_CHOICES, 
                                  default=CHAT_LINE_CHOICES.redirect)
     redirect = models.PositiveIntegerField(default=0, blank=False, null=False)
     multichoice = MultiSelectField(
+        default=[],
+        # blank=True,
+        # null=True,
         choices=CHAT_MULTI_CHOICES,
-        blank=True,
-        null=True,
         verbose_name='Multichoices'
     )
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 
     class Meta(object):
         ordering = ['position']
-        
+
+    def clean(self):        
+        multichoice, redirect = False, False
+        if self.redirect or self.redirect != 0:
+            redirect = True
+
+        if self.multichoice and 0 not in list(map(lambda x: int(x), self.multichoice)):
+            multichoice = True  
+
+        if redirect and multichoice:
+            raise ValidationError('Only one of redirect or multichoice can be filled')
+        if not redirect and not multichoice:
+            raise ValidationError('At least one of redirect or multichoice must be filled')        
+
+
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
         if not self.id:
@@ -1049,11 +1067,13 @@ class SingleLine(models.Model):
 
 class SingleLineLocalization(models.Model):
     line = models.ForeignKey(SingleLine,
-                                 blank=False, null=False,
-                                 on_delete=models.CASCADE)
+                             blank=False, null=False,
+                             on_delete=models.CASCADE,
+                             related_name='localization')
     language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES,
                                 default=LOCALIZATIONS_CHOICES.en)
     text = models.TextField(blank=True, null=True)
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 

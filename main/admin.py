@@ -559,6 +559,7 @@ class ChatDesignerInline(nested_admin.NestedTabularInline):
     readonly_fields = ['updated_at',]
     inlines = [SingleLineInline,]
 
+
 class ObjectsItemAdmin(nested_admin.NestedModelAdmin):
     fieldsets = (
         ('General Info', {

@@ -26,7 +26,9 @@ from main.models import (
                      MuseumTourLocalization,
                      TourObjectsItems,
                      UserTour,
-                     SuggestedObject
+                     SuggestedObject,
+                     ChatDesigner,
+                     SingleLine
                      )
 
 
@@ -264,6 +266,25 @@ class SuggestedObjectSerializer(serializers.ModelSerializer):
         fields = ('position', 'sync_id')
 
 
+class SingleLineSerializer(serializers.ModelSerializer):
+    sync_id = serializers.CharField()
+    localizations = serializers.CharField(source='localization')
+    multichoices = serializers.CharField(source='multichoice')
+
+    class Meta:
+        model = SingleLine
+        fields = ('sync_id', 'position', 'line_type', 'redirect', 'multichoices', 'localizations')
+
+
+class ChatDesignerSerializer(serializers.ModelSerializer):
+    sync_id = serializers.CharField()
+    lines = SingleLineSerializer(source='single_line', many=True)
+
+    class Meta:
+        model = ChatDesigner
+        fields = ('sync_id', 'poll', 'lines')
+
+
 class ObjectsItemSerializer(serializers.ModelSerializer):
     images = ObjectsImagesSerializer(many=True)
     localizations = ObjectsLocalizationsSerializer(many=True)
@@ -271,6 +292,7 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
     semantic_relation = serializers.SerializerMethodField()
     museum = serializers.SlugRelatedField(read_only=True, slug_field='sync_id')
     objects_to_suggest = SuggestedObjectSerializer(source='sug_objectsitem', many=True)
+    chat_objects = ChatDesignerSerializer(source='chat_designer', many=True)
 
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop('fields', None)
@@ -288,7 +310,8 @@ class ObjectsItemSerializer(serializers.ModelSerializer):
         fields = ('id', 'priority', 'museum', 'floor', 'positionx', 'positiony',
             'vip', 'author', 'language_style', 'avatar', 'onboarding', 'object_map', 
             'object_level', 'sync_id', 'synced', 'created_at', 'updated_at', 'images',
-            'localizations', 'semantic_relation', 'cropped_avatar', 'objects_to_suggest')
+            'localizations', 'semantic_relation', 'cropped_avatar', 'objects_to_suggest', 
+            'chat_objects')
 
     @staticmethod
     def get_semantic_relation(obj):
@@ -630,7 +653,8 @@ def serialize_synch_data(museum,
                       'localizations': [],
                       'images': [],
                       'semantic_relations': [],
-                      'objects_to_suggest': []}
+                      'objects_to_suggest': [],
+                      'chat_objects': []}
 
         item_table['id'] = item['id']
         item_table['priority'] = item['priority']
@@ -650,6 +674,7 @@ def serialize_synch_data(museum,
         item_table['updated_at'] = item['updated_at']
         item_table['semantic_relations'] = item['semantic_relation']
         item_table['objects_to_suggest'] = item['objects_to_suggest']
+        item_table['chat_objects'] = item['chat_objects']
 
 
         localizations = item['localizations']
