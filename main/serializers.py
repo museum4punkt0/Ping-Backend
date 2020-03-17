@@ -28,7 +28,8 @@ from main.models import (
                      UserTour,
                      SuggestedObject,
                      ChatDesigner,
-                     SingleLine
+                     SingleLine,
+                     SingleLineLocalization
                      )
 
 
@@ -266,10 +267,32 @@ class SuggestedObjectSerializer(serializers.ModelSerializer):
         fields = ('position', 'sync_id')
 
 
+class SingleLineLocalizationSerializer(serializers.ModelSerializer):
+    sync_id = serializers.CharField()
+    language = serializers.CharField()
+    text = serializers.CharField()
+
+    class Meta:
+        model = SingleLineLocalization
+        fields = ('sync_id', 'language', 'text')
+
+
+class RedirectField(serializers.RelatedField):
+    def to_representation(self, value):
+
+        return '{}'.format(value.sync_id)
+
+
 class SingleLineSerializer(serializers.ModelSerializer):
     sync_id = serializers.CharField()
-    localizations = serializers.CharField(source='localization')
+    localizations = SingleLineLocalizationSerializer(source='localization', many=True)
     multichoices = serializers.CharField(source='multichoice')
+    redirect = serializers.SerializerMethodField()
+
+    def get_redirect(self, obj):
+        redirect= SingleLine.objects.filter(position=obj.redirect)
+        if redirect:
+            return redirect[0].sync_id
 
     class Meta:
         model = SingleLine

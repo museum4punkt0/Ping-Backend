@@ -1031,8 +1031,8 @@ class SingleLine(models.Model):
     redirect = models.PositiveIntegerField(default=0, blank=False, null=False)
     multichoice = MultiSelectField(
         default=[],
-        # blank=True,
-        # null=True,
+        blank=True,
+        null=True,
         choices=CHAT_MULTI_CHOICES,
         verbose_name='Multichoices'
     )

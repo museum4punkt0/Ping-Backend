@@ -533,7 +533,7 @@ class SingleLineForm(forms.ModelForm):
                                              'class': 'multiple-choice'}),
         help_text='Hold down "Shift", or "Command" ' \
                     'on a Mac, to select more than one.',
-        required=True
+        required=False
     )
 
     class Meta:
