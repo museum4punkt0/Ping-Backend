@@ -290,7 +290,7 @@ class SingleLineSerializer(serializers.ModelSerializer):
     redirect = serializers.SerializerMethodField()
 
     def get_redirect(self, obj):
-        redirect= SingleLine.objects.filter(position=obj.redirect)
+        redirect = SingleLine.objects.filter(position=obj.redirect, chat=obj.chat)
         if redirect:
             return redirect[0].sync_id
 

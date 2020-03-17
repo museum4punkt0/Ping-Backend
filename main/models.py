@@ -1028,7 +1028,7 @@ class SingleLine(models.Model):
                              related_name='single_line')
     line_type = models.CharField(max_length=45, choices=CHAT_LINE_CHOICES, 
                                  default=CHAT_LINE_CHOICES.redirect)
-    redirect = models.PositiveIntegerField(default=0, blank=False, null=False)
+    redirect = models.PositiveIntegerField(default=0, blank=True, null=True)
     multichoice = MultiSelectField(
         default=[],
         blank=True,

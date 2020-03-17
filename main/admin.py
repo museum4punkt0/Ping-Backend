@@ -599,7 +599,7 @@ class ObjectsItemAdmin(nested_admin.NestedModelAdmin):
     class Media:
         js = (
             'js/jquery-3.3.1.js',
-            'js/toogle_author.js',
+            'js/toggles_on_objectsitem.js',
         )
 
 
