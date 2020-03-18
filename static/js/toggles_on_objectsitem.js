@@ -12,23 +12,25 @@ $(document).ready(function () {
     });
 
 
-
-    function toogle_chat_line(value){
+    function toogle_chat_line(value, line_num=0){
+        var multi = '[id$=' + (line_num) + '-multichoice' + ']' 
+        var red = '[id$=' + (line_num) + '-redirect' + ']' 
         if (value == 'multichoice') {
-            $("#id_chat_designer-0-single_line-0-multichoice" ).prop( "disabled", false );
-            $('#id_chat_designer-0-single_line-0-redirect').val(0);
-            $("#id_chat_designer-0-single_line-0-redirect" ).hide(300);
+            $(multi).prop( "disabled", false );
+            $(red).val(0);
+            $(red).hide(300);
 
         } else {
-            $("#id_chat_designer-0-single_line-0-redirect" ).prop( "disabled", false );
-            $("#id_chat_designer-0-single_line-0-multichoice" ).prop( "disabled", true );
-            $("#id_chat_designer-0-single_line-0-multichoice option:selected").removeAttr("selected");
-            $("#id_chat_designer-0-single_line-0-redirect" ).show(300);
+            $(red).prop( "disabled", false );
+            $(multi).prop( "disabled", true );
+            $(multi + 'option:selected').removeAttr("selected");
+            $(red).show(300);
         }
     }
 
-    toogle_chat_line($('#id_chat_designer-0-single_line-0-line_type option:selected').val())
-    $('#id_chat_designer-0-single_line-0-line_type').on('change', function (event) {
-        toogle_chat_line($(this).find(":selected").val())
+    toogle_chat_line($("[id$=line_type] option:selected").val())
+    $('[id$=line_type]').on('change', function (event) {
+        var line_num = this.id.split('-').slice(-2)[0]
+        toogle_chat_line($(this).find(":selected").val(), line_num=line_num)
     });
 });

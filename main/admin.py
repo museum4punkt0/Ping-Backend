@@ -524,6 +524,7 @@ class SingleLineLocalizationInline(nested_admin.NestedTabularInline):
                                   'cols': 80,
                                   'style': 'height: 2em;'})},
     }
+    verbose_name_plural = "Localization"
 
 
 class SingleLineForm(forms.ModelForm):
@@ -548,6 +549,7 @@ class SingleLineInline(nested_admin.NestedTabularInline):
     readonly_fields = ['updated_at',]
     inlines = [SingleLineLocalizationInline, ]
     extra = 0
+    verbose_name_plural = "Line"
 
 
 class ChatDesignerInline(nested_admin.NestedTabularInline):

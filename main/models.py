@@ -93,16 +93,15 @@ LEVELS_CHOICES = [
 
 
 CHAT_LINE_CHOICES = Choices(
-  ('redirect', ("Redirect")),
-  ('multichoice', ("Multichoice")),
-  ('||Exit', ("Exit")),
-  ('||Cam', ("Cam")),
-  ('||Map', ("Map")),
-  ('||Collection', ("Collection")),
-  ('||Map', ("Map")),
-  ('||Image1', ("Image1")),
-  ('||Image2', ("Image2")),
-  ('||Image3', ("Image3")),
+  ('redirect', ('Redirect')),
+  ('multichoice', ('Multichoice')),
+  ('exit', ('Exit')),
+  ('cam', ('Cam')),
+  ('map', ('Map')),
+  ('collection', ('Collection')),
+  ('image1', ('Image 1')),
+  ('image2', ('Image 2')),
+  ('image3', ('Image 3')),
 )
 
 CHAT_MULTI_CHOICES = list(zip(*[range(0, 99 + 1)] * 2))
