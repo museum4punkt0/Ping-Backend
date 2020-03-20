@@ -85,7 +85,6 @@ TENSOR_STATUSES = Choices(
       )
 
 LEVELS_CHOICES = [
-        ('0', 0),
         ('1', 1),
         ('2', 2),
         ('3', 3),
@@ -190,7 +189,7 @@ class Users(models.Model):
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     user_level = models.CharField(max_length=45, choices=LEVELS_CHOICES,
-                                default=0)
+                                default=1)
     font_size = models.CharField(max_length=45, blank=True, null=True, default=None)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
@@ -436,15 +435,15 @@ class ObjectsItem(models.Model):
     vip = models.BooleanField(default=False)
     author = models.CharField(max_length=145, blank=True, null=True)
     language_style = models.CharField(max_length=45, choices=LANGUEAGE_STYLE_CHOICES, default='easy')
-    avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
-    cropped_avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
+    avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110, verbose_name='full_image')
+    cropped_avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110, verbose_name='detail_image')
     onboarding = models.BooleanField(default=False)
     semantic_relation = models.ManyToManyField('self', through='SemanticRelation', symmetrical=False)
     in_tensor_model = models.BooleanField(default=False)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     object_level = models.CharField(max_length=45, choices=LEVELS_CHOICES,
-                                default=0)
+                                default=1)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 
