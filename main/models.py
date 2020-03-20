@@ -85,11 +85,25 @@ TENSOR_STATUSES = Choices(
       )
 
 LEVELS_CHOICES = [
-        ('0', 0),
         ('1', 1),
         ('2', 2),
         ('3', 3),
       ]
+
+
+CHAT_LINE_CHOICES = Choices(
+  ('redirect', ('Redirect')),
+  ('multichoice', ('Multichoice')),
+  ('exit', ('Exit')),
+  ('cam', ('Cam')),
+  ('map', ('Map')),
+  ('collection', ('Collection')),
+  ('image1', ('Image 1')),
+  ('image2', ('Image 2')),
+  ('image3', ('Image 3')),
+)
+
+CHAT_MULTI_CHOICES = list(zip(*[range(0, 99 + 1)] * 2))
 
 
 def get_image_path(instance, filename):
@@ -100,7 +114,7 @@ def get_image_path(instance, filename):
             user_syncid = instance.user.sync_id.urn.split(':')[-1]
             dir_name = f'User/{user_syncid}/Collection'
     elif instance.__class__.__name__ in ('ObjectsItem',
-        'MuseumsImages', 'ObjectsImages', 'PredefinedAvatars', 'ObjectsLocalizations'):
+        'MuseumsImages', 'ObjectsImages', 'PredefinedAvatars', 'ObjectsLocalizations', 'ChatDesigner'):
         object_syncid = instance.sync_id
         museum_name = getattr(instance, 'museum', None)
         if museum_name is None:
@@ -175,7 +189,7 @@ class Users(models.Model):
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     user_level = models.CharField(max_length=45, choices=LEVELS_CHOICES,
-                                default=0)
+                                default=1)
     font_size = models.CharField(max_length=45, blank=True, null=True, default=None)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
@@ -421,15 +435,15 @@ class ObjectsItem(models.Model):
     vip = models.BooleanField(default=False)
     author = models.CharField(max_length=145, blank=True, null=True)
     language_style = models.CharField(max_length=45, choices=LANGUEAGE_STYLE_CHOICES, default='easy')
-    avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
-    cropped_avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
+    avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110, verbose_name='full_image')
+    cropped_avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110, verbose_name='detail_image')
     onboarding = models.BooleanField(default=False)
     semantic_relation = models.ManyToManyField('self', through='SemanticRelation', symmetrical=False)
     in_tensor_model = models.BooleanField(default=False)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     object_level = models.CharField(max_length=45, choices=LEVELS_CHOICES,
-                                default=0)
+                                default=1)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -984,3 +998,87 @@ class DeletedItems(models.Model):
 
     def __str__(self):
         return f'{self.id}'
+
+
+class ChatDesigner(models.Model):
+    poll = models.BooleanField(default=False)
+    objectsitem = models.ForeignKey(ObjectsItem,
+                                 blank=False, null=False,
+                                 on_delete=models.CASCADE,
+                                 related_name='chat_designer')
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+        
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(ChatDesigner, self).save(*args, **kwargs)
+
+
+class SingleLine(models.Model):
+    position = models.PositiveIntegerField(default=0, blank=False, null=False)
+    chat = models.ForeignKey(ChatDesigner,
+                             blank=False, null=False,
+                             on_delete=models.CASCADE,
+                             related_name='single_line')
+    line_type = models.CharField(max_length=45, choices=CHAT_LINE_CHOICES, 
+                                 default=CHAT_LINE_CHOICES.redirect)
+    redirect = models.PositiveIntegerField(default=0, blank=True, null=True)
+    multichoice = MultiSelectField(
+        default=[],
+        blank=True,
+        null=True,
+        choices=CHAT_MULTI_CHOICES,
+        verbose_name='Multichoices'
+    )
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    class Meta(object):
+        ordering = ['position']
+
+    def clean(self):        
+        multichoice, redirect = False, False
+        if self.redirect or self.redirect != 0:
+            redirect = True
+
+        if self.multichoice and 0 not in list(map(lambda x: int(x), self.multichoice)):
+            multichoice = True  
+
+        if redirect and multichoice:
+            raise ValidationError('Only one of redirect or multichoice can be filled')
+        if not redirect and not multichoice:
+            raise ValidationError('At least one of redirect or multichoice must be filled')        
+
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(SingleLine, self).save(*args, **kwargs)
+
+
+class SingleLineLocalization(models.Model):
+    line = models.ForeignKey(SingleLine,
+                             blank=False, null=False,
+                             on_delete=models.CASCADE,
+                             related_name='localization')
+    language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES,
+                                default=LOCALIZATIONS_CHOICES.en)
+    text = models.TextField(blank=True, null=True)
+    sync_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+        
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = timezone.now()
+        self.updated_at = timezone.now()
+        return super(SingleLineLocalization, self).save(*args, **kwargs)
