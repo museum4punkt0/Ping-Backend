@@ -1,3 +1,19 @@
+function toogle_chat_line(value, line_num=null){
+    var multi = '[id$=' + (line_num) + '-multichoice' + ']';
+    var red = '[id$=' + (line_num) + '-redirect' + ']';
+
+    if (value == 'multichoice') {
+        $(multi).prop( "disabled", false );
+        $(red).val(0).hide(300);
+
+    } else {
+        $(red).prop( "disabled", false ).show(300);
+        $(multi).prop( "disabled", true );
+        $(multi + 'option:selected').removeAttr("selected");
+    }
+}
+
+
 $(document).ready(function () {
     function toogle_author(value){
         if (value == true) {
@@ -12,25 +28,14 @@ $(document).ready(function () {
     });
 
 
-    function toogle_chat_line(value, line_num=0){
-        var multi = '[id$=' + (line_num) + '-multichoice' + ']' 
-        var red = '[id$=' + (line_num) + '-redirect' + ']' 
-        if (value == 'multichoice') {
-            $(multi).prop( "disabled", false );
-            $(red).val(0);
-            $(red).hide(300);
-
-        } else {
-            $(red).prop( "disabled", false );
-            $(multi).prop( "disabled", true );
-            $(multi + 'option:selected').removeAttr("selected");
-            $(red).show(300);
-        }
-    }
-
-    toogle_chat_line($("[id$=line_type] option:selected").val())
-    $('[id$=line_type]').on('change', function (event) {
-        var line_num = this.id.split('-').slice(-2)[0]
-        toogle_chat_line($(this).find(":selected").val(), line_num=line_num)
+    $.each($("[id$=line_type]"), function( index, value ){
+        var line_num = value.id.split('-').slice(-2)[0]
+        toogle_chat_line(value.selectedOptions[0].value, line_num=line_num)
     });
+
+});
+
+$(document).on('click', '[id$=line_type]', function(){
+    var line_num = this.id.split('-').slice(-2)[0]
+    toogle_chat_line($(this).find(":selected").val(), line_num)
 });
