@@ -1001,7 +1001,7 @@ class DeletedItems(models.Model):
 
 
 class ChatDesigner(models.Model):
-    poll = models.BooleanField(default=False)
+    active = models.BooleanField(default=False)
     objectsitem = models.ForeignKey(ObjectsItem,
                                  blank=False, null=False,
                                  on_delete=models.CASCADE,
@@ -1034,6 +1034,7 @@ class SingleLine(models.Model):
         choices=CHAT_MULTI_CHOICES,
         verbose_name='Multichoices'
     )
+    poll = models.BooleanField(default=False)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(default=timezone.now)
@@ -1053,6 +1054,8 @@ class SingleLine(models.Model):
             raise ValidationError('Only one of redirect or multichoice can be filled')
         if not redirect and not multichoice:
             raise ValidationError('At least one of redirect or multichoice must be filled')        
+        if not multichoice and self.poll:
+            raise ValidationError('Only multichoice line can be a poll')
 
 
     def save(self, *args, **kwargs):

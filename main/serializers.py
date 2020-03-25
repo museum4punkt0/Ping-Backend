@@ -288,15 +288,18 @@ class SingleLineSerializer(serializers.ModelSerializer):
     localizations = SingleLineLocalizationSerializer(source='localization', many=True)
     multichoices = serializers.CharField(source='multichoice')
     redirect = serializers.SerializerMethodField()
+    poll = serializers.CharField()
 
     def get_redirect(self, obj):
+        if obj.redirect == 0:
+            return None
         redirect = SingleLine.objects.filter(position=obj.redirect, chat=obj.chat)
         if redirect:
             return redirect[0].sync_id
 
     class Meta:
         model = SingleLine
-        fields = ('sync_id', 'position', 'line_type', 'redirect', 'multichoices', 'localizations')
+        fields = ('sync_id', 'position', 'line_type', 'redirect', 'multichoices', 'poll', 'localizations')
 
 
 class ChatDesignerSerializer(serializers.ModelSerializer):
@@ -305,7 +308,7 @@ class ChatDesignerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChatDesigner
-        fields = ('sync_id', 'poll', 'lines')
+        fields = ('sync_id', 'active', 'lines')
 
 
 class ObjectsItemSerializer(serializers.ModelSerializer):

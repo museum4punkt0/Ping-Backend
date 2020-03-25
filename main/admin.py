@@ -583,7 +583,7 @@ class ObjectsItemAdmin(nested_admin.NestedModelAdmin):
                     'museum', 'categories', 'localizations',
                     'tensor_images_number', 'in_tensor_model',
                     'images_number', 'onboarding', 'vip', 'object_level',
-                    'sync_id', 'updated_at', 'avatar_id', 'chat_id',)
+                    'sync_id', 'updated_at', 'avatar_id', 'chat',)
     inlines = [SuggestedObjectInline, SemanticRelationInline,
                ObjectsLocalizationsInline, ObjectsImagesInline,
                ObjectsCategoriesInline, ObjectsMapInline, 
@@ -679,9 +679,10 @@ class ObjectsItemAdmin(nested_admin.NestedModelAdmin):
         if avatar:
             return avatar.name.split('/')[-1][:20]
 
-    def chat_id(self, obj):
+    def chat(self, obj):
+        chat_labels = {True: 'active', False: 'draft'}
         if len(obj.chat_designer.all()) > 0:
-            return f"Chat designs: {list(map(lambda x:x.id, obj.chat_designer.all()))}"
+            return list(map(lambda x:{f'id {x.id}': chat_labels[x.active]}, obj.chat_designer.all()))
         obj_locs = obj.objectslocalizations_set.all()
         if obj_locs:
             return [i.conversation.name.split('/')[-1][:20] for i in obj_locs]
