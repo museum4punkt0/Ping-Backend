@@ -346,6 +346,10 @@ class Museums(models.Model):
 
 
 class MuseumLocalization(models.Model):
+    class Meta(object):
+        verbose_name_plural = "Museum Localizations"
+        unique_together = (("museum", "language"),)
+
     museum = models.ForeignKey(Museums, on_delete=models.CASCADE,
                                related_name='localizations',
                                related_query_name='localizations')
@@ -512,6 +516,10 @@ class MuseumTour(models.Model):
 
 
 class MuseumTourLocalization(models.Model):
+    class Meta(object):
+        verbose_name_plural = "Tour Localizations"
+        unique_together = (("tour", "language"),)
+
     tour = models.ForeignKey(MuseumTour, on_delete=models.CASCADE,
                                related_name='localizations',
                                related_query_name='localizations')
@@ -597,8 +605,12 @@ class SemanticRelation(models.Model):
 
 
 class SemanticRelationLocalization(models.Model):
+    class Meta(object):
+        verbose_name_plural = "Semantic relation Localizations"
+        unique_together = (("relation", "language"),)
+
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
-    objects_item = models.ForeignKey(SemanticRelation, models.CASCADE,
+    relation = models.ForeignKey(SemanticRelation, models.CASCADE,
                                      related_name='localizations',
                                      related_query_name='localizations')
     language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES,
@@ -683,7 +695,8 @@ def create_objecttensor(sender, instance, **kwargs):
 
 class Categorieslocalizations(models.Model):
     class Meta:
-        verbose_name_plural = "Categories Localizations"
+        verbose_name_plural = "Category Localizations"
+        unique_together = (("category", "language"),)
 
     category = models.ForeignKey(Categories, models.CASCADE)
     title = models.CharField(max_length=45)
@@ -763,7 +776,7 @@ class ObjectsImages(models.Model):
 
     number = models.PositiveSmallIntegerField()
     objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
-    image = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
+    image = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=150)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -892,7 +905,8 @@ class MuseumsImages(models.Model):
 
 class ObjectsLocalizations(models.Model):
     class Meta:
-        verbose_name_plural = "Objects Localizations"
+        verbose_name_plural = "Object Localizations"
+        unique_together = (("objects_item", "language"),)
 
     objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
     language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.en)
@@ -919,8 +933,8 @@ class ObjectsLocalizations(models.Model):
             try:
                 chat = self.conversation.read()
                 encoding = cchardet.detect(chat)['encoding']
-                if encoding.upper() != 'UTF-8':
-                    raise ValidationError('Bad convarsation file encoding. It should be UTF-8')
+                if encoding.upper() not in ['UTF-8', 'UTF-8-SIG']:
+                    raise ValidationError('Bad convarsation file encoding. It should be UTF-8 with BOM')
 
                     #TODO discover converting encodings withour losses
                     # newchat = chat.decode(encoding).encode('utf-8')
@@ -1067,6 +1081,10 @@ class SingleLine(models.Model):
 
 
 class SingleLineLocalization(models.Model):
+    class Meta(object):
+        verbose_name_plural = "Line Localizations"
+        unique_together = (("line", "language"),)
+
     line = models.ForeignKey(SingleLine,
                              blank=False, null=False,
                              on_delete=models.CASCADE,

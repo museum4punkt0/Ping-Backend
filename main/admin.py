@@ -573,7 +573,7 @@ class ObjectsItemAdmin(nested_admin.NestedModelAdmin):
             'fields': (('author'),),
             'classes': ('author',)
         }),
-        ('Object Images', {
+        ('Object Avatars', {
             'fields': ('avatar', 'cropped_avatar', ),
         }),
     )
