@@ -929,12 +929,12 @@ class ObjectsLocalizations(models.Model):
         return super(ObjectsLocalizations, self).save(*args, **kwargs)
 
     def clean(self):
-        if self.conversation:            
+        if self.conversation and self.language == LOCALIZATIONS_CHOICES.de:
             try:
                 chat = self.conversation.read()
                 encoding = cchardet.detect(chat)['encoding']
-                if encoding.upper() not in ['UTF-8', 'UTF-8-SIG']:
-                    raise ValidationError('Bad convarsation file encoding. It should be UTF-8 with BOM')
+                if encoding.upper() not in ['UTF-8']:
+                    raise ValidationError('Bad convarsation file encoding. It should be UTF-8')
 
                     #TODO discover converting encodings withour losses
                     # newchat = chat.decode(encoding).encode('utf-8')
