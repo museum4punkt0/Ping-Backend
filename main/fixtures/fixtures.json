@@ -940,7 +940,7 @@
   "model": "main.semanticrelationlocalization",
   "pk": 1,
   "fields": {
-    "objects_item": 11,
+    "relation": 11,
     "language": "en",
     "description": "test"
   }
