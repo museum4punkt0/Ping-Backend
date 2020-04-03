@@ -267,7 +267,7 @@ class PredefinedAvatars(models.Model):
     class Meta:
         verbose_name_plural = "Predefined Avatars"
 
-    image = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110)
+    image = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=150)
     settings = models.ForeignKey(Settings, models.CASCADE, blank=True, null=True)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
@@ -395,7 +395,7 @@ class MuseumLocalization(models.Model):
 
 class OpenningTime(models.Model):
     museum = models.ForeignKey(Museums, models.SET_NULL, null=True)
-    weekday = MultiSelectField(choices=WEEKDAYS, max_length=110)
+    weekday = MultiSelectField(choices=WEEKDAYS, max_length=150)
     from_hour = models.TimeField()
     to_hour = models.TimeField()
 
@@ -405,10 +405,10 @@ class MusemsTensor(models.Model):
         verbose_name_plural = "Tensor flow models"
 
     museum = models.ForeignKey(Museums, models.PROTECT, related_name='museumtensor')
-    tensor_flow_model = models.FileField(upload_to='tensor_model/', blank=True, null=True, max_length=110)
-    tensor_flow_lables = models.FileField(upload_to='tensor_label/', blank=True, null=True, max_length=110)
-    mobile_tensor_flow_model = models.FileField(upload_to='tensor_model/', blank=True, null=True, max_length=110)
-    mobile_tensor_flow_lables = models.FileField(upload_to='tensor_label/', blank=True, null=True, max_length=110)
+    tensor_flow_model = models.FileField(upload_to='tensor_model/', blank=True, null=True, max_length=150)
+    tensor_flow_lables = models.FileField(upload_to='tensor_label/', blank=True, null=True, max_length=150)
+    mobile_tensor_flow_model = models.FileField(upload_to='tensor_model/', blank=True, null=True, max_length=150)
+    mobile_tensor_flow_lables = models.FileField(upload_to='tensor_label/', blank=True, null=True, max_length=150)
     tensor_status = models.CharField(max_length=145, choices=TENSOR_STATUSES, default='none')
     mobile_tensor_status = models.CharField(max_length=145, choices=TENSOR_STATUSES, default='none')
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
@@ -440,8 +440,8 @@ class ObjectsItem(models.Model):
     vip = models.BooleanField(default=False)
     author = models.CharField(max_length=145, blank=True, null=True)
     language_style = models.CharField(max_length=45, choices=LANGUEAGE_STYLE_CHOICES, default='easy')
-    avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110, verbose_name='full_image')
-    cropped_avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=110, verbose_name='detail_image')
+    avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=150, verbose_name='full_image')
+    cropped_avatar = models.ImageField(upload_to=get_image_path, blank=True, null=True, max_length=150, verbose_name='detail_image')
     onboarding = models.BooleanField(default=False)
     semantic_relation = models.ManyToManyField('self', through='SemanticRelation', symmetrical=False)
     in_tensor_model = models.BooleanField(default=False)
@@ -663,7 +663,7 @@ class Collections(models.Model):
     user = models.ForeignKey(Users, models.CASCADE, blank=True, null=True)
     objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
     category = models.ManyToManyField(Categories)
-    image = models.ImageField(max_length=110)
+    image = models.ImageField(max_length=150)
     sync_id = models.UUIDField(default=uuid.uuid4, unique=True)
     synced = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
@@ -831,7 +831,7 @@ class ObjectsTensorImage(models.Model):
 
     objects_item = models.ForeignKey(ObjectsItem, related_name='object_tensor_image', on_delete=models.CASCADE)
     image = models.ImageField(storage=S3Boto3Storage(bucket='mein-objekt-tensorflow'),
-                              upload_to=get_tensor_image_path, max_length=110,
+                              upload_to=get_tensor_image_path, max_length=150,
                               validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'JPG', 'JPEG'])])
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
     synced = models.BooleanField(default=False)
@@ -885,7 +885,7 @@ class MuseumsImages(models.Model):
     class Meta:
         verbose_name_plural = "Museums Images"
 
-    image = models.ImageField(upload_to=get_image_path, max_length=110)
+    image = models.ImageField(upload_to=get_image_path, max_length=150)
     image_type = models.CharField(max_length=45, choices=IMAGE_TYPES, default=IMAGE_TYPES.smpl)
     museum = models.ForeignKey(Museums, models.CASCADE)
     sync_id = models.UUIDField(default=uuid.uuid4, editable=False)
@@ -911,7 +911,7 @@ class ObjectsLocalizations(models.Model):
 
     objects_item = models.ForeignKey(ObjectsItem, models.CASCADE)
     language = models.CharField(max_length=45, choices=LOCALIZATIONS_CHOICES, default=LOCALIZATIONS_CHOICES.en)
-    conversation = models.FileField(upload_to=get_image_path, blank=True, null=True, max_length=110,
+    conversation = models.FileField(upload_to=get_image_path, blank=True, null=True, max_length=150,
                                     validators=[FileExtensionValidator(allowed_extensions=['txt'])])
     description = models.TextField(blank=True, null=True)
     title = models.CharField(max_length=45, blank=True, null=True)
