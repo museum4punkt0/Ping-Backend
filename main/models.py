@@ -10,10 +10,11 @@ from django.db import transaction
 from django.core.files.base import ContentFile
 from django.core.validators import FileExtensionValidator
 from django.conf import settings
+
 from main.variables import DEFAULT_MUSEUM, MIN_TENSOR_IMAGE_SIZE
+from main.utils import check_utf
 from model_utils import Choices
 
-import cchardet
 import urllib
 import uuid
 import os
@@ -932,8 +933,7 @@ class ObjectsLocalizations(models.Model):
         if self.conversation and self.language == LOCALIZATIONS_CHOICES.de:
             try:
                 chat = self.conversation.read()
-                encoding = cchardet.detect(chat)['encoding']
-                if encoding.upper() not in ['UTF-8']:
+                if not check_utf.is_utf8_without_bom(chat):
                     raise ValidationError('Bad convarsation file encoding. It should be UTF-8')
 
                     #TODO discover converting encodings withour losses
