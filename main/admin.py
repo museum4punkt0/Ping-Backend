@@ -630,6 +630,7 @@ class ObjectsItemAdmin(nested_admin.NestedModelAdmin):
             messages.warning(request, "All tensor imags must be either one of extension 'jpg', 'jpeg', 'JPG', 'JPEG' ")
             return HttpResponseRedirect(".")
 
+        obj.save()
         for afile in request.FILES.getlist('photos_multiple'):
             obj.object_tensor_image.create(image=afile)
 
