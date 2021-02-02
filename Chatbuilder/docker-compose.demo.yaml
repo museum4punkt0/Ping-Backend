@@ -1,0 +1,38 @@
+version: "3.7"
+
+services: 
+
+  # Blocks for web service
+  app:
+    image: registry.teamvoy.com/mein-object/chatbuilder/chatbuilder:${release_tag}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=production
+    command: serve -s build
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "30"
+    networks:
+      - demo-chatbuilder-network
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+        order: start-first
+      restart_policy:
+        condition: on-failure
+    expose:
+      - "5050"
+    ports:
+      - 5050:5000
+
+networks:
+  demo-chatbuilder-network:
+    external: false
+    name: demo-chatbuilder-network

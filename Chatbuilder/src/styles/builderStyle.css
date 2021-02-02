@@ -1,0 +1,398 @@
+.builderWrapper {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    flex-direction: column;
+    overflow-x: hidden;
+    font-family: "Roboto","Lucida Grande","DejaVu Sans","Bitstream Vera Sans",Verdana,Arial,sans-serif;
+    position: relative;
+}
+
+.header{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    background: white;
+    padding: 65px 0;
+    position: fixed;
+    z-index: 999;
+}
+
+.header-content {
+    display: flex;
+    flex-direction: row;
+    width: 1280px;
+    justify-content: space-between;
+}
+
+.buttonWrapper {
+    display: flex;
+    width: calc(32px + 93px + 94px + 152px + 152px);
+    flex-direction: row;
+    justify-content: space-between;
+}
+.title-wrapper{
+    display: flex;
+}
+
+.title-wrapper__logo{
+    width: 35px;
+    height: 35px;
+}
+
+.title-wrapper__title {
+  width: auto;
+  height: 38px;
+  font-size: 32px;
+  font-weight: bold;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: normal;
+  letter-spacing: normal;
+  color: #000000;
+}
+
+.resetButton, .resetButton:focus {
+  width: 93px;
+  height: 40px;
+  border-radius: 4px;
+  background-color: rgba(216, 216, 216, 0.4);
+  font-size: 15px;
+  font-weight: bold;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: normal;
+  letter-spacing: normal;
+  color: #000000;
+  outline: none;
+}
+
+.saveButton, .saveButton:focus {
+  width: 94px;
+  height: 40px;
+  border-radius: 4px;
+  background-color: #3498db;
+  font-size: 15px;
+  font-weight: bold;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: normal;
+  letter-spacing: normal;
+  color: #fffff0;
+  outline: none;
+}
+
+.nestableWrapper {
+    margin-top: 181px;
+    margin-bottom: 10px;
+    width: 1280px;
+    min-height: 300px;
+}
+
+.nestable .nestable-list {
+    margin-top: 10px;
+}
+
+ol .nestable-list li.nestable-item .nestable-item-name .itemWrapper {
+     width: 1240px;
+     padding: 0;
+     margin: 0;
+}
+
+ol .nestable-list li.nestable-item, ol .nestable-list {
+    width: 1240px;
+}
+
+ol .nestable-list li.is-draging{
+    width: 1280px;
+}
+
+.btn-primary.focus, .btn-primary:focus, .btn-primary, .btn-primary:hover {
+    background-color: #3498db;
+    border: none;
+    margin-left: 10px;
+}
+
+.itemWrapper {
+    display: flex;
+    width: 1280px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.2);
+    background-color: #ffffff;
+    height: 80px;
+}
+
+.deleteNestableItem {
+    opacity: 0;
+    height: 80px;
+    margin-top: 0px;
+    animation: fadeOn .2s linear forwards;
+}
+
+@keyframes fadeOn {
+    to {
+        height: 0px;
+    }
+}
+
+.linesId {
+    display: flex;
+    width: 44px;
+    height: 33px;
+    border-radius: 4px;
+    background-color: #3498db;
+    color: #ffffff;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 14px;
+    font-weight: 500;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: normal;
+    letter-spacing: 0.5px;
+}
+
+.form-control {
+    width: 100%;
+    height: 32px;
+    border-radius: 4px;
+    border: solid 1px #d8d8d8;
+    background-color: rgba(216, 216, 216, 0.2);
+
+    font-size: 15px;
+    font-weight: normal;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: normal;
+    letter-spacing: normal;
+    color: #000000;
+}
+
+.dropdown-toggle {
+    width: 60px;
+    height: 33px;
+    border-radius: 4px;
+    background-color: #3498db;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    border: none;
+}
+
+.dropdown-toggle:hover {
+    background-color: #3498db;
+}
+
+.btn-primary:not(:disabled):not(.disabled).active, .btn-primary:not(:disabled):not(.disabled):active, .show>.btn-primary.dropdown-toggle {
+    background-color: #3498db;
+}
+
+.addButton, .addButton:focus, .uploadChatButton, .uploadChatButton:focus {
+    width: 152px;
+    height: 40px;
+    border-radius: 4px;
+    background-color: #3498db;
+    border: none;
+    color: #ffffff;
+    outline: none;
+    font-weight: 700;
+}
+
+.idWrapper {
+    display: flex;
+    width: 200px;
+    justify-content: space-evenly;
+}
+
+.infoWrapper, .nextIdWrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.infoWrapper {
+    width: auto;
+}
+
+.nextIdWrapper {
+    width: auto;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-right: 34px;
+}
+
+.grabItem {
+    cursor: grab;
+}
+
+.idBlock, .configurationWrapper {
+    display: flex;
+    border: solid 1px;
+    height: 30px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.idBlock {
+    width: 50px;
+    height: 30px;
+}
+
+.configurationWrapper {
+    width: 80px
+}
+
+.typeWrapper, .numberWrapper {
+    display: flex;
+    width: 50%;
+    justify-content: center;
+}
+
+.typeWrapper {
+    cursor: pointer;
+}
+
+.numberWrapper {
+    font-size: 20px;
+}
+
+.menuWrapper {
+    width: 100px;
+    border: solid 2px;
+    position: absolute;
+    left: 80px;
+    top: 50px;
+    z-index: 1000;
+    background-color: #ffffff;
+}
+
+.contentWrapper, .imageWrapper{
+    display: flex;
+    width: calc(1280px - 150px - 68px - 80px);
+    min-width: 636px;
+    height: 30px;
+    justify-content: center;
+    align-items: center;
+    margin-right: 40px;
+    margin-left: 40px;
+}
+
+.imageWrapper {
+    justify-content: flex-start;
+}
+
+.imageWrapper>label {
+    margin: 0 0 0 10px;
+}
+
+.fileInput, .uploadButton {
+    display: none;
+}
+
+#file {
+    font-size: 14px;
+    align-self: center;
+}
+
+.uploadImage, .uploadImage:focus {
+    border: solid 1px;
+    outline: none;
+    cursor: pointer;
+    border-radius: 5px;
+    border: solid 1px #d8d8d8;
+    width: 150px;
+    height: 25px;
+    font-size: 14px;
+    background-color: rgba(216, 216, 216, 0.2);
+}
+
+.deleteIcon {
+    cursor: pointer;
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    font-size: 24px!important;
+    transform: rotate(45deg);
+    color:#d8d8d8;
+}
+
+.playButton {
+    font-size: 40px!important;
+    color: #3498db;
+    cursor: pointer;
+}
+
+.alert {
+    width: 30%;
+    position: fixed;
+    top: 10px;
+    left: 40%;
+    z-index: 10000;
+}
+
+.alertError {
+    width: 30%;
+    position: fixed;
+    z-index: 10000;
+    bottom: 10px;
+    right: 10px;
+}
+
+.dropdownItem{
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 230px;
+    white-space: nowrap;
+}
+
+.itemRowTextarea{
+    resize: none;
+}
+
+@media screen and (max-width: 1024px) {
+    .itemWrapper,
+    ol .nestable-list .nestable-item-name .itemWrapper {
+      width: 956px;
+    }
+  
+    ol .nestable-list li.nestable-item .nestable-item-name .itemWrapper {
+      width: 915px;
+    }
+  
+    .contentWrapper,
+    .imageWrapper {
+      min-width: 265px;
+      margin: 0 0 0 10px;
+    }
+  
+    .nestableWrapper,
+    .idWrapper,
+    ol .nestable-list li.nestable-item,
+    ol .nestable-list {
+      width: auto;
+    }
+    .nestable .nestable-list {
+      padding: 0 0 0 20px;
+    }
+    .header {
+      padding: 65px 10px;
+    }
+}
+  
+@media screen and (max-width: 768px) {
+    .itemWrapper,
+    ol .nestable-list .nestable-item-name .itemWrapper {
+      width: 756px;
+    }
+  
+    ol .nestable-list li.nestable-item .nestable-item-name .itemWrapper {
+      width: 715px;
+    }
+}

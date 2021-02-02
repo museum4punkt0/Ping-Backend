@@ -1,0 +1,163 @@
+.chatsWrapper  {
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    position: fixed;
+    right: 0;
+    height: 20px;
+    bottom: 0px;
+    background-color: #ffffff;
+}
+
+.iconWrapper {
+  display: flex;
+  height: 20px;
+  background-color: #ffffff;
+}
+
+.chatsWrapper.false {
+  height: 30px;
+  transition: height 0.2s linear;
+}
+
+.messagesWrapper.false {
+  overflow: visible;
+}
+
+.inputWrapper.false {
+  opacity: 0;
+  transition: opacity 0.1s linear;
+}
+
+.chatsWrapper.true {
+  height: 60%;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.2);
+  transition: height 0.2s linear;
+}
+
+.messagesWrapper {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 150px);
+    overflow: auto;
+    padding-top: 50px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: auto 100%;
+}
+
+.inputWrapper {
+    display: flex;
+    background-color: #3498db;
+    height: 250px;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.button {
+    width: 70%;
+    min-height: 15px;
+    height: auto;
+    background-color: #ffffff;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    color: #000000;
+    font-size: 14px;
+    margin: 5px;
+    box-shadow: 0 4px 2px -2px #000000;
+}
+
+.messageBlocks, .userMessageBlocks {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    max-width: 80%;
+    padding: 10px 10px 10px 10px;
+    margin-bottom: 15px;
+    font-weight: 700;
+    margin-left: 5px;
+    border-radius: 4px;
+    height: auto;
+    border: solid 1px #d8d8d8;
+    background-color: rgba(216, 216, 216, 0.2);
+    min-height: min-content;
+}
+
+.messageBlocks {
+    color: #000000;
+}
+
+.typingBlocks {
+  display: flex;
+  flex-direction: row;
+  height: 35px;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  margin-left: 5px;
+}
+
+.messageText {
+    margin: 0!important;
+}
+
+.userMessageBlocks {
+    background-color:  #3498db;;
+    color: #ffffff;
+    align-self: flex-end;
+    border-radius: 4px;
+    border: solid 1px #d8d8d8;
+}
+
+.image {
+    width: 35px;
+    height: 35px;
+    padding: 5px;
+}
+
+.fullImage {
+    display: flex;
+    padding: 5px;
+    width: 300px;
+    height: 300px;
+    object-fit: cover;
+    background-position: center;
+}
+
+.typing-dot {
+  height: 5px;
+  width: 5px;
+  border-radius: 100%;
+  margin-left: 4px;
+  display: inline-block;
+  background-color: #000000;
+  animation: 1.2s typing-dot ease-in-out infinite;
+}
+
+.typing-dot:nth-of-type(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-dot:nth-of-type(3) {
+  animation-delay: 0.25s;
+}
+@keyframes typing-dot {
+  15% {
+    transform: translateY(-35%);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(0%);
+    opacity: 1;
+  }
+}
+
+.iconChat {
+  font-size: 32px!important;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+}

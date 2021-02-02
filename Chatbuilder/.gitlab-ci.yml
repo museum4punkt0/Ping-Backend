@@ -1,0 +1,81 @@
+stages:
+  - build
+  - deploy
+
+release images:
+  stage: build
+  script:
+    - chmod +x gitlab-ci/docker_builds/release_images.sh
+    - gitlab-ci/docker_builds/release_images.sh
+  only:
+    - /^(release\/\d{4}-\d{2}-\d{2})$/
+  tags:
+    - codeclimate
+
+latest images:
+  stage: build
+  script:
+    - chmod +x gitlab-ci/docker_builds/latest_images.sh
+    - gitlab-ci/docker_builds/latest_images.sh
+  only:
+    - /^(staging)$/
+  tags:
+    - codeclimate
+
+deploy_demo:
+  image:
+    name: hashicorp/packer:full
+    entrypoint: ['']
+  stage: deploy
+  script:
+    - mkdir -p $HOME/.ssh
+    - echo $HOME
+    - echo "$SSH_PRIVATE_KEY" > $HOME/.ssh/cb.pem
+    - echo $SSH_PRIVATE_KEY
+    - chmod 600 $HOME/.ssh/cb.pem
+    - echo $HOME
+    - version=`echo "$CI_COMMIT_REF_NAME" | sed "s/\//-/g"`
+    - echo $CI_COMMIT_REF_NAME
+    - echo "______________________________________________________"
+    - |
+      packer build -var "release_tag=$version" \
+      -var 'node_env=demo' \
+      -var 'project=chatbuilder' \
+      packer/deploy.json
+  environment:
+    name: demo
+  when: manual
+  only:
+    - /^(release\/\d{4}-\d{2}-\d{2})$/
+  tags:
+    - codeclimate
+
+deploy_staging:
+  image:
+    name: hashicorp/packer:full
+    entrypoint: ['']
+  stage: deploy
+  script:
+    - mkdir -p $HOME/.ssh
+    - echo $HOME
+    - echo "$SSH_PRIVATE_KEY" > $HOME/.ssh/cb.pem
+    - echo $SSH_PRIVATE_KEY
+    - chmod 600 $HOME/.ssh/cb.pem
+    - echo $HOME
+    - version=`echo "$CI_COMMIT_REF_NAME" | sed "s/\//-/g"`
+    - echo $CI_COMMIT_REF_NAME
+    - echo "______________________________________________________"
+    - |
+      packer build \
+      -var 'release_tag=staging' \
+      -var 'node_env=staging' \
+      -var 'project=chatbuilder' \
+      packer/deploy.json
+  environment:
+    name: staging
+  when: manual
+  only:
+    - /^(staging)$/
+  tags:
+    - codeclimate
+

@@ -1,0 +1,38 @@
+{
+  "variables": {
+    "server_host": "{{env `CB_HOST`}}",
+    "server_username": "{{env `CB_USERNAME`}}",
+    "server_private_key_path": "{{env `HOME`}}/.ssh/cb.pem",
+    "project_dir": "/home/chatbuilder/data/chatbuilder"
+  },
+  "builders": [{
+    "type": "null",
+    "ssh_host": "{{user `server_host`}}",
+    "ssh_username": "{{user `server_username`}}",
+    "ssh_private_key_file": "{{user `server_private_key_path`}}",
+    "communicator": "ssh"
+  }],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "docker-compose.{{user `node_env`}}.yaml",
+      "destination": "{{user `project_dir`}}/docker-compose.{{user `node_env`}}.yaml"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "docker system prune -af"
+      ]
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "composes_folder={{user `project_dir`}}/",
+        "release_tag={{user `release_tag`}}",
+        "node_env={{user `node_env`}}",
+        "project={{user `project`}}"
+      ],
+      "script": "packer/deploy.sh"
+    }
+  ]
+}
