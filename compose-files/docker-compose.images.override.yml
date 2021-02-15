@@ -1,0 +1,5 @@
+version: "3.7"
+
+services:
+  backend:
+    image: registry.teamvoy.com/mein-object/python-backend/backend:latest

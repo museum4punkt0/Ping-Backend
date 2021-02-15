@@ -1,0 +1,22 @@
+version: "3.7"
+
+services:
+  db:
+    environment:
+     - DB_USERNAME=prod_meinobjekt
+     - DB_PASSWORD=Apc5QbAAkQ6p4m
+     - DB_NAME=prod_meinobjekt
+     - SECRET_KEY=changeItOnTheServer
+     - POSTGRES_USER=prod_meinobjekt
+     - POSTGRES_PASSWORD=Apc5QbAAkQ6p4m
+     - POSTGRES_NAME=prod_meinobjekt
+
+  backend:
+    environment:
+     - DB_USERNAME=prod_meinobjekt
+     - DB_PASSWORD=Apc5QbAAkQ6p4m
+     - DB_NAME=prod_meinobjekt
+     - SECRET_KEY=changeItOnTheServer
+     - POSTGRES_USER=prod_meinobjekt
+     - POSTGRES_PASSWORD=Apc5QbAAkQ6p4m
+     - POSTGRES_NAME=prod_meinobjekt

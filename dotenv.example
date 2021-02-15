@@ -1,0 +1,6 @@
+ENVIRONMENT=local
+DB_USERNAME=application
+DB_PASSWORD=application
+DB_NAME=application
+DB_HOST=localhost
+SECRET_KEY=changeItOnTheServer

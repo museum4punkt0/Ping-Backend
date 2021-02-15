@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  db:
+    image: postgis/postgis:12-2.5-alpine
+
+  backend:
+    build: ./backend
+    ports:
+      - 8000:8000
+    command: ./wait-for-it.sh db:5432 -- ./entrypoint.sh
+    volumes:
+      - ./backend:/code

@@ -1,0 +1,38 @@
+- name: server
+  hosts: all
+  become: True
+  gather_facts: no
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    project_name: "mein-object"
+  pre_tasks:
+    - name: Wait for system to become reachable
+      wait_for_connection:
+
+    - name: Gather facts for first time
+      setup:
+    - apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 86400 #One day
+  roles:
+  tasks:
+    - name: Creates directory
+      file:
+        path: /var/backups
+        state: directory
+
+    - name: example copying file with owner and permissions
+      copy:
+        src: ../backups/meinobject.sql
+        dest: /var/backups/
+
+
+    - name: remove db
+      shell: "docker exec $(docker ps -q -f name=mein-object-stack_db) dropdb -U prod_meinobjekt prod_meinobjekt"
+
+    - name: create empty db
+      shell: "docker exec $(docker ps -q -f name=mein-object-stack_db) createdb -U prod_meinobjekt prod_meinobjekt"
+
+    - name: restore backup
+      shell: "docker exec $(docker ps -q -f name=mein-object-stack_db) psql -U prod_meinobjekt -d prod_meinobjekt -f /var/backups/meinobject.sql"

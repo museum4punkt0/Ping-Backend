@@ -1,0 +1,41 @@
+version: "3.7"
+
+services:
+  db:
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=$DB_PASSWORD
+      - POSTGRES_DB=$DB_NAME
+      - POSTGRES_USER=$DB_USERNAME
+    env_file:
+      - .env
+    restart: always
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    depends_on:
+      - db
+    command: ./wait-for-it.sh db:5432 -- ./entrypoint.prod.sh
+    expose:
+      - 8000
+    environment:
+      - DB_HOST=db
+      - ENVIRONMENT=production
+    env_file:
+      - .env
+
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+    depends_on:
+      - backend
+
+
+volumes:
+  postgres_data:

@@ -1,0 +1,37 @@
+stages:
+  - build
+  - test
+
+before_script:
+  - apk update
+  - apk upgrade
+  - apk add make
+  - touch .env
+
+build nginx docker:
+  stage: build
+  script:
+    - make build-nginx
+  tags:
+    - codeclimate
+
+build backend docker:
+  stage: build
+  environment:
+    name: staging
+  script:
+    - ./scripts/build-backend.sh
+  tags:
+    - codeclimate
+
+test:
+  image:
+    name: docker/compose:alpine-1.27.4
+  stage: test
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.teamvoy.com
+    - cp dotenv.example .env
+    - make flush
+    - make test-on-images
+  tags:
+    - codeclimate

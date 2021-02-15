@@ -1,0 +1,21 @@
+version: "3.7"
+
+services:
+  db:
+    image: postgis/postgis:12-2.5-alpine
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=$DB_PASSWORD
+      - POSTGRES_DB=$DB_NAME
+      - POSTGRES_USER=$DB_USERNAME
+    env_file:
+      - .env
+
+  backend:
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+    env_file:
+      - .env

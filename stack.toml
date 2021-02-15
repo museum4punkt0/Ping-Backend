@@ -1,0 +1,38 @@
+version: "3.7"
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    volumes:
+      - ./../postgres:/var/lib/postgresql/data
+    networks:
+      - default
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_DB=meinobject
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    hostname: backend
+    command: "/app/manage.py runserver 0.0.0.0:8000"
+    environment:
+      - ENVIRONMENT=local
+      - DJANGO_SECRET_KEY="secretkey"
+      - APP_PATH=/app
+      - POSTGRES_HOST=postgres
+      - POSTGRES_NAME=meinobject
+      - POSTGRES_USER=postgres
+      - WEB_APP_USER_KEY="user_key"
+      - WEB_APP_USER_SECRET="app_key"
+    networks:
+      - default
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres
+
+

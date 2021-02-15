@@ -1,0 +1,34 @@
+server {
+  client_max_body_size 100M;
+  listen 80;
+
+  # Uncomment when you will need HTTPS redirect
+  #if ($http_x_forwarded_proto = 'http') {
+  #  return 301 https://$host$request_uri;   
+  #}
+
+  ssl_session_cache   shared:SSL:40m;
+  ssl_session_timeout 4h;
+  keepalive_timeout   70;
+
+  # Enable session tickets
+  ssl_session_tickets on;
+
+  ssl_prefer_server_ciphers on;
+  ssl_ciphers 'kEECDH+ECDSA+AES128 kEECDH+ECDSA+AES256 kEECDH+AES128 kEECDH+AES256 +SHA !aNULL !eNULL !LOW !MD5 !EXP !DSS !PSK !SRP !kECDH !CAMELLIA !RC4 !SEED';
+
+
+  # Allows all modern and legacy clients to connect over TLS.
+  ssl_protocols TLSv1.2 TLSv1.1 TLSv1;
+
+  location / {
+    proxy_pass  http://${SERVICE_NAME}:8000;
+    proxy_set_header   Connection "";
+    proxy_http_version 1.1;
+    proxy_set_header        Host            $host;
+    proxy_set_header        X-Real-IP       $remote_addr;
+    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+
+
+}

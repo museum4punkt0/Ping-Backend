@@ -1,0 +1,5 @@
+version: "3.7"
+
+services:
+  backend:
+    command: ./wait-for-it.sh db:5432 -- ./manage.py test
