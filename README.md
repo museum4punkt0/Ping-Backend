@@ -216,4 +216,4 @@ Humboldt-Universität zu Berlin, gamelab.berlin am Helmholtz-Zentrum für Kultur
 
 
 # Lizenz 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![LICENSE.md](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/museum4punkt0/Mein-Objekt-Backend/blob/master/LICENSE.md)
