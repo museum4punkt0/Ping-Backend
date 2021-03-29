@@ -12,7 +12,7 @@ Backend für „Ping! Die Museumsapp“
 
 „Ping! Die Museumsapp“ ist eine Marke der Stiftung Humboldt Forum im Berliner Schloss. Die Marke kann von anderen Institutionen, die die App einsetzen, verwendet werden. In diesem Fall wird um Angabe des folgenden Nachweises gebeten:
 
-„Ping! Die Museumsapp“ ist eine Marke der Stiftung Humboldt Forum im Berliner Schloss.
+    „Ping! Die Museumsapp“ ist eine Marke der Stiftung Humboldt Forum im Berliner Schloss.
 
 # Kurzbeschreibung
 Dieses Repository beinhaltete das Backend für Ping! Die Museumsapp und ist Teil des entsprechenden Meta-Repositories: https://github.com/museum4punkt0/Ping-Die-Museumsapp
