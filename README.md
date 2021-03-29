@@ -1,5 +1,5 @@
 Ping! Die Museumsapp
-Copyright (C) 2021 Stiftung Humboldt Forum im Berliner Schloss
+Copyright (C) 2021  Stiftung Humboldt Forum im Berliner Schloss; entwickelt von Humboldt Innovation GmbH, Thomas Lilge, Christian Stein, im Rahmen des Verbundprojekts museum4punkt0.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
@@ -8,7 +8,11 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 # Name der Anwendung
-Backend für Ping! Die Museumsapp
+Backend für „Ping! Die Museumsapp“
+
+„Ping! Die Museumsapp“ ist eine Marke der Stiftung Humboldt Forum im Berliner Schloss. Die Marke kann von anderen Institutionen, die die App einsetzen, verwendet werden. In diesem Fall wird um Angabe des folgenden Nachweises gebeten:
+
+„Ping! Die Museumsapp“ ist eine Marke der Stiftung Humboldt Forum im Berliner Schloss.
 
 # Kurzbeschreibung
 Dieses Repository beinhaltete das Backend für Ping! Die Museumsapp und ist Teil des entsprechenden Meta-Repositories: https://github.com/museum4punkt0/Ping-Die-Museumsapp
