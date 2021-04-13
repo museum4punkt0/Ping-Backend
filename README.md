@@ -25,7 +25,8 @@ Das Projekt museum4punkt0 wird gefördert durch die Beauftragte der Bundesregier
 6. Technologiebeschreibung
 7. Installation
 8. Credits
-9. Lizenz 
+9. Markenname
+10. Lizenz 
 
 # Meinobjekt backend
 # Technologiebeschreibung
